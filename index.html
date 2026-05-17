@@ -36,21 +36,23 @@
 </div>
 
 <div class="mov" id="modalDemo">
-<div class="mox" style="max-width:520px">
+<div class="mox" style="max-width:620px">
 <div class="moh"><h3 style="color:var(--rojo)"><i class="ri-information-line"></i> Demo — Versión Conceptual</h3><span class="xb" onclick="closeDemo()">&times;</span></div>
-<div class="mob" style="padding:24px 22px;line-height:1.7">
+<div class="mob" style="padding:24px 24px;line-height:1.7">
 <div style="background:var(--rojo-l);border-radius:12px;padding:16px;margin-bottom:18px;display:flex;gap:12px;align-items:flex-start">
 <i class="ri-lightbulb-flash-line" style="font-size:22px;color:var(--rojo);flex-shrink:0;margin-top:2px"></i>
 <div><p style="font-size:13px;color:var(--txt);margin:0">Este prototipo funcional representa una <b>primera aproximación visual y operativa</b> del sistema ERP para Decorcerámica Ipiales. Su propósito es <b>demostrar capacidades</b> y validar flujos de trabajo antes del desarrollo completo.</p></div>
 </div>
 <p style="font-size:13px;color:var(--txt);margin-bottom:14px">Los datos mostrados son simulados, y las funcionalidades reflejan únicamente el alcance de la <b>Fase 1</b> del proyecto:</p>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Pedidos de venta</div>
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Inventario multi-bodega</div>
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Órdenes de compra</div>
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Transferencias entre bodegas</div>
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Control de vencimientos</div>
-<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Roles y permisos</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Pedidos de venta</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Creación, asignación de bodega óptima y despacho</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Inventario multi-bodega</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Stock en tiempo real por bodega con alertas</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Órdenes de compra</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Gestión de OC: tránsito, recepción y reclamación</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Transferencias entre bodegas</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Flujo completo: solicitar, autorizar, despachar, recibir</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Control de vencimientos</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Monitoreo de fechas de caducidad y alertas</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Roles y permisos</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Acceso diferenciado por rol del usuario</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Control de diferencia de inventario</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Ajustes por conteo físico con castigos y excedentes</div></div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px 12px;color:var(--success-txt)"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600"><i class="ri-checkbox-circle-line"></i> Conversión de unidades</div><div style="font-size:10.5px;color:var(--success-txt);opacity:.75;margin:3px 0 0 22px">Equivalencias entre unidades de medida</div></div>
 </div>
 <div style="background:var(--info-bg);border-radius:10px;padding:14px;font-size:12.5px;color:var(--info-txt);display:flex;gap:10px">
 <i class="ri-chat-1-line" style="font-size:18px;flex-shrink:0;margin-top:1px"></i>
