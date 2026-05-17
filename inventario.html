@@ -9,13 +9,13 @@
 <style>
 .inv-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .inv-table{width:100%}
-.inv-th,.inv-tr{display:grid;grid-template-columns:6px 120px minmax(140px,1fr) 95px 130px 95px 95px 85px 80px;align-items:center;gap:0}
+.inv-th,.inv-tr{display:grid;grid-template-columns:44px 110px minmax(130px,1fr) 85px 120px 85px 85px 80px 80px;align-items:center;gap:0}
 .inv-th{background:var(--neutral-bg);font-size:9.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--line)}
 .inv-th>span{padding:9px 6px}
 .inv-tr{border-bottom:1px solid #F1F5F9;transition:.1s;font-size:12px}
 .inv-tr:hover{background:#FAFBFC}
 .inv-tr>div{padding:8px 6px;display:flex;align-items:center;gap:5px}
-.inv-tr .td-img{width:6px;height:36px;border-radius:0 4px 4px 0;flex-shrink:0;padding:0}
+.inv-tr .td-img{width:44px;height:44px;flex-shrink:0;padding:0;overflow:hidden}
 .inv-tr .td-sku{font-size:10.5px;color:var(--ph);font-weight:600;font-family:monospace}
 .inv-tr .td-n{font-weight:600;color:var(--ink);font-size:12px}
 .inv-tr .td-cat{font-size:9px;font-weight:600;color:var(--ph);background:var(--neutral-bg);padding:2px 6px;border-radius:4px;white-space:nowrap}
@@ -40,6 +40,8 @@
 .alarm-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
 .inv-bar{height:3px;background:var(--neutral-bg);border-radius:2px;overflow:hidden;min-width:40px}
 .inv-bar span{display:block;height:100%;border-radius:2px}
+.filter-tag{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);transition:.12s}
+.filter-tag:hover{border-color:var(--rojo);background:var(--rojo-l);color:var(--rojo)}
 </style>
 </head>
 <body>
@@ -74,11 +76,9 @@ let selCat='Todos',editSku=null;
 
 function renderInv(){
   const bg=DB.bodegas.find(b=>b.id===selBodega);
-  const bgPills=DB.bodegas.map(b=>'<div class="inv-pill '+(b.id===selBodega?'sel':'')+'" onclick="selBodega=\''+b.id+'\';selCat=\'Todos\';renderInv()"><div class="dot '+b.estado+'"></div>'+b.id+' <small>'+(b.n.split(' - ')[1]||'')+'</small></div>').join('');
   const cats=[...new Set(DB.productos.map(p=>p.cat))];
-  const catPills='<div class="inv-cat '+(selCat==='Todos'?'sel':'')+'" onclick="selCat=\'Todos\';renderInv()">Todos</div>'+cats.map(c=>'<div class="inv-cat '+(c===selCat?'sel':'')+'" onclick="selCat=\''+c+'\';renderInv()">'+c+'</div>').join('');
   const filtered=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
-  const bdCols=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
+  const bgName=DB.bodegas.find(b=>b.id===selBodega)?.n||selBodega;
 
   const agotados=filtered.filter(p=>stockBodega(selBodega,p.sku)===0);
   const bajoStock=filtered.filter(p=>{const s=stockBodega(selBodega,p.sku);return s>0&&s<100});
@@ -87,18 +87,31 @@ function renderInv(){
     (bajoStock.length?'<div class="alarm-card bajo"><i class="ri-alert-line alarm-ic"></i><div><div class="alarm-n">'+bajoStock.length+'</div><div class="alarm-l">Stock bajo · '+bajoStock.map(p=>'<span style="font-size:10px;opacity:.8">'+p.n+' ('+fmt(stockBodega(selBodega,p.sku))+' '+p.u+')</span>').join(', ')+'</div></div></div>':'')+
   '</div>':'';
 
-  const rows=filtered.map((p,i)=>{
+  const filterTag='<span class="filter-tag" onclick="modalFiltros()"><i class="ri-store-2-line"></i> '+selBodega+' <span style="opacity:.6">· '+(selCat==='Todos'?'Todo':selCat)+'</span> <i class="ri-arrow-down-s-line"></i></span>';
+
+  const rows=filtered.map(p=>{
     const stk=stockBodega(selBodega,p.sku);const tot=stockTotal(p.sku);
     const pct=tot>0?Math.round(stk/tot*100):0;
-    const col=bdCols[i%bdCols.length];
     const conv=p.caja?'<span style="display:block">~'+fmt(Math.round(stk/p.caja))+' '+p.cajaN+'</span><span style="color:var(--ph)">1 '+p.cajaN+' = '+p.caja+' '+p.u+'</span>':'<span style="color:var(--ph)">Sin conversión</span>';
     const barCol=stk===0?'var(--danger-txt)':stk<100?'var(--warn-txt)':'var(--success-txt)';
     const bar='<div class="inv-bar"><span style="width:'+pct+'%;background:'+barCol+'"></span></div>';
-    return '<div class="inv-tr"><div class="td-img" style="background:'+col+'"></div><div class="td-sku">'+p.sku+'</div><div style="flex-direction:column;align-items:flex-start;gap:1px"><span class="td-n">'+p.n+'</span>'+bar+'</div><div><span class="td-cat">'+p.cat+'</span></div><div class="td-det" style="flex-direction:column;align-items:flex-start;gap:1px">'+conv+'</div><div style="flex-direction:column;align-items:flex-start;gap:0"><span class="td-q">'+fmt(stk)+'</span><span style="font-size:9px;color:var(--mut)">'+p.u+'</span></div><div class="td-q2">'+fmt(Math.round(stk/(p.caja||1)))+' <span style="font-size:9px;color:var(--mut)">'+(p.cajaN||'—')+'</span></div><div class="td-cost" style="flex-direction:column;align-items:flex-start;gap:0"><span>'+money(p.costo||0)+'</span><span style="font-size:9px;color:var(--ph)">'+((p.precio&&p.costo)?' margen '+Math.round((1-p.costo/p.precio)*100)+'%':'')+'</span></div><div class="td-acts"><button class="td-edit" onclick="modalEditarProducto(\''+p.sku+'\')" title="Editar"><i class="ri-pencil-line"></i></button><button class="td-detail" onclick="verDetalleProducto(\''+p.sku+'\')" title="Detalle"><i class="ri-eye-line"></i></button></div></div>';
+    const imgSrc='https://picsum.photos/seed/'+p.sku+'/44/44';
+    return '<div class="inv-tr"><div class="td-img"><img src="'+imgSrc+'" onerror="this.style.display=\'none\';this.parentNode.style.background=\'var(--rojo)\'" style="width:44px;height:44px;object-fit:cover;border-radius:0 6px 6px 0" loading="lazy"></div><div class="td-sku">'+p.sku+'</div><div style="flex-direction:column;align-items:flex-start;gap:1px"><span class="td-n">'+p.n+'</span>'+bar+'</div><div><span class="td-cat">'+p.cat+'</span></div><div class="td-det" style="flex-direction:column;align-items:flex-start;gap:1px">'+conv+'</div><div style="flex-direction:column;align-items:flex-start;gap:0"><span class="td-q">'+fmt(stk)+'</span><span style="font-size:9px;color:var(--mut)">'+p.u+'</span></div><div class="td-q2">'+fmt(Math.round(stk/(p.caja||1)))+' <span style="font-size:9px;color:var(--mut)">'+(p.cajaN||'—')+'</span></div><div class="td-cost" style="flex-direction:column;align-items:flex-start;gap:0"><span>'+money(p.costo||0)+'</span><span style="font-size:9px;color:var(--ph)">'+((p.precio&&p.costo)?' margen '+Math.round((1-p.costo/p.precio)*100)+'%':'')+'</span></div><div class="td-acts"><button class="td-edit" onclick="modalEditarProducto(\''+p.sku+'\')" title="Editar"><i class="ri-pencil-line"></i></button><button class="td-detail" onclick="verDetalleProducto(\''+p.sku+'\')" title="Detalle"><i class="ri-eye-line"></i></button></div></div>';
   }).join('');
-  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>'+DB.productos.length+' productos · Gestión por unidad base con conversión a unidad secundaria de despacho</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalEditarProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button></div></div><div class="body">'+alarmHtml+'<div class="inv-top"><div class="inv-pills">'+bgPills+'</div></div><div class="inv-cats">'+catPills+'</div>'+(rows?'<div class="inv-wrap"><div class="inv-table"><div class="inv-th"><span></span><span>SKU</span><span>Producto</span><span>Categoría</span><span>Conversión</span><span>Stock '+bg.id+'</span><span>Stock sec.</span><span>Costo</span><span>Acción</span></div>'+rows+'</div></div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
+  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>'+DB.productos.length+' productos · Gestión por unidad base con conversión a unidad secundaria de despacho</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalEditarProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button></div></div><div class="body">'+alarmHtml+'<div class="inv-top">'+filterTag+'<span style="font-size:11px;color:var(--mut)">'+filtered.length+' producto'+(filtered.length!==1?'s':'')+'</span></div>'+(rows?'<div class="inv-wrap"><div class="inv-table"><div class="inv-th"><span>Foto</span><span>SKU</span><span>Producto</span><span>Categoría</span><span>Conversión</span><span>Stock</span><span>Stock sec.</span><span>Costo</span><span>Acción</span></div>'+rows+'</div></div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
 }
 renderInv();
+
+function modalFiltros(){
+  const bgPills=DB.bodegas.map(b=>'<div class="inv-pill '+(b.id===selBodega?'sel':'')+'" onclick="selBodega=\''+b.id+'\';closeMod();renderInv()"><div class="dot '+b.estado+'"></div>'+b.id+' <small>'+(b.n.split(' - ')[1]||'')+'</small></div>').join('');
+  const cats=[...new Set(DB.productos.map(p=>p.cat))];
+  const catPills='<div class="inv-cat '+(selCat==='Todos'?'sel':'')+'" onclick="selCat=\'Todos\';closeMod();renderInv()">Todos</div>'+cats.map(c=>'<div class="inv-cat '+(c===selCat?'sel':'')+'" onclick="selCat=\''+c+'\';closeMod();renderInv()">'+c+'</div>').join('');
+  openMod('<i class="ri-filter-3-line"></i> Filtrar inventario',
+    '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Bodega</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+bgPills+'</div></div>'+
+    '<div><div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Categoría</div><div style="display:flex;gap:5px;flex-wrap:wrap">'+catPills+'</div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button>'
+  );
+}
 
 function modalEditarProducto(sku){
   const p=sku?DB.productos.find(x=>x.sku===sku):null;
