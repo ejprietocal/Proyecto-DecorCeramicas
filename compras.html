@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Órdenes de Compra</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/draft.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('compras');
+
+function renderComp(){
+  const list=DB.compras.map(oc=>{
+    const pv=getProv(oc.provId);
+    const val=ocValor(oc);
+    const linesH=oc.items.map(it=>'<div class="oc-line"><span>'+it.n+'</span><span>'+fmt(it.cant)+' '+it.u+' · '+money(it.cant*it.precio)+'</span></div>').join('');
+    const acciones=oc.estado==='transito'
+      ?'<button class="btn btn-blue btn-sm" onclick="recibirOC(\''+oc.id+'\');window.location.reload()"><i class="ri-inbox-unarchive-line"></i> Recibir en bodega</button>'
+      :oc.estado==='recibida'
+      ?'<a href="reclamar.html" class="btn btn-orange btn-sm" style="text-decoration:none"><i class="ri-hand-coin-line"></i> Ir a reclamar</a>'
+      :'<span class="badge bg"><i class="ri-checkbox-circle-line"></i> Reclamada por '+oc.reclPor+'</span>';
+    return '<div class="oc"><div class="oc-h"><div><div class="oc-id">'+oc.id+'</div><div class="oc-prov"><i class="ri-truck-line"></i> '+pv.n+' · '+oc.fecha+'</div></div><span class="badge '+compEstBadge(oc.estado)+'">'+compEstLabel(oc.estado)+'</span></div><div class="oc-items">'+linesH+'</div><div class="oc-f"><b style="font-size:14px">'+money(val)+'</b>'+acciones+'</div></div>';
+  }).join('');
+  $('pg').innerHTML='<div class="page th-comp"><div class="hero"><div class="hero-ic"><i class="ri-shopping-cart-2-line"></i></div><h1>Órdenes de Compra</h1><p>Compras a proveedores. Flujo: Generar OC → Llega en tránsito → Recibir → Reclamar → Entra al inventario.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaOC()"><i class="ri-add-line"></i> Nueva OC</button></div></div><div class="body">'+(DB.compras.length?'<div class="oc-list">'+list+'</div>':'<div class="empty"><i class="ri-shopping-cart-2-line"></i><h3>Sin órdenes</h3><p>Crea tu primera orden de compra. Primero necesitas un proveedor registrado.</p></div>')+'</div></div>';
+}
+renderComp();
+
+function modalNuevaOC(){
+  if(!DB.proveedores.length){toast('Crea un proveedor primero','warn');return}
+  draft={items:[{sku:'',cant:1}]};
+  const pOpts=DB.proveedores.map(p=>'<option value="'+p.id+'">'+p.n+' ('+p.ciudad+')</option>').join('');
+  openMod('<i class="ri-shopping-cart-2-line"></i> Nueva Orden de Compra',
+    '<div class="note"><i class="ri-information-line"></i> Solo puedes comprarle a proveedores ya registrados.</div><div class="ff"><label>Proveedor</label><select id="dProv"><option value="">— Selecciona —</option>'+pOpts+'</select></div><div class="ff"><label>Productos a comprar</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:#4338CA;color:#fff" onclick="crearOC()"><i class="ri-check-line"></i> Generar OC</button>'
+  );renderLines();
+}
+function crearOC(){
+  const provId=$('dProv').value;
+  if(!provId){toast('Selecciona un proveedor','warn');return}
+  if(!draft.items[0]?.sku){toast('Agrega al menos un producto','warn');return}
+  const id='OC-'+OC_SEQ++;
+  const items=draft.items.filter(i=>i.sku).map(i=>{const p=getProd(i.sku);return{sku:i.sku,n:p?.n||i.sku,cant:i.cant,u:p?.u||'unid',precio:p?.precio||0}});
+  DB.compras.unshift({id,provId,fecha:now(),estado:'transito',recibPor:null,reclPor:null,items});
+  closeMod();saveDB();renderComp();toast('OC '+id+' generada. En tránsito hacia bodega.','ok');
+}
+</script>
+</body>
+</html>

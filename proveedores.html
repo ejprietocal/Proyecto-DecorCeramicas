@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Proveedores</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('proveedores');
+
+function renderProv(){
+  const cards=DB.proveedores.map(p=>{
+    const init=p.n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    return '<div class="pr-card"><div class="pr-av">'+init+'</div><div class="pr-n">'+p.n+'</div><div class="pr-cat">'+p.cat+'</div><div class="pr-rate">★ '+p.calif+'</div><div class="pr-info"><div class="pr-row"><i class="ri-map-pin-line"></i> '+p.ciudad+'</div><div class="pr-row"><i class="ri-user-line"></i> '+p.contacto+'</div><div class="pr-row"><i class="ri-phone-line"></i> '+p.tel+'</div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="badge '+(p.estado==='Activo'?'bg':'by')+'">'+p.estado+'</span><a href="compras.html" class="btn btn-sm" style="background:#4338CA;color:#fff;text-decoration:none"><i class="ri-shopping-cart-2-line"></i> Generar OC</a></div></div>';
+  }).join('');
+  $('pg').innerHTML='<div class="page th-prov"><div class="hero"><div class="hero-ic"><i class="ri-truck-line"></i></div><h1>Proveedores</h1><p>Directorio de proveedores. Debes registrar un proveedor antes de generarle una orden de compra.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoProv()"><i class="ri-add-line"></i> Nuevo Proveedor</button></div></div><div class="body">'+(DB.proveedores.length?'<div class="prov-grid">'+cards+'</div>':'<div class="empty"><i class="ri-truck-line"></i><h3>Sin proveedores</h3><p>Crea tu primer proveedor para poder generar órdenes de compra.</p></div>')+'</div></div>';
+}
+renderProv();
+
+function modalNuevoProv(){
+  openMod('<i class="ri-truck-line"></i> Nuevo Proveedor',
+    '<div class="ff"><label>Nombre del proveedor</label><input id="dpNombre" placeholder="Empresa o persona"></div><div class="ff2"><div class="ff"><label>Categoría</label><input id="dpCat" placeholder="Ej: Pisos y azulejos"></div><div class="ff"><label>Ciudad</label><input id="dpCiudad" placeholder="Ej: Ipiales"></div></div><div class="ff2"><div class="ff"><label>Contacto</label><input id="dpContact" placeholder="Nombre"></div><div class="ff"><label>Teléfono</label><input id="dpTel" placeholder="300 000 0000"></div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-green btn-sm" onclick="crearProv()"><i class="ri-check-line"></i> Guardar proveedor</button>'
+  );
+}
+function crearProv(){
+  const n=$('dpNombre').value.trim();if(!n){toast('Ingresa el nombre','warn');return}
+  const id='PR-'+String(DB.proveedores.length+1).padStart(2,'0');
+  DB.proveedores.push({id,n,cat:$('dpCat').value||'General',ciudad:$('dpCiudad').value||'—',contacto:$('dpContact').value||'—',tel:$('dpTel').value||'—',calif:4.0,estado:'Activo'});
+  closeMod();saveDB();renderProv();toast('Proveedor '+n+' creado. Ya puedes generarle una OC.','ok');
+}
+</script>
+</body>
+</html>

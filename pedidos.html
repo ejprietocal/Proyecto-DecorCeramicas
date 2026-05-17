@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Pedidos de Venta</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/draft.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('pedidos');
+$('pg').innerHTML=function(){
+  const tickets=DB.pedidos.map(pd=>{
+    const isRes=pd.estado==='resagado';
+    const itemsH=pd.items.map(it=>{
+      const pr=getProd(it.sku)||{n:it.sku,u:'unid'};
+      const stk=stockTotal(it.sku);
+      return '<div class="ticket-item"><div><div class="t-it-n">'+pr.n+'</div><div class="t-it-d">Pedido: '+fmt(it.cant)+' '+pr.u+' · Stock total: '+fmt(stk)+' '+pr.u+(it.bodega?' · Bodega asignada: <b>'+it.bodega+'</b>':'')+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(it.asig>0?'<span class="badge bg">✓ '+fmt(it.asig)+' '+pr.u+'</span>':'')+(it.falt>0?'<span class="badge br">Faltante: '+fmt(it.falt)+' '+pr.u+'</span>':'')+'</div></div>';
+    }).join('');
+    const acciones=pd.estado==='despachado'?'<span class="badge bg"><i class="ri-checkbox-circle-line"></i> Entregado por '+pd.despPor+'</span>'
+      :pd.estado==='asignado'?'<button class="btn btn-green btn-sm" onclick="despacharPedido(\''+pd.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-send-plane-line"></i> Despachar</button>'
+      :pd.estado==='resagado'?'<a href="transferencias.html" class="btn btn-sm" style="background:#B45309;color:#fff;text-decoration:none" title="Solicitar transferencia para cubrir faltantes"><i class="ri-arrow-left-right-line"></i> Cubrir con transferencia</a>'
+      :'<button class="btn btn-blue btn-sm" onclick="asignarStock(\''+pd.id+'\');window.location.reload()"><i class="ri-refresh-line"></i> Revisar stock</button>';
+    return '<div class="ticket"><div class="ticket-h"><div><div class="ticket-id">'+pd.id+'</div><div class="ticket-cl">'+pd.cliente+' · '+pd.fecha+'</div></div><span class="badge '+pedEstBadge(pd.estado)+'">'+pedEstLabel(pd.estado)+'</span></div><div class="ticket-b">'+itemsH+'</div><div class="ticket-f"><div style="font-size:13px;color:var(--mut)">'+pd.items.length+' producto(s)</div>'+acciones+'</div></div>';
+  }).join('');
+  const noPed=DB.pedidos.length===0;
+  return '<div class="page th-pedidos"><div class="hero"><div class="hero-ic"><i class="ri-send-plane-line"></i></div><h1>Pedidos de Venta</h1><p>Paso 1: el cliente pide → el sistema verifica stock en todas las bodegas → asigna la bodega óptima → despacha o resaga.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoPedido()"><i class="ri-add-line"></i> Nuevo Pedido</button></div></div><div class="body">'+(noPed?'<div class="empty"><i class="ri-send-plane-line"></i><h3>Sin pedidos</h3><p>Crea el primer pedido con el botón de arriba.</p></div>':'<div class="tickets">'+tickets+'</div>')+'</div></div>';
+}();
+
+function modalNuevoPedido(){
+  draft={items:[{sku:'',cant:1}]};
+  openMod('<i class="ri-send-plane-line"></i> Nuevo Pedido de Venta',
+    '<div class="note"><i class="ri-information-line"></i> El sistema verificará stock en todas las bodegas y asignará la bodega óptima automáticamente.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente o empresa"></div><div class="ff"><label>Productos del pedido</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPedido()"><i class="ri-check-line"></i> Crear pedido</button>'
+  );renderLines();
+}
+function crearPedido(){
+  const cl=$('dCliente').value.trim();
+  if(!cl){toast('Ingresa el nombre del cliente','warn');return}
+  if(!draft.items.length||!draft.items[0].sku){toast('Agrega al menos un producto','warn');return}
+  const id='PD-'+PD_SEQ++;
+  const items=draft.items.filter(i=>i.sku).map(i=>({sku:i.sku,cant:i.cant,bodega:null,asig:0,falt:0}));
+  DB.pedidos.unshift({id,cliente:cl,fecha:now().split(' ')[0],estado:'pendiente',despPor:null,items});
+  asignarStock(id);closeMod();saveDB();
+  const pd=DB.pedidos.find(p=>p.id===id);
+  toast(id+' creado → '+pedEstLabel(pd.estado),'ok');
+  setTimeout(function(){window.location.reload()},600);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Vencimientos</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('vencimientos');
+$('pg').innerHTML=function(){
+  const sorted=[...DB.vencimientos].sort((a,b)=>a.dias-b.dias);
+  const vcards=sorted.map(v=>{
+    const cls=v.dias<0?'vencido':v.dias<=20?'critico':'';
+    const label=v.dias<0?'Vencido hace '+(-v.dias)+'d':v.dias+' días';
+    const pct=Math.max(0,Math.min(100,100-v.dias/120*100));
+    return '<div class="vcard"><div class="vc-days '+cls+'"><div class="vc-days-n">'+(v.dias<0?'!':v.dias)+'</div><div class="vc-days-l">'+(v.dias<0?'vencido':'días')+'</div></div><div class="vc-info"><div style="font-size:14px;font-weight:700;color:var(--ink)">'+v.prod+'</div><div style="font-size:12px;color:var(--mut);margin:3px 0">'+v.lote+' · '+v.cant+' · Bodega: '+v.bodega+'</div><div style="font-size:11px;color:var(--mut);margin-bottom:6px">Vence: '+v.vence+'</div><div class="bar"><span style="width:'+pct+'%;background:'+(cls==='vencido'?'#94A3B8':cls==='critico'?'#EF4444':'#B45309')+'"></span></div></div><span class="badge '+(v.dias<0?'bs':v.dias<=20?'br':'by')+'">'+label+'</span></div>';
+  }).join('');
+  const vencidos=DB.vencimientos.filter(v=>v.dias<0).length;
+  const criticos=DB.vencimientos.filter(v=>v.dias>=0&&v.dias<=20).length;
+  return '<div class="page th-venc"><div class="hero"><div class="hero-ic"><i class="ri-time-line"></i></div><h1>Control de Vencimientos</h1><p>Adhesivos, morteros, selladores y materiales con fecha de caducidad. Ordena el despacho por FIFO.</p></div><div class="body"><div class="grid" style="margin-bottom:20px"><div class="stat c4"><div class="stat-ic" style="background:#B91C1C"><i class="ri-close-circle-line"></i></div><div class="stat-n">'+vencidos+'</div><div class="stat-l">Ya vencidos — dar de baja</div></div><div class="stat c4"><div class="stat-ic" style="background:#B45309"><i class="ri-alert-line"></i></div><div class="stat-n">'+criticos+'</div><div class="stat-l">Vencen en ≤20 días</div></div><div class="stat c4"><div class="stat-ic" style="background:#15803D"><i class="ri-checkbox-circle-line"></i></div><div class="stat-n">'+DB.vencimientos.filter(v=>v.dias>20).length+'</div><div class="stat-l">Vigentes</div></div></div><div>'+vcards+'</div></div></div>';
+}();
+</script>
+</body>
+</html>

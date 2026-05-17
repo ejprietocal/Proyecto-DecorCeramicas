@@ -1,22 +1,37 @@
-/* ========================= AUTH / NAV ========================= */
-function clearErr(){$('lerr').classList.remove('show')}
+/* ========================= AUTH / NAV / MPA SHELL ========================= */
+const PAGE_MAP={
+  dashboard:'dashboard.html',pedidos:'pedidos.html',inventario:'inventario.html',
+  sobrantes:'sobrantes.html',movimientos:'movimientos.html',transferencias:'transferencias.html',
+  proveedores:'proveedores.html',compras:'compras.html',reclamar:'reclamar.html',
+  vencimientos:'vencimientos.html',usuarios:'usuarios.html'
+};
+
+function clearErr(){const e=$('lerr');if(e)e.classList.remove('show')}
 function doLogin(){
   const v=$('usr').value.trim(),n=parseInt(v,10);
   if(!v||isNaN(n)||n<1||n>USERS.length){$('maxU').textContent=USERS.length;$('lerr').classList.add('show');return}
   currentUser=USERS[n-1];
-  const al=PERMS[currentUser.id];activeModule=al.includes('dashboard')?'dashboard':al[0];
-  clearErr();$('usr').value='';$('pwd').value='';
-  $('screen-login').classList.remove('active');$('screen-app').classList.add('active');
-  ['sbAv','tbAv'].forEach(id=>{$(id).style.background=currentUser.c;$(id).textContent=currentUser.in});
-  $('sbNm').textContent=currentUser.n;$('sbRl').textContent=currentUser.r;$('tbNm').textContent=currentUser.n.split(' ')[0];
-  buildSb();nav(activeModule);toast('Bienvenido, '+currentUser.n.split(' ')[0],'ok');
+  try{sessionStorage.setItem(AUTH_KEY,JSON.stringify(currentUser))}catch(e){}
+  saveDB();
+  window.location.href='dashboard.html';
 }
-function logout(){closeSb();$('screen-app').classList.remove('active');$('screen-login').classList.add('active')}
+function logout(){
+  try{sessionStorage.removeItem(AUTH_KEY)}catch(e){}
+  saveDB();
+  window.location.href='index.html';
+}
+function loadAuth(){
+  try{
+    const s=sessionStorage.getItem(AUTH_KEY);
+    if(s){currentUser=JSON.parse(s);return true}
+  }catch(e){}
+  return false;
+}
 function togSb(){$('sb').classList.toggle('open');$('sbBd').classList.toggle('show')}
 function closeSb(){$('sb').classList.remove('open');$('sbBd').classList.remove('show')}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('screen-login').classList.contains('active'))doLogin()});
 function notifCount(){return DB.compras.filter(c=>c.estado==='recibida').length+DB.pedidos.filter(p=>p.estado!=='despachado').length}
-function buildSb(){
+function refresh(){saveDB();window.location.reload()}
+function buildSb(activeMod){
   const al=PERMS[currentUser.id];let h='';
   GROUPS.forEach(g=>{
     const its=Object.keys(MODS).filter(k=>MODS[k].g===g&&al.includes(k));
@@ -27,18 +42,25 @@ function buildSb(){
       if(k==='reclamar'){const a=DB.compras.filter(c=>c.estado==='recibida').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
       if(k==='pedidos'){const a=DB.pedidos.filter(p=>p.estado==='resagado').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
       if(k==='transferencias'){const a=DB.transferencias.filter(t=>t.estado!=='recibida').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
-      h+=`<a class="mi ${k===activeModule?'active':''}" data-m="${k}" onclick="nav('${k}')"><i class="${m.ic}"></i><span>${m.n}</span>${bdg}</a>`;
+      h+=`<a class="mi ${k===activeMod?'active':''}" href="${PAGE_MAP[k]}"><i class="${m.ic}"></i><span>${m.n}</span>${bdg}</a>`;
     });
     h+=`</div>`;
   });
-  $('sbMenu').innerHTML=h;$('tbNot').textContent=notifCount();
+  $('sbMenu').innerHTML=h;
+  const n=notifCount();const e=$('tbNot');if(e)e.textContent=n;
 }
-function nav(mod){
-  closeSb();activeModule=mod;
-  const m=MODS[mod];$('tbIc').className=m.ic;$('tbTt').textContent=m.n;$('tbCr').textContent=m.cr;
-  document.querySelectorAll('.mi').forEach(e=>e.classList.toggle('active',e.dataset.m===mod));
-  const al=PERMS[currentUser.id];
-  if(!al.includes(mod)){$('pg').innerHTML=`<div class="page"><div style="padding:20px"><div class="denied"><div class="ic"><i class="ri-lock-2-line"></i></div><h2>Acceso restringido</h2><p>Tu rol <b>${currentUser.r}</b> no tiene permiso para <b>${m.n}</b>.</p></div></div></div>`;return}
-  $('pg').innerHTML=(VIEWS[mod]||VIEWS._default)(mod);window.scrollTo(0,0);
+function renderShell(moduleId){
+  if(!loadAuth()){window.location.href='index.html';return}
+  currentUser=loadAuth()?currentUser:null;
+  if(!currentUser){window.location.href='index.html';return}
+  const m=MODS[moduleId];if(!m)return;
+  document.title='Decorcerámica ERP — '+m.n;
+  const ic=$('tbIc');if(ic)ic.className=m.ic;
+  const tt=$('tbTt');if(tt)tt.textContent=m.n;
+  const cr=$('tbCr');if(cr)cr.textContent=m.cr;
+  ['sbAv','tbAv'].forEach(id=>{const e=$(id);if(e){e.style.background=currentUser.c;e.textContent=currentUser.in}});
+  const sn=$('sbNm');if(sn)sn.textContent=currentUser.n;
+  const sr=$('sbRl');if(sr)sr.textContent=currentUser.r;
+  const tn=$('tbNm');if(tn)tn.textContent=currentUser.n.split(' ')[0];
+  buildSb(moduleId);
 }
-function refresh(){buildSb();nav(activeModule)}

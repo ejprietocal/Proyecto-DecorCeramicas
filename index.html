@@ -3,13 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Decorcerámica ERP — Operación Conectada</title>
+<title>Decorcerámica ERP — Iniciar Sesión</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
-<!-- ═══════════ PANTALLA DE LOGIN ═══════════ -->
 <div id="screen-login" class="screen active">
 <div class="lw">
   <div class="lb">
@@ -29,7 +27,6 @@
     <p>Ingresa tus credenciales para acceder al ERP</p>
     <div class="fg"><label class="fl">Usuario</label><div class="fi"><i class="ri-user-line"></i><input id="usr" autocomplete="off" placeholder="Ingresa tu usuario" oninput="clearErr()"></div></div>
     <div class="fg"><label class="fl">Contraseña</label><div class="fi"><i class="ri-lock-line"></i><input id="pwd" type="password" placeholder="••••••••"></div></div>
-    <div class="frow"><label class="cw"><input type="checkbox"><span>Recordar sesión</span></label><a href="#" class="fl-link" onclick="return false">¿Olvidaste tu contraseña?</a></div>
     <div class="lerr" id="lerr"><i class="ri-error-warning-line"></i> Usuario inválido. Usa un número del 1 al <span id="maxU">6</span>.</div>
     <button class="btn-lg" onclick="doLogin()"><i class="ri-login-box-line"></i> Ingresar</button>
     <div class="dtip"><i class="ri-information-line"></i><span>Demo: contraseña libre. El <b>usuario es un número</b>: <b>1</b> Administrador · <b>2</b> Jefe Bodega · <b>3</b> Aux. Recepción · <b>4</b> Coord. Compras · <b>5</b> Operario Despacho · <b>6</b> Auditora</span></div>
@@ -37,97 +34,13 @@
   </div>
 </div>
 </div>
-
-<!-- ═══════════ APP SHELL ═══════════ -->
-<div id="screen-app" class="screen">
-<div class="wrap">
-  <aside class="sidebar" id="sb">
-    <div class="sb-logo">
-      <div class="sb-logo-ic"><i class="ri-building-2-line"></i></div>
-      <div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div>
-    </div>
-    <div class="sb-scroll" id="sbMenu"></div>
-    <div class="sb-user">
-      <div class="sb-av" id="sbAv"></div>
-      <div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div>
-      <i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i>
-    </div>
-  </aside>
-  <div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
-  <main class="main">
-    <div class="topbar">
-      <div class="tb-l">
-        <button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button>
-        <i id="tbIc" style="font-size:18px;color:var(--rojo)"></i>
-        <div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div>
-      </div>
-      <div class="tb-r">
-        <div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div>
-        <div class="tb-prof" onclick="logout()">
-          <div class="tb-av" id="tbAv"></div>
-          <span class="tb-n" id="tbNm"></span>
-          <i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i>
-        </div>
-      </div>
-    </div>
-    <div id="pg"></div>
-  </main>
-</div>
-</div>
-
-<!-- ═══════════ MODAL ═══════════ -->
-<div class="mov" id="modal">
-  <div class="mox">
-    <div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div>
-    <div class="mob" id="mBod"></div>
-    <div class="mof" id="mFot"></div>
-  </div>
-</div>
-<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
-
-<!-- ═══════════════════════════════════════════
-     JAVASCRIPT — orden de carga obligatorio
-═══════════════════════════════════════════ -->
-
-<!-- 1. Configuración: módulos, usuarios, permisos -->
 <script src="js/config.js"></script>
-
-<!-- 2. Base de datos en memoria -->
 <script src="js/db.js"></script>
-
-<!-- 3. Funciones helper (fmt, money, stockTotal, etc.) -->
 <script src="js/helpers.js"></script>
-
-<!-- 4. Operaciones de negocio conectadas -->
-<script src="js/operations.js"></script>
-
-<!-- 5. Draft de líneas en modales -->
-<script src="js/draft.js"></script>
-
-<!-- 6. Autenticación y navegación -->
 <script src="js/auth.js"></script>
-
-<!-- 7. Toast y modal genérico -->
-<script src="js/ui.js"></script>
-
-<!-- 8. Modales de creación (pedidos, OC, proveedores...) -->
-<script src="js/modals.js"></script>
-
-<!-- 9. Inicializar objeto VIEWS -->
-<script src="js/init.js"></script>
-
-<!-- 10. Vistas por módulo (cada menú = un archivo) -->
-<script src="js/views/v-dashboard.js"></script>
-<script src="js/views/v-pedidos.js"></script>
-<script src="js/views/v-inventario.js"></script>
-<script src="js/views/v-sobrantes.js"></script>
-<script src="js/views/v-movimientos.js"></script>
-<script src="js/views/v-transferencias.js"></script>
-<script src="js/views/v-proveedores.js"></script>
-<script src="js/views/v-compras.js"></script>
-<script src="js/views/v-reclamar.js"></script>
-<script src="js/views/v-vencimientos.js"></script>
-<script src="js/views/v-usuarios.js"></script>
-
+<script>
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+$('usr').focus();
+</script>
 </body>
 </html>

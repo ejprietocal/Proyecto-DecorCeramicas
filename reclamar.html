@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Mercancía por Reclamar</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('reclamar');
+
+function renderRecl(){
+  const porRec=DB.compras.filter(c=>c.estado==='recibida');
+  const lotes=porRec.map(oc=>{
+    const pv=getProv(oc.provId);
+    const tagsH=oc.items.map(it=>'<span class="badge bs">'+it.n+' · '+fmt(it.cant)+' '+it.u+'</span>').join('');
+    const dias=Math.floor(Math.random()*40)+10;
+    return '<div class="lote"><div class="lote-main"><div class="lote-t">'+oc.id+' — '+pv.n+'</div><div class="lote-s">Recibida por '+(oc.recibPor||'—')+' · '+oc.fecha+'</div><div class="lote-tags">'+tagsH+'</div></div><div class="aging"><div class="aging-n" style="color:'+(dias>30?'#B91C1C':'#B45309')+'">'+dias+'</div><div class="aging-l">días en bodega</div></div><button class="btn btn-orange" onclick="reclamarOC(\''+oc.id+'\');window.location.reload()"><i class="ri-hand-coin-line"></i> Reclamar</button></div>';
+  }).join('');
+  $('pg').innerHTML='<div class="page th-rec"><div class="hero"><div class="hero-ic"><i class="ri-inbox-unarchive-line"></i></div><h1>Mercancía por Reclamar</h1><p>OC recibidas físicamente pero sin responsable asignado. Reclamar suma al inventario y registra el movimiento de entrada.</p></div><div class="body">'+(porRec.length?'<div class="bandeja">'+lotes+'</div>':'<div class="empty"><i class="ri-checkbox-circle-line"></i><h3>Todo al día</h3><p>No hay mercancía pendiente por reclamar. Cuando recibas una OC, aparecerá aquí.</p></div>')+'</div></div>';
+}
+renderRecl();
+</script>
+</body>
+</html>

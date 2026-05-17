@@ -1,4 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
+const DB_KEY='decorceramica_db';
+const AUTH_KEY='decorceramica_user';
+
 const DB={
   bodegas:[
     {id:'BGA',n:'Bodega A - Norte',  dir:'Calle 45 #12-34',area:1200,estado:'verde'},
@@ -64,4 +67,27 @@ const DB={
   ]
 };
 let OC_SEQ=2471,PD_SEQ=3402,TR_SEQ=2;
-let currentUser=null,activeModule='dashboard',selBodega='BGA';
+let currentUser=null,selBodega='BGA';
+
+/* ---- persistencia localStorage ---- */
+(function(){
+  try{
+    const saved=localStorage.getItem(DB_KEY);
+    if(saved){
+      const data=JSON.parse(saved);
+      const meta=data._meta||{};
+      delete data._meta;
+      Object.keys(data).forEach(k=>{DB[k]=data[k]});
+      OC_SEQ=meta.OC_SEQ||OC_SEQ;
+      PD_SEQ=meta.PD_SEQ||PD_SEQ;
+      TR_SEQ=meta.TR_SEQ||TR_SEQ;
+    }
+  }catch(e){}
+})();
+
+function saveDB(){
+  try{
+    localStorage.setItem(DB_KEY,JSON.stringify({...DB,_meta:{OC_SEQ,PD_SEQ,TR_SEQ}}));
+  }catch(e){}
+}
+window.addEventListener('beforeunload',saveDB);

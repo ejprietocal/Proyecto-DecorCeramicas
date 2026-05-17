@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Usuarios y Roles</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('usuarios');
+
+function togglePerm(uid,mod){
+  if(!PERMS[uid])PERMS[uid]=['dashboard'];
+  const idx=PERMS[uid].indexOf(mod);
+  if(idx>-1)PERMS[uid].splice(idx,1);
+  else PERMS[uid].push(mod);
+  saveDB();
+}
+
+function renderUsr(){
+  const boxes=USERS.map((u,i)=>'<div class="role-box"><div class="role-bh"><div class="sb-av" style="background:'+u.c+';width:38px;height:38px;border-radius:10px;font-size:13px">'+u.in+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--ink)">'+u.n+'</div><div style="font-size:11.5px;color:var(--mut)">'+u.r+'</div></div><span class="badge bb" title="Número de ingreso">Login: '+(i+1)+'</span></div><div class="perm-list">'+Object.keys(MODS).map(k=>{
+    const on=PERMS[u.id]?.includes(k);const lk=k==='dashboard';
+    return '<div class="pr-row-p"><span><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px"></i> '+MODS[k].n+'</span><label class="sw '+(lk?'locked':'')+'"><input type="checkbox" '+(on?'checked':'')+' '+(lk?'disabled':'')+' onchange="togglePerm(\''+u.id+'\',\''+k+'\');renderUsr()"><span class="swsl"></span></label></div>';
+  }).join('')+'</div></div>').join('');
+  $('pg').innerHTML='<div class="page th-usr"><div class="hero"><div class="hero-ic"><i class="ri-shield-user-line"></i></div><h1>Usuarios y Roles</h1><p>Cada persona accede solo a los módulos de su función. Ante la rotación de personal, el nuevo empleado hereda exactamente el mismo alcance.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoUsuario()"><i class="ri-user-add-line"></i> Nuevo Usuario</button></div></div><div class="body"><div style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309;font-size:12.5px;padding:11px 14px;border-radius:10px;margin-bottom:18px;display:flex;gap:9px"><i class="ri-lightbulb-flash-line" style="margin-top:1px;flex-shrink:0"></i><span>Los cambios de permisos son en vivo. Si modificas al usuario con el que iniciaste sesión, el menú lateral cambia inmediatamente. Dashboard es obligatorio para todos.</span></div><div class="role-grid">'+boxes+'</div></div></div>';
+}
+renderUsr();
+
+function modalNuevoUsuario(){
+  const mOpts=Object.keys(MODS).filter(k=>k!=='dashboard').map(k=>'<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 0"><input type="checkbox" class="nuMod" value="'+k+'"> '+MODS[k].n+'</label>').join('');
+  openMod('<i class="ri-user-add-line"></i> Crear Usuario',
+    '<div class="ff"><label>Nombre completo</label><input id="nuN" placeholder="Ej: Andrés Felipe Bravo"></div><div class="ff"><label>Cargo / Rol</label><input id="nuR" placeholder="Ej: Auxiliar de Bodega"></div><div class="ff"><label>Módulos con acceso (Dashboard incluido siempre)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">'+mOpts+'</div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:#0F172A;color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearUsuario(){
+  const nm=$('nuN').value.trim(),rl=$('nuR').value.trim();
+  if(!nm||!rl){toast('Completa nombre y cargo','warn');return}
+  const pts=nm.split(' ');const init=((pts[0]||'')[0]+((pts[1]||pts[0]||'')[0])).toUpperCase();
+  const id='u'+Date.now();
+  const mods=['dashboard',...[...document.querySelectorAll('.nuMod:checked')].map(c=>c.value)];
+  const colors=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
+  USERS.push({id,nm:nm,r:rl,in:init,c:colors[USERS.length%colors.length]});
+  PERMS[id]=mods;
+  closeMod();saveDB();renderUsr();toast('Usuario creado. Ingresa con el número '+USERS.length,'ok');
+}
+</script>
+</body>
+</html>
