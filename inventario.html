@@ -6,6 +6,41 @@
 <title>Decorcerámica ERP — Inventario</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+.inv-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.inv-table{width:100%}
+.inv-th,.inv-tr{display:grid;grid-template-columns:6px 120px minmax(140px,1fr) 95px 130px 95px 95px 85px 80px;align-items:center;gap:0}
+.inv-th{background:var(--neutral-bg);font-size:9.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--line)}
+.inv-th>span{padding:9px 6px}
+.inv-tr{border-bottom:1px solid #F1F5F9;transition:.1s;font-size:12px}
+.inv-tr:hover{background:#FAFBFC}
+.inv-tr>div{padding:8px 6px;display:flex;align-items:center;gap:5px}
+.inv-tr .td-img{width:6px;height:36px;border-radius:0 4px 4px 0;flex-shrink:0;padding:0}
+.inv-tr .td-sku{font-size:10.5px;color:var(--ph);font-weight:600;font-family:monospace}
+.inv-tr .td-n{font-weight:600;color:var(--ink);font-size:12px}
+.inv-tr .td-cat{font-size:9px;font-weight:600;color:var(--ph);background:var(--neutral-bg);padding:2px 6px;border-radius:4px;white-space:nowrap}
+.inv-tr .td-det{font-size:9.5px;color:var(--mut);line-height:1.3}
+.inv-tr .td-q{font-size:13px;font-weight:800;color:var(--ink)}
+.inv-tr .td-q2{font-size:10.5px;color:var(--ph)}
+.inv-tr .td-cost{font-size:11px;font-weight:600;color:var(--ink)}
+.inv-tr .td-acts{display:flex;gap:3px;position:sticky;right:0;background:inherit;padding:6px!important}
+.inv-tr .td-acts button{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s}
+.td-edit{background:var(--rojo-l);color:var(--rojo)}.td-edit:hover{background:var(--rojo);color:#fff}
+.td-detail{background:var(--info-bg);color:var(--info-txt)}.td-detail:hover{background:var(--info-txt);color:#fff}
+.alarm-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.alarm-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;flex:1;min-width:180px}
+.alarm-card.agotado{background:var(--danger-bg);border:1px solid var(--danger-bd)}
+.alarm-card.bajo{background:var(--warn-bg);border:1px solid var(--warn-bd)}
+.alarm-ic{font-size:18px}
+.alarm-card.agotado .alarm-ic{color:var(--danger-txt)}
+.alarm-card.bajo .alarm-ic{color:var(--warn-txt)}
+.alarm-n{font-size:20px;font-weight:800;line-height:1}
+.alarm-card.agotado .alarm-n,.alarm-card.agotado .alarm-l{color:var(--danger-txt)}
+.alarm-card.bajo .alarm-n,.alarm-card.bajo .alarm-l{color:var(--warn-txt)}
+.alarm-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+.inv-bar{height:3px;background:var(--neutral-bg);border-radius:2px;overflow:hidden;min-width:40px}
+.inv-bar span{display:block;height:100%;border-radius:2px}
+</style>
 </head>
 <body>
 <div id="screen-app" class="screen active">
@@ -35,7 +70,7 @@
 <script src="js/ui.js"></script>
 <script>
 renderShell('inventario');
-let selCat='Todos';
+let selCat='Todos',editSku=null;
 
 function renderInv(){
   const bg=DB.bodegas.find(b=>b.id===selBodega);
@@ -43,27 +78,46 @@ function renderInv(){
   const cats=[...new Set(DB.productos.map(p=>p.cat))];
   const catPills='<div class="inv-cat '+(selCat==='Todos'?'sel':'')+'" onclick="selCat=\'Todos\';renderInv()">Todos</div>'+cats.map(c=>'<div class="inv-cat '+(c===selCat?'sel':'')+'" onclick="selCat=\''+c+'\';renderInv()">'+c+'</div>').join('');
   const filtered=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
-  const pctColor=(stk,tot)=>{const r=tot>0?stk/tot:0;return r===0?'var(--danger-txt)':r<0.2?'var(--warn-txt)':'var(--success-txt)'};
-  const estLabel=(stk,tot)=>{const r=tot>0?stk/tot:0;return r===0?'Agotado':r<0.2?'Bajo stock':'Disponible'};
   const bdCols=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
-  const cards=filtered.map((p,i)=>{
+
+  const agotados=filtered.filter(p=>stockBodega(selBodega,p.sku)===0);
+  const bajoStock=filtered.filter(p=>{const s=stockBodega(selBodega,p.sku);return s>0&&s<100});
+  const alarmHtml=(agotados.length||bajoStock.length)?'<div class="alarm-row">'+
+    (agotados.length?'<div class="alarm-card agotado"><i class="ri-close-circle-line alarm-ic"></i><div><div class="alarm-n">'+agotados.length+'</div><div class="alarm-l">Agotado'+(agotados.length>1?'s':'')+' · '+agotados.map(p=>'<span style="font-size:10px;opacity:.8">'+p.n+'</span>').join(', ')+'</div></div></div>':'')+
+    (bajoStock.length?'<div class="alarm-card bajo"><i class="ri-alert-line alarm-ic"></i><div><div class="alarm-n">'+bajoStock.length+'</div><div class="alarm-l">Stock bajo · '+bajoStock.map(p=>'<span style="font-size:10px;opacity:.8">'+p.n+' ('+fmt(stockBodega(selBodega,p.sku))+' '+p.u+')</span>').join(', ')+'</div></div></div>':'')+
+  '</div>':'';
+
+  const rows=filtered.map((p,i)=>{
     const stk=stockBodega(selBodega,p.sku);const tot=stockTotal(p.sku);
     const pct=tot>0?Math.round(stk/tot*100):0;
-    const bd=bdCols[i%bdCols.length];
-    const conv=p.caja?'<div class="pc-conv"><i class="ri-exchange-line" style="font-size:8px"></i> ~'+fmt(Math.round(stk/p.caja))+' '+p.cajaN+' <span style="color:var(--mut)">· 1 '+p.cajaN+' = '+p.caja+' '+p.u+'</span></div>':'';
-    return '<div class="pc" style="border-top-color:'+bd+'"><div class="pc-body"><div class="pc-row1"><div class="pc-n">'+p.n+'</div><div class="pc-cat">'+p.cat+'</div></div><div class="pc-sku">'+p.sku+'</div><div class="pc-row2"><span class="pc-stock">'+fmt(stk)+'</span><span class="pc-sl">'+p.u+'</span></div>'+conv+'<div class="pc-row3"><div class="pc-bar"><span style="width:'+pct+'%;background:'+pctColor(stk,tot)+'"></span></div><span class="pc-badge" style="background:var('+(stk===0?'--danger-bg':stk<100?'--warn-bg':'--success-bg')+');color:var('+(stk===0?'--danger-txt':stk<100?'--warn-txt':'--success-txt')+')">'+estLabel(stk,tot)+'</span><button class="pc-btn" onclick="modalAjusteInventario(\''+selBodega+'\',\''+p.sku+'\')"><i class="ri-scales-line"></i></button></div></div></div>';
+    const col=bdCols[i%bdCols.length];
+    const conv=p.caja?'<span style="display:block">~'+fmt(Math.round(stk/p.caja))+' '+p.cajaN+'</span><span style="color:var(--ph)">1 '+p.cajaN+' = '+p.caja+' '+p.u+'</span>':'<span style="color:var(--ph)">Sin conversión</span>';
+    const barCol=stk===0?'var(--danger-txt)':stk<100?'var(--warn-txt)':'var(--success-txt)';
+    const bar='<div class="inv-bar"><span style="width:'+pct+'%;background:'+barCol+'"></span></div>';
+    return '<div class="inv-tr"><div class="td-img" style="background:'+col+'"></div><div class="td-sku">'+p.sku+'</div><div style="flex-direction:column;align-items:flex-start;gap:1px"><span class="td-n">'+p.n+'</span>'+bar+'</div><div><span class="td-cat">'+p.cat+'</span></div><div class="td-det" style="flex-direction:column;align-items:flex-start;gap:1px">'+conv+'</div><div style="flex-direction:column;align-items:flex-start;gap:0"><span class="td-q">'+fmt(stk)+'</span><span style="font-size:9px;color:var(--mut)">'+p.u+'</span></div><div class="td-q2">'+fmt(Math.round(stk/(p.caja||1)))+' <span style="font-size:9px;color:var(--mut)">'+(p.cajaN||'—')+'</span></div><div class="td-cost" style="flex-direction:column;align-items:flex-start;gap:0"><span>'+money(p.costo||0)+'</span><span style="font-size:9px;color:var(--ph)">'+((p.precio&&p.costo)?' margen '+Math.round((1-p.costo/p.precio)*100)+'%':'')+'</span></div><div class="td-acts"><button class="td-edit" onclick="modalEditarProducto(\''+p.sku+'\')" title="Editar"><i class="ri-pencil-line"></i></button><button class="td-detail" onclick="verDetalleProducto(\''+p.sku+'\')" title="Detalle"><i class="ri-eye-line"></i></button></div></div>';
   }).join('');
-  const convCount=DB.productos.filter(p=>p.caja).length;
-  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>Stock en tiempo real · '+DB.productos.length+' productos · '+convCount+' con factor de conversión</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalNuevoProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button></div></div><div class="body"><div class="inv-top"><div class="inv-pills">'+bgPills+'</div></div><div class="inv-cats">'+catPills+'</div>'+(cards?'<div class="inv-grid">'+cards+'</div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
+  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>'+DB.productos.length+' productos · Gestión por unidad base con conversión a unidad secundaria de despacho</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalEditarProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button></div></div><div class="body">'+alarmHtml+'<div class="inv-top"><div class="inv-pills">'+bgPills+'</div></div><div class="inv-cats">'+catPills+'</div>'+(rows?'<div class="inv-wrap"><div class="inv-table"><div class="inv-th"><span></span><span>SKU</span><span>Producto</span><span>Categoría</span><span>Conversión</span><span>Stock '+bg.id+'</span><span>Stock sec.</span><span>Costo</span><span>Acción</span></div>'+rows+'</div></div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
 }
 renderInv();
 
-function modalNuevoProducto(){
+function modalEditarProducto(sku){
+  const p=sku?DB.productos.find(x=>x.sku===sku):null;
+  editSku=sku||null;
+  const t=p?'<i class="ri-pencil-line"></i> Editar Producto':'<i class="ri-add-box-line"></i> Nuevo Producto';
   const cats=['Pisos','Azulejos','Revestimientos','Grifería','Adhesivos','Morteros','Herrería','Eléctricos','Pinturas','General'];
-  const catOpts=cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
-  openMod('<i class="ri-add-box-line"></i> Nuevo Producto',
-    '<div class="ff"><label>Nombre del producto</label><input id="npNombre" placeholder="Ej: Piso Cerámico 45×45"></div><div class="ff2"><div class="ff"><label>SKU</label><input id="npSku" placeholder="Ej: PC-4545-BE"></div><div class="ff"><label>Categoría</label><select id="npCat">'+catOpts+'</select></div></div><div class="ff2"><div class="ff"><label>Precio unitario ($)</label><input id="npPrecio" type="number" min="0" placeholder="28500"></div>    <div class="ff"><label>Unidad base</label><select id="npU"><option value="m²">m² (metros cuadrados)</option><option value="lb">lb (libras)</option></select></div></div><div style="background:var(--info-bg);border:1px solid var(--info-bd);border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--info-txt);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ri-exchange-line"></i> Factor de conversión</div><p style="font-size:11.5px;color:var(--mut);margin-bottom:10px;line-height:1.5">Define la equivalencia entre la <b>unidad base</b> del inventario y la <b>unidad secundaria</b> de despacho. Ej: si 1 caja = 1.44 m², ingresa <b>1.44</b> en el factor y <b>caja</b> como unidad secundaria.</p><div class="ff2"><div class="ff"><label>Factor (1 unidad secundaria = X base)</label><input id="npCaja" type="number" step="0.01" min="0" placeholder="1.44"></div>    <div class="ff"><label>Nombre unidad secundaria</label><select id="npCajaN"><option value="">— Selecciona —</option><option value="caja">Caja</option><option value="pale">Pale / Palet</option><option value="paquete">Paquete</option><option value="bulto">Bulto</option><option value="rollo">Rollo</option><option value="galón">Galón</option></select></div></div></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearProducto()"><i class="ri-check-line"></i> Crear producto</button>'
+  const catOpts=cats.map(c=>'<option value="'+c+'"'+(p&&p.cat===c?' selected':'')+'>'+c+'</option>').join('');
+  const uOpts='<option value="m²"'+(p&&p.u==='m²'?' selected':'')+'>m² (metros cuadrados)</option><option value="lb"'+(p&&p.u==='lb'?' selected':'')+'>lb (libras)</option>';
+  const cajaNOpts=['caja','pale','paquete','bulto','rollo','galón'].map(c=>'<option value="'+c+'"'+(p&&p.cajaN===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>').join('');
+  const btnT=p?'Actualizar':'Crear producto';
+  const fn=p?'actualizarProducto()':'crearProducto()';
+  openMod(t,
+    '<div style="background:var(--info-bg);border:1px solid var(--info-bd);border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:11.5px;color:var(--info-txt);display:flex;gap:8px"><i class="ri-information-line" style="margin-top:1px;flex-shrink:0"></i><span>Los campos mostrados son una <b>referencia demo</b>. Todos los datos son personalizables según las necesidades reales del inventario de Decorcerámica.</span></div>'+
+    '<div class="ff"><label>Nombre del producto</label><input id="npNombre" value="'+(p?p.n:'')+'" placeholder="Ej: Piso Cerámico 45×45"></div>'+
+    '<div class="ff2"><div class="ff"><label>SKU</label><input id="npSku" value="'+(p?p.sku:'')+'" placeholder="Ej: PC-4545-BE"></div><div class="ff"><label>Categoría</label><select id="npCat">'+catOpts+'</select></div></div>'+
+    '<div class="ff2"><div class="ff"><label>Precio unitario ($)</label><input id="npPrecio" type="number" min="0" value="'+(p?p.precio:'')+'" placeholder="28500"></div><div class="ff"><label>Costo unitario ($)</label><input id="npCosto" type="number" min="0" value="'+(p?p.costo:'')+'" placeholder="18000"></div></div>'+
+    '<div class="ff2"><div class="ff"><label>% Descuento máximo</label><input id="npDesc" type="number" min="0" max="100" value="'+(p?p.descuento_max:'')+'" placeholder="15"></div><div class="ff"><label>Unidad base</label><select id="npU">'+uOpts+'</select></div></div>'+
+    '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--rojo);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ri-exchange-line"></i> Factor de conversión</div><p style="font-size:11.5px;color:var(--mut);margin-bottom:10px;line-height:1.5">Define la equivalencia entre la <b>unidad base</b> del inventario (m² o lb) y la <b>unidad secundaria</b> de despacho. Ej: si 1 caja = 1.44 m², ingresa <b>1.44</b> en el factor y selecciona <b>caja</b>.</p><div class="ff2"><div class="ff"><label>Factor (1 unidad secundaria = X base)</label><input id="npCaja" type="number" step="0.01" min="0" value="'+(p?p.caja:'')+'" placeholder="1.44"></div><div class="ff"><label>Unidad secundaria</label><select id="npCajaN"><option value="">— Sin conversión —</option>'+cajaNOpts+'</select></div></div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="'+fn+'"><i class="ri-check-line"></i> '+btnT+'</button>'
   );
 }
 function crearProducto(){
@@ -72,18 +126,46 @@ function crearProducto(){
   if(DB.productos.find(p=>p.sku===sku)){toast('Ya existe un producto con ese SKU','warn');return}
   const cat=$('npCat').value;
   const precio=parseFloat($('npPrecio').value)||0;
+  const costo=parseFloat($('npCosto').value)||0;
+  const desc=parseInt($('npDesc').value)||0;
   const u=$('npU').value;
   const caja=parseFloat($('npCaja').value);
-  const cajaN=$('npCajaN').value.trim();
+  const cajaN=$('npCajaN').value;
   const colList=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
   const icList=['ri-grid-line','ri-layout-grid-line','ri-stack-line','ri-drop-line','ri-paint-fill','ri-building-line','ri-flashlight-line','ri-palette-line'];
   const icIdx=DB.productos.length%icList.length;
-  const prod={sku,n:sku+'-'+n,ic:icList[icIdx],cat,precio,u,grad:'linear-gradient(135deg,'+colList[icIdx]+',#0A1929)'};
-  if(caja>0&&cajaN)prod.caja=caja;prod.cajaN=cajaN||'caja';
-  prod.n=n;
+  const prod={sku,n,ic:icList[icIdx],cat,precio,costo,descuento_max:desc,u,grad:'linear-gradient(135deg,'+colList[icIdx]+',#0A1929)'};
+  if(caja>0&&cajaN)prod.caja=caja;prod.cajaN=cajaN||'caja';prod.cajaN=cajaN;
   DB.productos.push(prod);
   Object.keys(DB.stock).forEach(bg=>{DB.stock[bg][sku]=0});
   closeMod();saveDB();renderInv();toast('Producto '+n+' creado con SKU '+sku,'ok');
+}
+function actualizarProducto(){
+  const p=DB.productos.find(x=>x.sku===editSku);if(!p){toast('Error: producto no encontrado','err');return}
+  const n=$('npNombre').value.trim();if(!n){toast('Ingresa el nombre','warn');return}
+  const sku=$('npSku').value.trim();if(!sku){toast('Ingresa el SKU','warn');return}
+  if(sku!==editSku&&DB.productos.find(x=>x.sku===sku)){toast('Ya existe otro producto con ese SKU','warn');return}
+  const oldSku=editSku;p.sku=sku;p.n=n;p.cat=$('npCat').value;
+  p.precio=parseFloat($('npPrecio').value)||0;p.costo=parseFloat($('npCosto').value)||0;
+  p.descuento_max=parseInt($('npDesc').value)||0;p.u=$('npU').value;
+  const caja=parseFloat($('npCaja').value);const cajaN=$('npCajaN').value;
+  if(caja>0&&cajaN){p.caja=caja;p.cajaN=cajaN}else{delete p.caja;delete p.cajaN}
+  if(sku!==oldSku){Object.keys(DB.stock).forEach(bg=>{const v=DB.stock[bg][oldSku];delete DB.stock[bg][oldSku];DB.stock[bg][sku]=v||0})}
+  closeMod();saveDB();editSku=null;renderInv();toast('Producto '+n+' actualizado','ok');
+}
+function verDetalleProducto(sku){
+  const p=DB.productos.find(x=>x.sku===sku);if(!p)return;
+  const stkRows=DB.bodegas.map(b=>{
+    const s=stockBodega(b.id,sku);const bar=s>0?(100*s/stockTotal(sku)):0;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div class="dot '+b.estado+'"></div><span style="flex:1;font-size:12px;font-weight:600">'+b.id+'</span><span style="font-size:13px;font-weight:800;width:60px;text-align:right">'+fmt(s)+'</span><span style="font-size:10px;color:var(--mut);width:30px">'+p.u+'</span><div class="inv-bar" style="flex:1"><span style="width:'+bar+'%;background:'+(s===0?'var(--danger-txt)':'var(--success-txt)')+'"></span></div></div>';
+  }).join('');
+  const convHtml=p.caja?'<div style="padding:8px 0;font-size:12px;color:var(--txt)"><span style="font-weight:600">Factor de conversión:</span> 1 '+p.cajaN+' = '+p.caja+' '+p.u+'</div>':'';
+  const margen=(p.precio&&p.costo)?Math.round((1-p.costo/p.precio)*100):0;
+  openMod('<i class="ri-eye-line"></i> '+p.n,
+    '<div style="background:var(--neutral-bg);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px"><div><span style="color:var(--mut)">SKU</span><br><b>'+p.sku+'</b></div><div><span style="color:var(--mut)">Categoría</span><br><b>'+p.cat+'</b></div><div><span style="color:var(--mut)">Precio unitario</span><br><b>'+money(p.precio)+'</b></div><div><span style="color:var(--mut)">Costo unitario</span><br><b>'+money(p.costo)+'</b></div><div><span style="color:var(--mut)">Margen</span><br><b style="color:'+(margen>=20?'var(--success-txt)':'var(--warn-txt)')+'">'+margen+'%</b></div><div><span style="color:var(--mut)">Dto. máx.</span><br><b>'+p.descuento_max+'%</b></div></div>'+
+    '<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px"><i class="ri-store-2-line"></i> Stock por bodega</div>'+stkRows+'<div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:700">Total</span><span style="font-weight:800">'+fmt(stockTotal(sku))+' '+p.u+'</span></div>'+convHtml,
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button>'
+  );
 }
 </script>
 </body>
