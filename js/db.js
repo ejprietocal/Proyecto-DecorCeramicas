@@ -33,7 +33,7 @@ const DB={
     BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60,'MO-IM-40':120,'MO-PEG-25':200,'HR-PT-100':300,'HR-ES-50':500,'EL-CA-10':25,'EL-TO-20':150,'PT-BL-1':80,'PT-ES-1':45,'SN-LV-40':30,'SN-IN-1':15,'HR-PA-1':60,'HR-NV-1':20},
     BGB:{'PC-6060-BE':2000,'AZ-3060-BL':3000,'RV-2550-GR':1500,'GR-CM-CROM':30,'AD-PORC-25':40,'MO-IM-40':80,'MO-PEG-25':150,'HR-PT-100':120,'HR-ES-50':200,'EL-CA-10':10,'PT-BL-1':35,'SN-LV-40':15,'HR-PA-1':25},
     BGC:{'PC-6060-BE':500, 'AZ-3060-BL':800, 'GR-LM-CROM':20, 'GR-CM-CROM':10, 'EL-CA-10':15, 'EL-TO-20':200, 'SN-IN-1':8, 'HR-PA-1':45},
-    BGD:{'PC-6060-BE':80,  'GR-LM-CROM':5, 'MO-IM-40':30, 'MO-PEG-25':45, 'PT-ES-1':60, 'HR-NV-1':12}}
+    BGD:{'PC-6060-BE':80,  'GR-LM-CROM':5, 'MO-IM-40':30, 'MO-PEG-25':45, 'PT-ES-1':60, 'HR-NV-1':12}
   },
   proveedores:[
     {id:'PR-01',n:'Cerámica Nariño',   cat:'Pisos y revestimientos',ciudad:'Ipiales',contacto:'Luis Erazo',  tel:'315 442 1180',calif:4.6,estado:'Activo'},
