@@ -34,13 +34,44 @@
   </div>
 </div>
 </div>
+
+<div class="mov" id="modalDemo">
+<div class="mox" style="max-width:520px">
+<div class="moh"><h3 style="color:var(--rojo)"><i class="ri-information-line"></i> Demo — Versión Conceptual</h3><span class="xb" onclick="closeDemo()">&times;</span></div>
+<div class="mob" style="padding:24px 22px;line-height:1.7">
+<div style="background:var(--rojo-l);border-radius:12px;padding:16px;margin-bottom:18px;display:flex;gap:12px;align-items:flex-start">
+<i class="ri-lightbulb-flash-line" style="font-size:22px;color:var(--rojo);flex-shrink:0;margin-top:2px"></i>
+<div><p style="font-size:13px;color:var(--txt);margin:0">Este prototipo funcional representa una <b>primera aproximación visual y operativa</b> del sistema ERP para Decorcerámica Ipiales. Su propósito es <b>demostrar capacidades</b> y validar flujos de trabajo antes del desarrollo completo.</p></div>
+</div>
+<p style="font-size:13px;color:var(--txt);margin-bottom:14px">Los datos mostrados son simulados, y las funcionalidades reflejan únicamente el alcance de la <b>Fase 1</b> del proyecto:</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Pedidos de venta</div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Inventario multi-bodega</div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Órdenes de compra</div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Transferencias entre bodegas</div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Control de vencimientos</div>
+<div style="background:var(--success-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--success-txt);display:flex;align-items:center;gap:7px"><i class="ri-checkbox-circle-line"></i> Roles y permisos</div>
+</div>
+<div style="background:var(--info-bg);border-radius:10px;padding:14px;font-size:12.5px;color:var(--info-txt);display:flex;gap:10px">
+<i class="ri-chat-1-line" style="font-size:18px;flex-shrink:0;margin-top:1px"></i>
+<span>Sus comentarios son fundamentales para priorizar los próximos módulos. Este demo evolucionará con cada iteración hasta convertirse en el ERP operativo de Decorcerámica.</span>
+</div>
+</div>
+<div class="mof" style="justify-content:center;padding:16px 22px">
+<button class="btn" style="background:var(--rojo);color:#fff;padding:10px 32px;font-size:14px" onclick="closeDemo()"><i class="ri-check-line"></i> Entendido, comenzar</button>
+</div>
+</div>
+</div>
+
 <script src="js/config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/auth.js"></script>
 <script>
+function closeDemo(){$('modalDemo').classList.remove('show')}
 document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 $('usr').focus();
+setTimeout(()=>$('modalDemo').classList.add('show'),200);
 </script>
 </body>
 </html>
