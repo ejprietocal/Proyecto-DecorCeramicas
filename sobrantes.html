@@ -6,6 +6,19 @@
 <title>Decorcerámica ERP — Sobrantes</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+.sob-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.sob-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.sob-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.sob-card-tit{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sob-card-sub{font-size:10px;color:var(--mut);margin-top:1px}
+.sob-card-val{font-size:22px;font-weight:800;color:var(--ink);line-height:1.1}
+.sob-card-val2{font-size:12px;color:var(--mut);margin-top:2px}
+.sob-card-trend{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.sob-card-trend.up{background:var(--success-bg);color:var(--success-txt)}
+.sob-card-trend.down{background:var(--danger-bg);color:var(--danger-txt)}
+.sob-card svg{display:block;margin-top:6px;width:100%;height:28px}
+</style>
 </head>
 <body>
 <div id="screen-app" class="screen active">
@@ -36,16 +49,50 @@
 <script>
 renderShell('sobrantes');
 
+function sparkline(vals,color){
+  const w=120,h=28,pad=2;
+  const max=Math.max(...vals,1),min=Math.min(...vals,0);
+  const rng=max-min||1;
+  const pts=vals.map((v,i)=>(i/(vals.length-1))*w+' '+(h-pad-((v-min)/rng)*(h-pad*2))).join(' L');
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:120px;height:28px"><path d="M'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
 function renderSob(){
+  const total=DB.sobrantes.length;
+  const sinId=DB.sobrantes.filter(s=>s.estado==='Sin identificar');
+  const inv=DB.sobrantes.filter(s=>s.estado==='En investigación');
+  const rein=DB.sobrantes.filter(s=>s.estado==='Reintegrado');
+  const valTotal=DB.sobrantes.reduce((s,x)=>s+(x.costo_est||0),0);
+  const valRecup=rein.reduce((s,x)=>s+(x.costo_est||0),0);
+
+  const trendUp=[3,5,4,6,8,7,9,11,10,12,14,13,15,18,20];
+  const trendDown=[18,16,14,15,13,12,10,9,8,7,5,6,4,3,2];
+  const trendFlat=[2,3,3,4,5,4,5,6,5,6,7,7,8,9,10];
+  const trendVal=[200,400,350,600,550,700,900,850,1100,1000,1300,1200,1500,1700,1900];
+
+  const cards='<div class="sob-cards">'+
+    '<div class="sob-card"><div class="sob-card-top"><div><div class="sob-card-tit" style="color:var(--rojo)">Total Sobrantes</div><div class="sob-card-sub">Productos no asignados en bodega</div></div><span class="sob-card-trend up"><i class="ri-arrow-up-s-line"></i> +25%</span></div><div class="sob-card-val">'+total+'</div><div class="sob-card-val2">'+sinId.length+' sin identificar · '+inv.length+' en investigación</div>'+sparkline(trendUp,'var(--rojo)')+'</div>'+
+    '<div class="sob-card"><div class="sob-card-top"><div><div class="sob-card-tit" style="color:var(--warn-txt)">Sin Identificar</div><div class="sob-card-sub">Pendientes de investigación</div></div><span class="sob-card-trend up"><i class="ri-arrow-up-s-line"></i> +12%</span></div><div class="sob-card-val">'+sinId.length+'</div><div class="sob-card-val2">'+sinId.reduce((s,x)=>s+(x.add||0),0)+' unidades base · ~'+sinId.reduce((s,x)=>s+(x.costo_est||0),0).toLocaleString('es-CO')+'</div>'+sparkline(trendFlat,'var(--warn-txt)')+'</div>'+
+    '<div class="sob-card"><div class="sob-card-top"><div><div class="sob-card-tit" style="color:var(--info-txt)">Valor Estimado</div><div class="sob-card-sub">Costo total de sobrantes en bodega</div></div><span class="sob-card-trend up"><i class="ri-arrow-up-s-line"></i> +18%</span></div><div class="sob-card-val">$'+Math.round(valTotal/1000000)+'M</div><div class="sob-card-val2">$'+valTotal.toLocaleString('es-CO')+' · $'+Math.round(valTotal/total).toLocaleString('es-CO')+'/promedio</div>'+sparkline(trendVal,'var(--info-txt)')+'</div>'+
+    '<div class="sob-card"><div class="sob-card-top"><div><div class="sob-card-tit" style="color:var(--success-txt)">Recuperados</div><div class="sob-card-sub">Reintegrados al inventario</div></div><span class="sob-card-trend down"><i class="ri-arrow-down-s-line"></i> -8%</span></div><div class="sob-card-val">'+rein.length+'</div><div class="sob-card-val2">'+rein.reduce((s,x)=>s+(x.add||0),0)+' unidades recuperadas · $'+valRecup.toLocaleString('es-CO')+'</div>'+sparkline(trendDown,'var(--success-txt)')+'</div>'+
+  '</div>';
+
   const cols=['Sin identificar','En investigación','Reintegrado'];
-  const colBadge={'Sin identificar':'bp','En investigación':'by','Reintegrado':'bg'};
+  const colBadge={'Sin identificar':'bb','En investigación':'by','Reintegrado':'bg'};
+  const colIcon={'Sin identificar':'ri-question-line','En investigación':'ri-search-eye-line','Reintegrado':'ri-arrow-go-back-line'};
   const kcols=cols.map(col=>{
     const items=DB.sobrantes.filter(s=>s.estado===col);
-    const kcs=items.length?items.map(s=>'<div class="kcard"><div class="kcard-t">'+s.cont+'</div><div class="kcard-m">'+s.ubic+'<br><span style="font-size:10.5px;color:var(--ph)">'+s.orig+' · '+s.det+'</span></div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge bs">'+s.cant+'</span>'+(s.bodega?'<span class="badge bs">'+s.bodega+'</span>':'')+'</div>'+(col==='Sin identificar'?'<div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap"><button class="btn btn-sm" style="background:var(--rojo);color:#fff;padding:4px 10px;font-size:11px" onclick="investigarSobrante(\''+s.id+'\');window.location.reload()"><i class="ri-search-eye-line"></i> Investigar</button></div>':'')+(col==='En investigación'&&s.sku?'<div style="margin-top:10px"><button class="btn btn-green btn-sm" style="font-size:11px" onclick="reintegrarSobrante(\''+s.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-arrow-go-back-line"></i> Reintegrar al inventario</button></div>':'')+'</div>').join('')
-    :'<div style="text-align:center;padding:24px;color:#94A3B8;font-size:12.5px">Sin elementos</div>';
-    return '<div class="kcol"><div class="kcol-h"><span>'+col+'</span><span class="badge '+colBadge[col]+'">'+items.length+'</span></div>'+kcs+'</div>';
+    const totalAdd=items.reduce((s,x)=>s+(x.add||0),0);
+    const totalValCol=items.reduce((s,x)=>s+(x.costo_est||0),0);
+    const kcs=items.length?items.map(s=>{
+      const badgeBg={'Sin identificar':'bb','En investigación':'by','Reintegrado':'bg'};
+      return '<div class="kcard" style="border-left:3px solid var(--'+(col==='Sin identificar'?'danger-txt':col==='En investigación'?'warn-txt':'success-txt')+')"><div class="kcard-t">'+s.cont+'</div><div class="kcard-m">'+s.ubic+'<br><span style="font-size:10.5px;color:var(--ph)">'+s.orig+' · '+s.det+'</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><span class="badge bs">'+s.cant+'</span>'+(s.cant_sec&&s.cant_sec!=='—'?'<span class="badge bs">'+s.cant_sec+'</span>':'')+'<span class="badge bs">'+s.bodega+'</span>'+(s.costo_est?'<span class="badge bs">$'+(s.costo_est/1000).toFixed(0)+'K</span>':'')+'</div>'+(col==='Sin identificar'?'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm" style="background:var(--rojo);color:#fff;padding:4px 10px;font-size:11px" onclick="investigarSobrante(\''+s.id+'\');window.location.reload()"><i class="ri-search-eye-line"></i> Investigar</button></div>':'')+(col==='En investigación'&&s.sku?'<div><button class="btn btn-green btn-sm" style="font-size:11px" onclick="reintegrarSobrante(\''+s.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-arrow-go-back-line"></i> Reintegrar</button></div>':'')+'</div>';
+    }).join('')
+    :'<div style="text-align:center;padding:24px;color:var(--ph);font-size:12.5px">Sin elementos</div>';
+    return '<div class="kcol" style="background:'+(col==='Sin identificar'?'var(--danger-bg)':col==='En investigación'?'var(--warn-bg)':'var(--success-bg)')+';border-color:'+(col==='Sin identificar'?'var(--danger-bd)':col==='En investigación'?'var(--warn-bd)':'var(--success-bd)')+'"><div class="kcol-h" style="color:'+(col==='Sin identificar'?'var(--danger-txt)':col==='En investigación'?'var(--warn-txt)':'var(--success-txt)')+'"><span><i class="'+colIcon[col]+'" style="font-size:13px"></i> '+col+'</span><span class="badge '+colBadge[col]+'">'+items.length+'</span></div><div style="font-size:10px;color:var(--mut);margin-bottom:10px;display:flex;gap:10px;justify-content:space-between"><span>'+totalAdd+' unidades</span><span>$'+(totalValCol/1000).toFixed(0)+'K</span></div>'+kcs+'</div>';
   }).join('');
-  $('pg').innerHTML='<div class="page th-sob"><div class="hero"><div class="hero-ic"><i class="ri-question-line"></i></div><h1>Sobrantes / Sin Identificar</h1><p>Productos no asignados que permanecen en bodega. Investiga, identifica y reintegra al inventario.</p></div><div class="body"><div class="kanban">'+kcols+'</div></div></div>';
+
+  $('pg').innerHTML='<div class="page th-sob"><div class="hero"><div class="hero-ic"><i class="ri-question-line"></i></div><h1>Sobrantes / Sin Identificar</h1><p>Productos no asignados que permanecen en bodega. Investiga, identifica y reintegra al inventario.</p></div><div class="body">'+cards+'<div class="kanban">'+kcols+'</div></div></div>';
 }
 renderSob();
 </script>
