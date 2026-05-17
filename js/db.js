@@ -10,12 +10,12 @@ const DB={
     {id:'BGD',n:'Bodega D - Occidente',dir:'Zona Industrial',area:600,estado:'rojo'}
   ],
   productos:[
-    {sku:'PC-6060-BE',n:'Piso Cerámico 60×60',    ic:'ri-grid-line',    cat:'Pisos',        precio:28500,  u:'m²',  grad:'linear-gradient(135deg,#D9383A,#7F1D1D)'},
-    {sku:'AZ-3060-BL',n:'Azulejo Baño 30×60',     ic:'ri-layout-grid-line',cat:'Azulejos',  precio:22300,  u:'m²',  grad:'linear-gradient(135deg,#1D4ED8,#0F2D7A)'},
-    {sku:'RV-2550-GR',n:'Revestimiento Pared',     ic:'ri-stack-line',   cat:'Revestimientos',precio:35800, u:'m²',  grad:'linear-gradient(135deg,#065F46,#022C22)'},
-    {sku:'GR-LM-CROM',n:'Grifo Lavamanos',         ic:'ri-drop-line',    cat:'Grifería',     precio:45200,  u:'unid',grad:'linear-gradient(135deg,#B45309,#451A03)'},
-    {sku:'GR-CM-CROM',n:'Grifo Cocina Monomando',  ic:'ri-drop-line',    cat:'Grifería',     precio:52000,  u:'unid',grad:'linear-gradient(135deg,#7C3AED,#3B0764)'},
-    {sku:'AD-PORC-25', n:'Adhesivo Porcelana 25kg',ic:'ri-paint-fill',   cat:'Adhesivos',    precio:38000,  u:'sacos',grad:'linear-gradient(135deg,#0369A1,#082F49)'}
+    {sku:'PC-6060-BE',n:'Piso Cerámico 60×60',    ic:'ri-grid-line',    cat:'Pisos',        precio:28500,  u:'m²',  caja:1.44, cajaN:'caja', grad:'linear-gradient(135deg,#D9383A,#7F1D1D)'},
+    {sku:'AZ-3060-BL',n:'Azulejo Baño 30×60',     ic:'ri-layout-grid-line',cat:'Azulejos',  precio:22300,  u:'m²',  caja:1.44, cajaN:'caja', grad:'linear-gradient(135deg,#1D4ED8,#0F2D7A)'},
+    {sku:'RV-2550-GR',n:'Revestimiento Pared',     ic:'ri-stack-line',   cat:'Revestimientos',precio:35800, u:'m²',  caja:1.25, cajaN:'caja', grad:'linear-gradient(135deg,#065F46,#022C22)'},
+    {sku:'GR-LM-CROM',n:'Grifo Lavamanos',         ic:'ri-drop-line',    cat:'Grifería',     precio:45200,  u:'unid',caja:10,   cajaN:'caja x10', grad:'linear-gradient(135deg,#B45309,#451A03)'},
+    {sku:'GR-CM-CROM',n:'Grifo Cocina Monomando',  ic:'ri-drop-line',    cat:'Grifería',     precio:52000,  u:'unid',caja:10,   cajaN:'caja x10', grad:'linear-gradient(135deg,#7C3AED,#3B0764)'},
+    {sku:'AD-PORC-25', n:'Adhesivo Porcelana 25kg',ic:'ri-paint-fill',   cat:'Adhesivos',    precio:38000,  u:'sacos',caja:40,  cajaN:'pale', grad:'linear-gradient(135deg,#0369A1,#082F49)'}
   ],
   stock:{
     BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60},
