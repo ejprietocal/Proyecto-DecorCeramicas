@@ -260,7 +260,8 @@ function aplicarAjusteCategoria(){
     if(!DB.stock[selBodega])DB.stock[selBodega]={};
     DB.stock[selBodega][p.sku]=v;
     const secDiff=p.caja?Math.round(v/p.caja)-Math.round(actual/p.caja):null;
-    DB.movimientos.unshift({f:now(),sku:p.sku,n:p.n,tipo:'Ajuste',cant:Math.abs(diff),u:p.u,resp:currentUser.n,ref:'AJ-'+selCat,bodega:selBodega,est:'Completado',nota:obs+(diff>0?' · Excedente +'+fmt(diff)+' '+p.u+(secDiff?' (+'+secDiff+' '+p.cajaN+')':''):' · Castigo '+fmt(Math.abs(diff))+' '+p.u+(secDiff?' ('+Math.abs(secDiff)+' '+p.cajaN+')':'')})});
+    var notaStr=diff>0?' · Excedente +'+fmt(diff)+' '+p.u+(secDiff?' (+'+secDiff+' '+p.cajaN+')':''):' · Castigo '+fmt(Math.abs(diff))+' '+p.u+(secDiff?' ('+Math.abs(secDiff)+' '+p.cajaN+')':'');
+    DB.movimientos.unshift({f:now(),sku:p.sku,n:p.n,tipo:'Ajuste',cant:Math.abs(diff),u:p.u,resp:currentUser.n,ref:'AJ-'+selCat,bodega:selBodega,est:'Completado',nota:obs+notaStr});
     applied++;
   });
   if(!applied){toast('No hay diferencias que ajustar','warn');return}
