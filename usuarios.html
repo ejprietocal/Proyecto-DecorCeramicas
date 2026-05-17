@@ -49,7 +49,7 @@ function renderUsr(){
     const on=PERMS[u.id]?.includes(k);const lk=k==='dashboard';
     return '<div class="pr-row-p"><span><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px"></i> '+MODS[k].n+'</span><label class="sw '+(lk?'locked':'')+'"><input type="checkbox" '+(on?'checked':'')+' '+(lk?'disabled':'')+' onchange="togglePerm(\''+u.id+'\',\''+k+'\');renderUsr()"><span class="swsl"></span></label></div>';
   }).join('')+'</div></div>').join('');
-  $('pg').innerHTML='<div class="page th-usr"><div class="hero"><div class="hero-ic"><i class="ri-shield-user-line"></i></div><h1>Usuarios y Roles</h1><p>Cada persona accede solo a los módulos de su función. Ante la rotación de personal, el nuevo empleado hereda exactamente el mismo alcance.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoUsuario()"><i class="ri-user-add-line"></i> Nuevo Usuario</button></div></div><div class="body"><div style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309;font-size:12.5px;padding:11px 14px;border-radius:10px;margin-bottom:18px;display:flex;gap:9px"><i class="ri-lightbulb-flash-line" style="margin-top:1px;flex-shrink:0"></i><span>Los cambios de permisos son en vivo. Si modificas al usuario con el que iniciaste sesión, el menú lateral cambia inmediatamente. Dashboard es obligatorio para todos.</span></div><div class="role-grid">'+boxes+'</div></div></div>';
+  $('pg').innerHTML='<div class="page th-usr"><div class="hero"><div class="hero-ic"><i class="ri-shield-user-line"></i></div><h1>Usuarios y Roles</h1><p>Cada persona accede solo a los módulos de su función. Ante la rotación de personal, el nuevo empleado hereda exactamente el mismo alcance.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoUsuario()"><i class="ri-user-add-line"></i> Nuevo Usuario</button></div></div><div class="body"><div style="background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-txt);font-size:12.5px;padding:11px 14px;border-radius:10px;margin-bottom:18px;display:flex;gap:9px"><i class="ri-lightbulb-flash-line" style="margin-top:1px;flex-shrink:0"></i><span>Los cambios de permisos son en vivo. Si modificas al usuario con el que iniciaste sesión, el menú lateral cambia inmediatamente. Dashboard es obligatorio para todos.</span></div><div class="role-grid">'+boxes+'</div></div></div>';
 }
 renderUsr();
 
@@ -57,7 +57,7 @@ function modalNuevoUsuario(){
   const mOpts=Object.keys(MODS).filter(k=>k!=='dashboard').map(k=>'<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 0"><input type="checkbox" class="nuMod" value="'+k+'"> '+MODS[k].n+'</label>').join('');
   openMod('<i class="ri-user-add-line"></i> Crear Usuario',
     '<div class="ff"><label>Nombre completo</label><input id="nuN" placeholder="Ej: Andrés Felipe Bravo"></div><div class="ff"><label>Cargo / Rol</label><input id="nuR" placeholder="Ej: Auxiliar de Bodega"></div><div class="ff"><label>Módulos con acceso (Dashboard incluido siempre)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">'+mOpts+'</div></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:#0F172A;color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear</button>'
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear</button>'
   );
 }
 function crearUsuario(){
@@ -66,7 +66,7 @@ function crearUsuario(){
   const pts=nm.split(' ');const init=((pts[0]||'')[0]+((pts[1]||pts[0]||'')[0])).toUpperCase();
   const id='u'+Date.now();
   const mods=['dashboard',...[...document.querySelectorAll('.nuMod:checked')].map(c=>c.value)];
-  const colors=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
+  const colors=['#D9383A','#0369A1','#15803D','#B45309','#2D3748','#3B82F6','#1E293B','#64748B'];
   USERS.push({id,nm:nm,r:rl,in:init,c:colors[USERS.length%colors.length]});
   PERMS[id]=mods;
   closeMod();saveDB();renderUsr();toast('Usuario creado. Ingresa con el número '+USERS.length,'ok');

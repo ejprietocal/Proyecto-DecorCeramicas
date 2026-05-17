@@ -59,7 +59,7 @@ function modalNuevaOC(){
   const pOpts=DB.proveedores.map(p=>'<option value="'+p.id+'">'+p.n+' ('+p.ciudad+')</option>').join('');
   openMod('<i class="ri-shopping-cart-2-line"></i> Nueva Orden de Compra',
     '<div class="note"><i class="ri-information-line"></i> Solo puedes comprarle a proveedores ya registrados.</div><div class="ff"><label>Proveedor</label><select id="dProv"><option value="">— Selecciona —</option>'+pOpts+'</select></div><div class="ff"><label>Productos a comprar</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:#4338CA;color:#fff" onclick="crearOC()"><i class="ri-check-line"></i> Generar OC</button>'
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearOC()"><i class="ri-check-line"></i> Generar OC</button>'
   );renderLines();
 }
 function crearOC(){
