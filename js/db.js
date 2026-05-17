@@ -10,18 +10,30 @@ const DB={
     {id:'BGD',n:'Bodega D - Occidente',dir:'Zona Industrial',area:600,estado:'rojo'}
   ],
   productos:[
-    {sku:'PC-6060-BE',n:'Piso Cerámico 60×60',    ic:'ri-grid-line',    cat:'Pisos',        precio:28500, costo:18000, descuento_max:15, u:'m²',  caja:1.44, cajaN:'caja', grad:'linear-gradient(135deg,#D9383A,#7F1D1D)'},
-    {sku:'AZ-3060-BL',n:'Azulejo Baño 30×60',     ic:'ri-layout-grid-line',cat:'Azulejos',  precio:22300, costo:14000, descuento_max:10, u:'m²',  caja:1.44, cajaN:'caja', grad:'linear-gradient(135deg,#1D4ED8,#0F2D7A)'},
-    {sku:'RV-2550-GR',n:'Revestimiento Pared',     ic:'ri-stack-line',   cat:'Revestimientos',precio:35800, costo:22000, descuento_max:10, u:'m²',  caja:1.25, cajaN:'caja', grad:'linear-gradient(135deg,#065F46,#022C22)'},
-    {sku:'GR-LM-CROM',n:'Grifo Lavamanos',         ic:'ri-drop-line',    cat:'Grifería',     precio:45200, costo:30000, descuento_max:20, u:'unid',caja:10,   cajaN:'caja x10', grad:'linear-gradient(135deg,#B45309,#451A03)'},
-    {sku:'GR-CM-CROM',n:'Grifo Cocina Monomando',  ic:'ri-drop-line',    cat:'Grifería',     precio:52000, costo:35000, descuento_max:20, u:'unid',caja:10,   cajaN:'caja x10', grad:'linear-gradient(135deg,#7C3AED,#3B0764)'},
-    {sku:'AD-PORC-25', n:'Adhesivo Porcelana 25kg',ic:'ri-paint-fill',   cat:'Adhesivos',    precio:38000, costo:25000, descuento_max:10, u:'sacos',caja:40,  cajaN:'pale', grad:'linear-gradient(135deg,#0369A1,#082F49)'}
+    {sku:'PC-6060-BE',n:'Piso Cerámico 60×60',      ic:'ri-grid-line',        cat:'Pisos',         precio:28500, costo:18000, descuento_max:15, u:'m²',  caja:1.44, cajaN:'caja',    grad:'linear-gradient(135deg,#D9383A,#7F1D1D)'},
+    {sku:'AZ-3060-BL',n:'Azulejo Baño 30×60',       ic:'ri-layout-grid-line',  cat:'Azulejos',     precio:22300, costo:14000, descuento_max:10, u:'m²',  caja:1.44, cajaN:'caja',    grad:'linear-gradient(135deg,#1D4ED8,#0F2D7A)'},
+    {sku:'RV-2550-GR',n:'Revestimiento Pared',       ic:'ri-stack-line',       cat:'Revestimientos',precio:35800, costo:22000, descuento_max:10, u:'m²',  caja:1.25, cajaN:'caja',    grad:'linear-gradient(135deg,#065F46,#022C22)'},
+    {sku:'GR-LM-CROM',n:'Grifo Lavamanos',           ic:'ri-drop-line',        cat:'Grifería',     precio:45200, costo:30000, descuento_max:20, u:'unid',caja:10,   cajaN:'caja x10',grad:'linear-gradient(135deg,#B45309,#451A03)'},
+    {sku:'GR-CM-CROM',n:'Grifo Cocina Monomando',    ic:'ri-drop-line',        cat:'Grifería',     precio:52000, costo:35000, descuento_max:20, u:'unid',caja:10,   cajaN:'caja x10',grad:'linear-gradient(135deg,#7C3AED,#3B0764)'},
+    {sku:'AD-PORC-25',n:'Adhesivo Porcelana 25kg',   ic:'ri-paint-fill',       cat:'Adhesivos',    precio:38000, costo:25000, descuento_max:10, u:'sacos',caja:40,  cajaN:'pale',    grad:'linear-gradient(135deg,#0369A1,#082F49)'},
+    {sku:'MO-IM-40',  n:'Mortero Impermeable 40kg',  ic:'ri-brick-line',       cat:'Morteros',     precio:35000, costo:22000, descuento_max:10, u:'sacos',caja:50,  cajaN:'pale',    grad:'linear-gradient(135deg,#0E7C66,#064E3B)'},
+    {sku:'MO-PEG-25', n:'Mortero Pegacor 25kg',      ic:'ri-brick-line',       cat:'Morteros',     precio:28000, costo:17000, descuento_max:15, u:'sacos',caja:60,  cajaN:'pale',    grad:'linear-gradient(135deg,#047857,#022C22)'},
+    {sku:'HR-PT-100', n:'Perfil T para enchape 2.4m',ic:'ri-subtract-line',    cat:'Herrería',     precio:8500,  costo:5000,  descuento_max:20, u:'unid',caja:25,  cajaN:'paquete', grad:'linear-gradient(135deg,#4338CA,#1E1B4B)'},
+    {sku:'HR-ES-50',  n:'Escuadra metálica 5×5',     ic:'ri-subtract-line',    cat:'Herrería',     precio:3200,  costo:1800,  descuento_max:25, u:'unid',caja:100, cajaN:'caja',    grad:'linear-gradient(135deg,#6D28D9,#3B0764)'},
+    {sku:'EL-CA-10',  n:'Cable eléctrico #10 100m',  ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:125000,costo:85000, descuento_max:10, u:'unid',caja:10,  cajaN:'caja',    grad:'linear-gradient(135deg,#D97706,#78350F)'},
+    {sku:'EL-TO-20',  n:'Toma corriente doble polar', ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:4500,  costo:2500,  descuento_max:15, u:'unid',caja:50,  cajaN:'caja',    grad:'linear-gradient(135deg,#F59E0B,#92400E)'},
+    {sku:'PT-BL-1',   n:'Pintura Blanca Galaxy 1gal', ic:'ri-palette-line',     cat:'Pinturas',     precio:42000, costo:28000, descuento_max:10, u:'unid',caja:12,  cajaN:'caja',    grad:'linear-gradient(135deg,#0F172A,#334155)'},
+    {sku:'PT-ES-1',   n:'Esmalte Sintético 1/4gal',   ic:'ri-palette-line',     cat:'Pinturas',     precio:18500, costo:11000, descuento_max:15, u:'unid',caja:24,  cajaN:'caja',    grad:'linear-gradient(135deg,#1D4ED8,#0F2D7A)'},
+    {sku:'SN-LV-40',  n:'Lavamanos Vitreo 40cm',      ic:'ri-drop-line',        cat:'Sanitarios',   precio:89000, costo:55000, descuento_max:10, u:'unid',caja:6,   cajaN:'caja',    grad:'linear-gradient(135deg,#0D9488,#115E59)'},
+    {sku:'SN-IN-1',   n:'Inodoro Tanque Bajo',        ic:'ri-drop-line',        cat:'Sanitarios',   precio:210000,costo:140000,descuento_max:10, u:'unid',caja:4,   cajaN:'caja',    grad:'linear-gradient(135deg,#14B8A6,#0F766E)'},
+    {sku:'HR-PA-1',   n:'Palustre dentado 8mm',       ic:'ri-tools-line',       cat:'Herramientas', precio:12500, costo:7000,  descuento_max:20, u:'unid',caja:20,  cajaN:'caja',    grad:'linear-gradient(135deg,#78716C,#292524)'},
+    {sku:'HR-NV-1',   n:'Nivel láser 3 líneas',       ic:'ri-tools-line',       cat:'Herramientas', precio:165000,costo:98000, descuento_max:15, u:'unid',caja:6,   cajaN:'caja',    grad:'linear-gradient(135deg,#A8A29E,#44403C)'}
   ],
   stock:{
-    BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60},
-    BGB:{'PC-6060-BE':2000,'AZ-3060-BL':3000,'RV-2550-GR':1500,'GR-CM-CROM':30,'AD-PORC-25':40},
-    BGC:{'PC-6060-BE':500, 'AZ-3060-BL':800, 'GR-LM-CROM':20, 'GR-CM-CROM':10},
-    BGD:{'PC-6060-BE':80,  'GR-LM-CROM':5}
+    BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60,'MO-IM-40':120,'MO-PEG-25':200,'HR-PT-100':300,'HR-ES-50':500,'EL-CA-10':25,'EL-TO-20':150,'PT-BL-1':80,'PT-ES-1':45,'SN-LV-40':30,'SN-IN-1':15,'HR-PA-1':60,'HR-NV-1':20},
+    BGB:{'PC-6060-BE':2000,'AZ-3060-BL':3000,'RV-2550-GR':1500,'GR-CM-CROM':30,'AD-PORC-25':40,'MO-IM-40':80,'MO-PEG-25':150,'HR-PT-100':120,'HR-ES-50':200,'EL-CA-10':10,'PT-BL-1':35,'SN-LV-40':15,'HR-PA-1':25},
+    BGC:{'PC-6060-BE':500, 'AZ-3060-BL':800, 'GR-LM-CROM':20, 'GR-CM-CROM':10, 'EL-CA-10':15, 'EL-TO-20':200, 'SN-IN-1':8, 'HR-PA-1':45},
+    BGD:{'PC-6060-BE':80,  'GR-LM-CROM':5, 'MO-IM-40':30, 'MO-PEG-25':45, 'PT-ES-1':60, 'HR-NV-1':12}}
   },
   proveedores:[
     {id:'PR-01',n:'Cerámica Nariño',   cat:'Pisos y revestimientos',ciudad:'Ipiales',contacto:'Luis Erazo',  tel:'315 442 1180',calif:4.6,estado:'Activo'},

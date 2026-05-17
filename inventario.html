@@ -137,7 +137,7 @@ function modalEditarProducto(sku){
   const p=sku?DB.productos.find(x=>x.sku===sku):null;
   editSku=sku||null;
   const t=p?'<i class="ri-pencil-line"></i> Editar Producto':'<i class="ri-add-box-line"></i> Nuevo Producto';
-  const cats=['Pisos','Azulejos','Revestimientos','Grifería','Adhesivos','Morteros','Herrería','Eléctricos','Pinturas','General'];
+  const cats=['Pisos','Azulejos','Revestimientos','Grifería','Adhesivos','Morteros','Herrería','Eléctricos','Pinturas','Sanitarios','Herramientas','Seguridad','Iluminación','Ventilación','Ferretería','General'];
   const catOpts=cats.map(c=>'<option value="'+c+'"'+(p&&p.cat===c?' selected':'')+'>'+c+'</option>').join('');
   const uOpts='<option value="m²"'+(p&&p.u==='m²'?' selected':'')+'>m² (metros cuadrados)</option><option value="lb"'+(p&&p.u==='lb'?' selected':'')+'>lb (libras)</option>';
   const cajaNOpts=['caja','pale','paquete','bulto','rollo','galón'].map(c=>'<option value="'+c+'"'+(p&&p.cajaN===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>').join('');
