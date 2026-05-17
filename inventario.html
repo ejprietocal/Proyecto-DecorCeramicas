@@ -90,11 +90,21 @@ function renderInv(){
   const totalStk=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku),0);
   const convCount=filtered.filter(p=>p.caja).length;
   const totalVal=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku)*(p.costo||0),0);
-  const summary='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">'+
+  const bgStocks=DB.bodegas.map(b=>{return{id:b.id,st:filtered.reduce((a,p)=>a+stockBodega(b.id,p.sku),0)}});
+  const bgTotal=bgStocks.reduce((s,b)=>s+b.st,0);
+  const summary='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Productos</div><div style="font-size:20px;font-weight:800;color:var(--ink)">'+filtered.length+'</div><div style="font-size:10px;color:var(--mut)">de '+DB.productos.length+' total</div></div>'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Stock en '+selBodega+'</div><div style="font-size:20px;font-weight:800;color:var(--ink)">'+fmt(totalStk)+'</div><div style="font-size:10px;color:var(--mut)">unidades base</div></div>'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Conversión</div><div style="font-size:20px;font-weight:800;color:var(--link)">'+convCount+'</div><div style="font-size:10px;color:var(--mut)">productos con factor</div></div>'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Valor inventario</div><div style="font-size:20px;font-weight:800;color:var(--success-txt)">'+money(totalVal)+'</div><div style="font-size:10px;color:var(--mut)">costo total</div></div>'+
+  '</div>'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px"><i class="ri-store-2-line"></i> Stock por bodega</div>'+
+      bgStocks.map(b=>{const p=bgTotal>0?b.st/bgTotal*100:0;const bg=DB.bodegas.find(x=>x.id===b.id);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:10px;font-weight:600;color:var(--txt);width:28px">'+b.id+'</span><div style="flex:1;height:6px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--'+(bg.estado==='verde'?'success-txt':bg.estado==='amarillo'?'warn-txt':'danger-txt')+');border-radius:3px"></span></div><span style="font-size:10px;color:var(--mut);width:60px;text-align:right">'+fmt(b.st)+'</span></div>'}).join('')+
+    '</div>'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px"><i class="ri-grid-line"></i> Productos por categoría</div>'+
+      cats.map(c=>{const cnt=DB.productos.filter(p=>p.cat===c).length;const p=cnt/DB.productos.length*100;return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:10px;font-weight:600;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c+'</span><div style="width:70px;height:6px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--rojo);border-radius:3px"></span></div><span style="font-size:10px;color:var(--mut);width:24px;text-align:right">'+cnt+'</span></div>'}).join('')+
+    '</div>'+
   '</div>';
 
   const filterTag='<span class="filter-tag" onclick="modalFiltros()"><i class="ri-store-2-line"></i> '+selBodega+' <span style="opacity:.6">· '+(selCat==='Todos'?'Todo':selCat)+'</span> <i class="ri-arrow-down-s-line"></i></span>';
