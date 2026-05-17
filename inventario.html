@@ -107,7 +107,7 @@ function renderInv(){
     '</div>'+
   '</div>';
 
-  const filterTag='<span class="filter-tag" onclick="modalFiltros()"><i class="ri-store-2-line"></i> '+selBodega+' <span style="opacity:.6">· '+(selCat==='Todos'?'Todo':selCat)+'</span> <i class="ri-arrow-down-s-line"></i></span>';
+  const filterTag='<span class="filter-tag" onclick="modalFiltros()"><i class="ri-store-2-line"></i> '+selBodega+' <span style="opacity:.6">· '+(selCat==='Todos'?'Todo':selCat)+'</span> <i class="ri-arrow-down-s-line"></i></span>'+(selCat!=='Todos'?'<button class="filter-tag" style="border-color:var(--rojo);color:var(--rojo);font-size:11px" onclick="modalAjusteCategoria()"><i class="ri-scales-line"></i> Ajustar '+selCat+'</button>':'');
 
   const rows=filtered.map(p=>{
     const stk=stockBodega(selBodega,p.sku);const tot=stockTotal(p.sku);
@@ -199,6 +199,54 @@ function verDetalleProducto(sku){
     '<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px"><i class="ri-store-2-line"></i> Stock por bodega</div>'+stkRows+'<div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:700">Total</span><span style="font-weight:800">'+fmt(stockTotal(sku))+' '+p.u+'</span></div>'+convHtml,
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button>'
   );
+}
+function modalAjusteCategoria(){
+  const prods=DB.productos.filter(p=>p.cat===selCat);
+  if(!prods.length){toast('No hay productos en esta categoría','warn');return}
+  const rows=prods.map((p,i)=>{
+    const stk=stockBodega(selBodega,p.sku);
+    return '<div style="display:grid;grid-template-columns:1fr 70px 80px 60px;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px">'+
+      '<span style="font-weight:600;color:var(--ink)">'+p.n+'</span>'+
+      '<span style="text-align:right;font-weight:700">'+fmt(stk)+' <span style="font-size:9px;color:var(--mut)">'+p.u+'</span></span>'+
+      '<input id="acCant_'+i+'" type="number" min="0" value="'+stk+'" style="width:100%;padding:4px 6px;border:1.5px solid var(--line);border-radius:6px;font-size:12px;text-align:center;background:var(--bg);outline:none" oninput="previewAjusteCat('+i+','+stk+',\''+p.u+'\')">'+
+      '<span id="acDiff_'+i+'" style="text-align:right;font-weight:700;font-size:12px">0</span>'+
+    '</div>';
+  }).join('');
+  openMod('<i class="ri-scales-line"></i> Ajustar Inventario · '+selCat,
+    '<div style="background:var(--info-bg);border:1px solid var(--info-bd);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--info-txt);display:flex;gap:9px;line-height:1.55">'+
+    '<i class="ri-information-line" style="font-size:16px;flex-shrink:0;margin-top:1px"></i>'+
+    '<span>Este ajuste permite <b>regularizar el inventario físico</b> de todos los productos en la categoría <b>'+selCat+'</b> para la bodega <b>'+selBodega+'</b>. Ingresa el <b>conteo físico real</b> de cada producto; el sistema calculará automáticamente la diferencia. Un <b>excedente</b> (conteo mayor al sistema) registra una entrada, un <b>castigo</b> (conteo menor) descuenta del inventario. Cada movimiento queda registrado en el historial de movimientos.</span></div>'+
+    '<div style="background:var(--neutral-bg);border-radius:8px;padding:6px 10px;margin-bottom:12px;display:grid;grid-template-columns:1fr 70px 80px 60px;gap:6px;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px"><span>Producto</span><span style="text-align:right">Actual</span><span style="text-align:center">Conteo físico</span><span style="text-align:right">Dif.</span></div>'+
+    '<div style="max-height:300px;overflow-y:auto">'+rows+'</div>'+
+    '<div class="ff" style="margin-top:12px"><label>Observación general</label><input id="acObs" placeholder="Ej: Conteo mensual de inventario — mayo 2026"></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="aplicarAjusteCategoria()"><i class="ri-check-line"></i> Aplicar ajustes</button>'
+  );
+}
+function previewAjusteCat(i,actual,u){
+  const v=parseInt($('acCant_'+i).value);
+  if(isNaN(v)){$('acDiff_'+i).textContent='—';return}
+  const d=v-actual;
+  $('acDiff_'+i).textContent=(d>=0?'+':'')+fmt(d);
+  $('acDiff_'+i).style.color=d>0?'var(--success-txt)':d<0?'var(--danger-txt)':'var(--mut)';
+}
+function aplicarAjusteCategoria(){
+  const prods=DB.productos.filter(p=>p.cat===selCat);
+  const obs=$('acObs').value||'Conteo físico categoría '+selCat;
+  let applied=0;
+  prods.forEach((p,i)=>{
+    const v=parseInt($('acCant_'+i).value);
+    if(isNaN(v)||v<0)return;
+    const actual=stockBodega(selBodega,p.sku);
+    const diff=v-actual;
+    if(diff===0)return;
+    if(!DB.stock[selBodega])DB.stock[selBodega]={};
+    DB.stock[selBodega][p.sku]=v;
+    DB.movimientos.unshift({f:now(),sku:p.sku,n:p.n,tipo:'Ajuste',cant:Math.abs(diff),u:p.u,resp:currentUser.n,ref:'AJ-'+selCat,bodega:selBodega,est:'Completado',nota:obs+(diff>0?' · Excedente +'+diff:' · Castigo '+diff)});
+    applied++;
+  });
+  if(!applied){toast('No hay diferencias que ajustar','warn');return}
+  DB.pedidos.filter(p=>p.estado==='resagado').forEach(p=>asignarStock(p.id));
+  closeMod();saveDB();renderInv();toast(applied+' producto'+(applied>1?'s':'')+' ajustado'+(applied>1?'s':'')+' en '+selBodega,'ok');
 }
 </script>
 </body>
