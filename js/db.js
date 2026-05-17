@@ -1,6 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
+const DB_VER=2;
 
 const DB={
   bodegas:[
@@ -111,18 +112,22 @@ let currentUser=null,selBodega='BGA';
     if(saved){
       const data=JSON.parse(saved);
       const meta=data._meta||{};
-      delete data._meta;
-      Object.keys(data).forEach(k=>{DB[k]=data[k]});
-      OC_SEQ=meta.OC_SEQ||OC_SEQ;
-      PD_SEQ=meta.PD_SEQ||PD_SEQ;
-      TR_SEQ=meta.TR_SEQ||TR_SEQ;
+      if(meta.ver===DB_VER){
+        delete data._meta;
+        Object.keys(data).forEach(k=>{DB[k]=data[k]});
+        OC_SEQ=meta.OC_SEQ||OC_SEQ;
+        PD_SEQ=meta.PD_SEQ||PD_SEQ;
+        TR_SEQ=meta.TR_SEQ||TR_SEQ;
+      }else{
+        localStorage.removeItem(DB_KEY);
+      }
     }
-  }catch(e){}
+  }catch(e){localStorage.removeItem(DB_KEY)}
 })();
 
 function saveDB(){
   try{
-    localStorage.setItem(DB_KEY,JSON.stringify({...DB,_meta:{OC_SEQ,PD_SEQ,TR_SEQ}}));
+    localStorage.setItem(DB_KEY,JSON.stringify({...DB,_meta:{ver:DB_VER,OC_SEQ,PD_SEQ,TR_SEQ}}));
   }catch(e){}
 }
 window.addEventListener('beforeunload',saveDB);
