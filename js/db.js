@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=3;
+const DB_VER=4;
 
 const DB={
   bodegas:[
@@ -28,8 +28,46 @@ const DB={
     {sku:'SN-LV-40',  n:'Lavamanos Vitreo 40cm',      ic:'ri-drop-line',        cat:'Sanitarios',   precio:89000, costo:55000, descuento_max:10, u:'unid',caja:6,   cajaN:'caja',    grad:'linear-gradient(135deg,#0D9488,#115E59)'},
     {sku:'SN-IN-1',   n:'Inodoro Tanque Bajo',        ic:'ri-drop-line',        cat:'Sanitarios',   precio:210000,costo:140000,descuento_max:10, u:'unid',caja:4,   cajaN:'caja',    grad:'linear-gradient(135deg,#14B8A6,#0F766E)'},
     {sku:'HR-PA-1',   n:'Palustre dentado 8mm',       ic:'ri-tools-line',       cat:'Herramientas', precio:12500, costo:7000,  descuento_max:20, u:'unid',caja:20,  cajaN:'caja',    grad:'linear-gradient(135deg,#78716C,#292524)'},
-    {sku:'HR-NV-1',   n:'Nivel láser 3 líneas',       ic:'ri-tools-line',       cat:'Herramientas', precio:165000,costo:98000, descuento_max:15, u:'unid',caja:6,   cajaN:'caja',    grad:'linear-gradient(135deg,#A8A29E,#44403C)'}
+    {sku:'HR-NV-1',   n:'Nivel láser 3 líneas',       ic:'ri-tools-line',       cat:'Herramientas', precio:165000,costo:98000, descuento_max:15, u:'unid',caja:6,   cajaN:'caja',    grad:'linear-gradient(135deg,#A8A29E,#44403C)'},
+    {sku:'PC-4545-BE',n:'Piso Cerámico 45×45 Beige',  ic:'ri-grid-line',        cat:'Pisos',         precio:23500, costo:15000, descuento_max:15, u:'m²',  caja:1.62, cajaN:'caja',    grad:'linear-gradient(135deg,#A16207,#422006)'},
+    {sku:'PC-3333-GR',n:'Piso Cerámico 33×33 Gris',   ic:'ri-grid-line',        cat:'Pisos',         precio:19800, costo:12500, descuento_max:15, u:'m²',  caja:1.08, cajaN:'caja',    grad:'linear-gradient(135deg,#525252,#171717)'},
+    {sku:'AZ-2020-BL',n:'Azulejo Cocina 20×20 Blanco',ic:'ri-layout-grid-line',  cat:'Azulejos',     precio:18500, costo:11500, descuento_max:10, u:'m²',  caja:1.44, cajaN:'caja',    grad:'linear-gradient(135deg,#E2E8F0,#64748B)'},
+    {sku:'AZ-1525-VD',n:'Azulejo Decorativo 15×25',   ic:'ri-layout-grid-line',  cat:'Azulejos',     precio:26500, costo:17000, descuento_max:10, u:'m²',  caja:1.2,  cajaN:'caja',    grad:'linear-gradient(135deg,#059669,#022C22)'},
+    {sku:'RV-2040-BE',n:'Revestimiento Piedra 20×40', ic:'ri-stack-line',       cat:'Revestimientos',precio:32500, costo:20000, descuento_max:10, u:'m²',  caja:1.28, cajaN:'caja',    grad:'linear-gradient(135deg,#78716C,#292524)'},
+    {sku:'RV-1530-ML',n:'Revestimiento Mármol 15×30', ic:'ri-stack-line',       cat:'Revestimientos',precio:38500, costo:24000, descuento_max:10, u:'m²',  caja:1.35, cajaN:'caja',    grad:'linear-gradient(135deg,#A78BFA,#4C1D95)'},
+    {sku:'GR-DU-AL',  n:'Grifo Ducha Aleación',       ic:'ri-drop-line',        cat:'Grifería',     precio:38500, costo:25000, descuento_max:20, u:'unid',caja:10,  cajaN:'caja x10',grad:'linear-gradient(135deg,#0EA5E9,#0C4A6E)'},
+    {sku:'GR-LV-DOR', n:'Grifo Lavamanos Dorado',    ic:'ri-drop-line',         cat:'Grifería',     precio:58000, costo:38000, descuento_max:20, u:'unid',caja:10,  cajaN:'caja x10',grad:'linear-gradient(135deg,#B45309,#78350F)'},
+    {sku:'AD-FLEX-20',n:'Adhesivo Flexiblanco 20kg',  ic:'ri-paint-fill',       cat:'Adhesivos',    precio:34000, costo:22000, descuento_max:10, u:'sacos',caja:50, cajaN:'pale',    grad:'linear-gradient(135deg,#2563EB,#1E3A5F)'},
+    {sku:'AD-CER-GR', n:'Adhesivo Cerámico Gris 25kg',ic:'ri-paint-fill',       cat:'Adhesivos',    precio:32000, costo:20000, descuento_max:10, u:'sacos',caja:40, cajaN:'pale',    grad:'linear-gradient(135deg,#475569,#0F172A)'},
+    {sku:'MO-NIV-25', n:'Mortero Nivelador 25kg',     ic:'ri-brick-line',       cat:'Morteros',     precio:31000, costo:19000, descuento_max:15, u:'sacos',caja:60, cajaN:'pale',    grad:'linear-gradient(135deg,#D97706,#78350F)'},
+    {sku:'MO-REV-30', n:'Mortero Revestimiento 30kg', ic:'ri-brick-line',       cat:'Morteros',     precio:29000, costo:18000, descuento_max:10, u:'sacos',caja:50, cajaN:'pale',    grad:'linear-gradient(135deg,#0891B2,#164E63)'},
+    {sku:'HR-AN-10',  n:'Anclaje metálico 10mm',      ic:'ri-subtract-line',    cat:'Herrería',     precio:2800,  costo:1500,  descuento_max:25, u:'unid',caja:100,cajaN:'caja',    grad:'linear-gradient(135deg,#DC2626,#7F1D1D)'},
+    {sku:'HR-PL-3M',  n:'Pletina acero 3m',           ic:'ri-subtract-line',    cat:'Herrería',     precio:12500, costo:7500,  descuento_max:20, u:'unid',caja:20, cajaN:'paquete', grad:'linear-gradient(135deg,#A3A3A3,#404040)'},
+    {sku:'EL-IN-15',  n:'Interruptor sencillo 15A',   ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:3800,  costo:2200,  descuento_max:15, u:'unid',caja:50, cajaN:'caja',    grad:'linear-gradient(135deg,#FCD34D,#78350F)'},
+    {sku:'EL-CA-12',  n:'Cable trenzado #12 50m',     ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:68000, costo:42000, descuento_max:10, u:'unid',caja:15, cajaN:'caja',    grad:'linear-gradient(135deg,#F97316,#7C2D12)'},
+    {sku:'PT-ES-NEG', n:'Esmalte Negro 1/4gal',       ic:'ri-palette-line',     cat:'Pinturas',     precio:19500, costo:12000, descuento_max:15, u:'unid',caja:24, cajaN:'caja',    grad:'linear-gradient(135deg,#171717,#0A0A0A)'},
+    {sku:'PT-BARN-1', n:'Barniz Marino 1gal',         ic:'ri-palette-line',     cat:'Pinturas',     precio:52000, costo:34000, descuento_max:10, u:'unid',caja:12, cajaN:'caja',    grad:'linear-gradient(135deg,#92400E,#451A03)'},
+    {sku:'SN-LV-60',  n:'Lavamanos Ovalín 60cm',      ic:'ri-drop-line',        cat:'Sanitarios',   precio:125000,costo:78000, descuento_max:10, u:'unid',caja:4,  cajaN:'caja',    grad:'linear-gradient(135deg,#E2E8F0,#334155)'},
+    {sku:'SN-SN-1',   n:'Sanitario Tanque Alto',      ic:'ri-drop-line',        cat:'Sanitarios',   precio:185000,costo:120000,descuento_max:10, u:'unid',caja:3,  cajaN:'caja',    grad:'linear-gradient(135deg,#94A3B8,#1E293B)'},
+    {sku:'HR-CI-30',  n:'Cincel plano 30mm',          ic:'ri-tools-line',       cat:'Herramientas', precio:8500,  costo:5000,  descuento_max:20, u:'unid',caja:30, cajaN:'caja',    grad:'linear-gradient(135deg,#737373,#262626)'},
+    {sku:'HR-MA-5',   n:'Martillo de goma 500g',      ic:'ri-tools-line',       cat:'Herramientas', precio:14500, costo:8500,  descuento_max:20, u:'unid',caja:15, cajaN:'caja',    grad:'linear-gradient(135deg,#DC2626,#450A0A)'},
+    {sku:'PC-POR-60', n:'Piso Porcelanato 60×60',     ic:'ri-grid-line',        cat:'Pisos',         precio:42000, costo:28000, descuento_max:15, u:'m²',  caja:1.44, cajaN:'caja',    grad:'linear-gradient(135deg,#0F172A,#334155)'},
+    {sku:'AZ-2540-VD',n:'Azulejo Verde 25×40',        ic:'ri-layout-grid-line',  cat:'Azulejos',     precio:20500, costo:13000, descuento_max:10, u:'m²',  caja:1.5,  cajaN:'caja',    grad:'linear-gradient(135deg,#166534,#052E16)'},
+    {sku:'RV-3060-BL',n:'Revestimiento Blanco 30×60', ic:'ri-stack-line',       cat:'Revestimientos',precio:34800, costo:21500, descuento_max:10, u:'m²',  caja:1.44, cajaN:'caja',    grad:'linear-gradient(135deg,#F1F5F9,#475569)'},
+    {sku:'GR-FO-DOR', n:'Grifo Fregadero Dorado',     ic:'ri-drop-line',        cat:'Grifería',     precio:62500, costo:40000, descuento_max:20, u:'unid',caja:8,  cajaN:'caja x8', grad:'linear-gradient(135deg,#D97706,#78350F)'},
+    {sku:'AD-MULTI-1',n:'Adhesivo Multiusos 1kg',     ic:'ri-paint-fill',       cat:'Adhesivos',    precio:12500, costo:7500,  descuento_max:15, u:'unid',caja:30, cajaN:'caja',    grad:'linear-gradient(135deg,#DC2626,#7F1D1D)'},
+    {sku:'MO-FR-40',  n:'Mortero Frisbee 40kg',       ic:'ri-brick-line',       cat:'Morteros',     precio:26500, costo:16500, descuento_max:10, u:'sacos',caja:50, cajaN:'pale',    grad:'linear-gradient(135deg,#0EA5E9,#0C4A6E)'},
+    {sku:'HR-VA-1M',  n:'Válvula compuerta 1"',       ic:'ri-subtract-line',    cat:'Herrería',     precio:9500,  costo:5800,  descuento_max:20, u:'unid',caja:40, cajaN:'caja',    grad:'linear-gradient(135deg,#F59E0B,#92400E)'},
+    {sku:'EL-BR-20',  n:'Breaker 20A bipolar',         ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:8500,  costo:5200,  descuento_max:15, u:'unid',caja:30, cajaN:'caja',    grad:'linear-gradient(135deg,#3B82F6,#1E3A5F)'},
+    {sku:'EL-TU-1/2', n:'Tubería PVC 1/2" 3m',        ic:'ri-flashlight-line',  cat:'Eléctricos',   precio:6200,  costo:3800,  descuento_max:15, u:'unid',caja:25, cajaN:'paquete', grad:'linear-gradient(135deg,#78716C,#292524)'},
+    {sku:'SN-DU-ECO', n:'Ducha Eléctrica Eco',         ic:'ri-drop-line',        cat:'Sanitarios',   precio:45000, costo:28000, descuento_max:10, u:'unid',caja:8,  cajaN:'caja',    grad:'linear-gradient(135deg,#0284C7,#0C4A6E)'}
   ],
+  stock:{
+    BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60,'MO-IM-40':120,'MO-PEG-25':200,'HR-PT-100':300,'HR-ES-50':500,'EL-CA-10':25,'EL-TO-20':150,'PT-BL-1':80,'PT-ES-1':45,'SN-LV-40':30,'SN-IN-1':15,'HR-PA-1':60,'HR-NV-1':20,'PC-4545-BE':3500,'PC-3333-GR':2800,'AZ-2020-BL':2500,'AZ-1525-VD':1200,'RV-2040-BE':900,'RV-1530-ML':600,'GR-DU-AL':35,'GR-LV-DOR':25,'AD-FLEX-20':80,'AD-CER-GR':100,'MO-NIV-25':90,'MO-REV-30':70,'HR-AN-10':600,'HR-PL-3M':150,'EL-IN-15':200,'EL-CA-12':18,'PT-ES-NEG':35,'PT-BARN-1':40,'SN-LV-60':12,'SN-SN-1':8,'HR-CI-30':100,'HR-MA-5':45,'PC-POR-60':1200,'AZ-2540-VD':800,'RV-3060-BL':650,'GR-FO-DOR':15,'AD-MULTI-1':200,'MO-FR-40':55,'HR-VA-1M':120,'EL-BR-20':90,'EL-TU-1/2':180,'SN-DU-ECO':25},
+    BGB:{'PC-6060-BE':2000,'AZ-3060-BL':3000,'RV-2550-GR':1500,'GR-CM-CROM':30,'AD-PORC-25':40,'MO-IM-40':80,'MO-PEG-25':150,'HR-PT-100':120,'HR-ES-50':200,'EL-CA-10':10,'PT-BL-1':35,'SN-LV-40':15,'HR-PA-1':25,'PC-4545-BE':1800,'PC-3333-GR':1500,'AZ-2020-BL':1200,'AZ-1525-VD':600,'RV-2040-BE':400,'AD-FLEX-20':50,'AD-CER-GR':60,'MO-NIV-25':40,'MO-REV-30':35,'HR-AN-10':300,'HR-PL-3M':80,'EL-IN-15':120,'PT-ES-NEG':20,'SN-LV-60':6,'HR-MA-5':30,'PC-POR-60':600,'AZ-2540-VD':400,'AD-MULTI-1':120,'MO-FR-40':30,'HR-VA-1M':80,'EL-BR-20':50,'SN-DU-ECO':10},
+    BGC:{'PC-6060-BE':500,'AZ-3060-BL':800,'GR-LM-CROM':20,'GR-CM-CROM':10,'EL-CA-10':15,'EL-TO-20':200,'SN-IN-1':8,'HR-PA-1':45,'PC-4545-BE':600,'PC-3333-GR':400,'AZ-2020-BL':500,'RV-2040-BE':200,'GR-DU-AL':10,'GR-LV-DOR':8,'AD-CER-GR':30,'HR-AN-10':150,'EL-IN-15':80,'PT-BARN-1':20,'SN-SN-1':4,'HR-CI-30':50,'HR-MA-5':15,'RV-3060-BL':200,'GR-FO-DOR':6,'EL-BR-20':30,'EL-TU-1/2':60,'SN-DU-ECO':8},
+    BGD:{'PC-6060-BE':80,'GR-LM-CROM':5,'MO-IM-40':30,'MO-PEG-25':45,'PT-ES-1':60,'HR-NV-1':12,'PC-4545-BE':200,'PC-3333-GR':150,'RV-2550-GR':100,'HR-PL-3M':40,'EL-CA-12':8,'PT-ES-NEG':15,'SN-LV-60':3,'SN-SN-1':3,'MO-NIV-25':25,'MO-REV-30':20,'AZ-2540-VD':200,'RV-3060-BL':120,'AD-MULTI-1':80,'MO-FR-40':15,'HR-VA-1M':40,'EL-TU-1/2':50,'SN-DU-ECO':5}
+  },
   stock:{
     BGA:{'PC-6060-BE':5000,'AZ-3060-BL':4000,'RV-2550-GR':2000,'GR-LM-CROM':40,'AD-PORC-25':60,'MO-IM-40':120,'MO-PEG-25':200,'HR-PT-100':300,'HR-ES-50':500,'EL-CA-10':25,'EL-TO-20':150,'PT-BL-1':80,'PT-ES-1':45,'SN-LV-40':30,'SN-IN-1':15,'HR-PA-1':60,'HR-NV-1':20},
     BGB:{'PC-6060-BE':2000,'AZ-3060-BL':3000,'RV-2550-GR':1500,'GR-CM-CROM':30,'AD-PORC-25':40,'MO-IM-40':80,'MO-PEG-25':150,'HR-PT-100':120,'HR-ES-50':200,'EL-CA-10':10,'PT-BL-1':35,'SN-LV-40':15,'HR-PA-1':25},
@@ -103,11 +141,26 @@ const DB={
     {id:'SB-26',ubic:'Bodega 1 - Rack 2',     cont:'Nivel láser sin rotular',     cant:'4 unid',      cant_sec:'—',           costo_est:660000,  det:'Hace 30 días',orig:'Devolución cliente',  estado:'Reintegrado',   sku:'HR-NV-1',add:4,bodega:'BGA'}
   ],
   vencimientos:[
-    {lote:'L-AD-0091',prod:'Adhesivo Porcelana 25kg',sku:'AD-PORC-25',cant:'40 sacos',bodega:'BGA',vence:'30/05/2026',dias:13},
-    {lote:'L-MO-0044',prod:'Mortero Impermeable',sku:'',cant:'25 sacos',bodega:'BGB',vence:'11/06/2026',dias:25},
-    {lote:'L-SE-0012',prod:'Sellador Epóxico',sku:'',cant:'18 unid',bodega:'BGA',vence:'03/06/2026',dias:17},
-    {lote:'L-PE-0007',prod:'Pintura Epóxica Piso',sku:'',cant:'12 galones',bodega:'BGC',vence:'08/05/2026',dias:-9},
-    {lote:'L-AD-0102',prod:'Adhesivo Cerámico Gris',sku:'',cant:'60 sacos',bodega:'BGD',vence:'22/08/2026',dias:97}
+    {lote:'L-AD-0091',prod:'Adhesivo Porcelana 25kg',    sku:'AD-PORC-25',cant:'40 sacos', bodega:'BGA',vence:'30/05/2026',dias:13},
+    {lote:'L-MO-0044',prod:'Mortero Impermeable',         sku:'',          cant:'25 sacos', bodega:'BGB',vence:'11/06/2026',dias:25},
+    {lote:'L-SE-0012',prod:'Sellador Epóxico',            sku:'',          cant:'18 unid',  bodega:'BGA',vence:'03/06/2026',dias:17},
+    {lote:'L-PE-0007',prod:'Pintura Epóxica Piso',        sku:'',          cant:'12 galones',bodega:'BGC',vence:'08/05/2026',dias:-9},
+    {lote:'L-AD-0102',prod:'Adhesivo Cerámico Gris',      sku:'',          cant:'60 sacos', bodega:'BGD',vence:'22/08/2026',dias:97},
+    {lote:'L-MO-0051',prod:'Mortero Pegacor 25kg',        sku:'MO-PEG-25', cant:'50 sacos', bodega:'BGA',vence:'01/05/2026',dias:-19},
+    {lote:'L-SE-0018',prod:'Sellador Silicona Transp.',   sku:'',          cant:'24 unid',  bodega:'BGB',vence:'25/04/2026',dias:-25},
+    {lote:'L-AD-0105',prod:'Adhesivo Flexiblanco 20kg',   sku:'',          cant:'35 sacos', bodega:'BGC',vence:'15/05/2026',dias:-5},
+    {lote:'L-PE-0011',prod:'Pintura Acrílica Blanco',     sku:'PT-BL-1',   cant:'8 galones',bodega:'BGA',vence:'10/05/2026',dias:-10},
+    {lote:'L-MO-0055',prod:'Mortero Nivelador Piso',      sku:'',          cant:'20 sacos', bodega:'BGD',vence:'22/05/2026',dias:2},
+    {lote:'L-AD-0108',prod:'Adhesivo Porcelana 25kg',    sku:'AD-PORC-25', cant:'30 sacos', bodega:'BGB',vence:'25/05/2026',dias:5},
+    {lote:'L-SE-0022',prod:'Sellador Poliuretano',        sku:'',          cant:'12 unid',  bodega:'BGA',vence:'28/05/2026',dias:8},
+    {lote:'L-MO-0058',prod:'Mortero Revestimiento',       sku:'',          cant:'40 sacos', bodega:'BGC',vence:'01/06/2026',dias:12},
+    {lote:'L-PE-0015',prod:'Esmalte Sintético',           sku:'PT-ES-1',   cant:'15 unid',  bodega:'BGA',vence:'05/06/2026',dias:16},
+    {lote:'L-AD-0112',prod:'Adhesivo Cerámico Gris',      sku:'',          cant:'45 sacos', bodega:'BGA',vence:'10/06/2026',dias:21},
+    {lote:'L-MO-0062',prod:'Mortero Impermeable',         sku:'',          cant:'30 sacos', bodega:'BGB',vence:'20/06/2026',dias:31},
+    {lote:'L-SE-0027',prod:'Sellador Epóxico',            sku:'',          cant:'10 unid',  bodega:'BGD',vence:'15/07/2026',dias:56},
+    {lote:'L-PE-0019',prod:'Pintura Epóxica Piso',        sku:'',          cant:'6 galones',bodega:'BGC',vence:'01/08/2026',dias:73},
+    {lote:'L-AD-0118',prod:'Adhesivo Flexiblanco 20kg',   sku:'',          cant:'25 sacos', bodega:'BGA',vence:'10/09/2026',dias:113},
+    {lote:'L-MO-0067',prod:'Mortero Pegacor 25kg',        sku:'MO-PEG-25', cant:'55 sacos', bodega:'BGB',vence:'05/10/2026',dias:138}
   ]
 };
 let OC_SEQ=2471,PD_SEQ=3406,TR_SEQ=2;

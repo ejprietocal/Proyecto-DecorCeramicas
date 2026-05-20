@@ -19,7 +19,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -33,15 +33,78 @@
 <script src="js/operations.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/ui.js"></script>
+<style>
+.p-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.p-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.p-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.p-bar-n{font-size:18px;font-weight:800;color:var(--ink);line-height:1.1}
+.p-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.p-busq{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.p-busq input{flex:1;min-width:160px;padding:6px 10px 6px 26px;border:1.5px solid var(--line);border-radius:7px;font-size:12px;outline:none;background:var(--bg);color:var(--txt)}
+.p-busq input:focus{border-color:var(--link)}
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.pill{padding:4px 10px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:10.5px;font-weight:600;color:var(--mut);transition:.12s;white-space:nowrap}
+.pill:hover{border-color:var(--line-m);background:var(--bg)}
+.pill.sel{background:var(--rojo-l);border-color:var(--rojo);color:var(--rojo)}
+.p-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.p-table{width:100%;border-collapse:collapse}
+.p-table th{padding:8px 10px;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--line);background:var(--neutral-bg);white-space:nowrap}
+.p-table td{padding:8px 10px;font-size:12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--txt)}
+.p-table tr:last-child td{border-bottom:none}
+.p-table tbody tr{transition:.1s}
+.p-table tbody tr:hover{background:var(--neutral-bg)}
+.p-table .p-init{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.p-table .p-name{font-weight:700;color:var(--ink)}
+.p-table .p-cat{font-size:10px;color:var(--ph);display:block}
+.p-table .p-ciudad{color:var(--mut);display:flex;align-items:center;gap:4px}
+.p-table .p-contact{font-size:11px;color:var(--ink)}
+.p-table .p-contact small{display:block;font-size:10px;color:var(--mut);font-weight:400}
+.p-table .p-rate{font-weight:700}
+.p-table .p-action{text-align:right;white-space:nowrap}
+.p-table .p-action .btn{padding:4px 9px;font-size:10.5px}
+.p-empty{text-align:center;padding:50px 20px;color:var(--mut)}
+.p-empty i{font-size:36px;opacity:.4;display:block;margin-bottom:8px}
+.p-empty span{font-size:13px}
+@media(max-width:860px){.p-bar{grid-template-columns:repeat(2,1fr)}
+.p-table thead{display:none}.p-table tbody,.p-table tr,.p-table td{display:block}.p-table tr{padding:10px;margin:4px 0;background:var(--surface);border:1px solid var(--line);border-radius:8px}.p-table td{padding:4px 0;border:none;font-size:12px;display:flex;align-items:center;gap:6px}.p-table td::before{content:attr(data-l);display:inline-block;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;width:70px;flex-shrink:0}.p-table td.p-action::before{display:none}.p-table td.p-action{text-align:left;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}}
+</style>
 <script>
 renderShell('proveedores');
 
+let provFiltro='todas',provBusq='';
+
 function renderProv(){
-  const cards=DB.proveedores.map(p=>{
+  const cats=[...new Set(DB.proveedores.map(p=>p.cat))];
+  const todos=DB.proveedores.length;
+  const activos=DB.proveedores.filter(p=>p.estado==='Activo').length;
+  const obs=DB.proveedores.filter(p=>p.estado==='Observado').length;
+
+  let items=[...DB.proveedores];
+  if(provFiltro!=='todas')items=items.filter(p=>p.cat===provFiltro);
+  const q=provBusq.toLowerCase();
+  if(q)items=items.filter(p=>p.n.toLowerCase().includes(q)||p.ciudad.toLowerCase().includes(q)||p.contacto.toLowerCase().includes(q));
+
+  const cols=[
+    {k:'todas',l:'Todos',c:todos},{k:'Activo',l:'Activos',c:activos},{k:'Observado',l:'Observados',c:obs}
+  ];
+
+  const barItems=[
+    {ic:'ri-truck-line',cl:'var(--slate)',n:todos,l:'Proveedores'},
+    {ic:'ri-checkbox-circle-line',cl:'var(--success-txt)',n:activos,l:'Activos'},
+    {ic:'ri-alert-line',cl:'var(--warn-txt)',n:obs,l:'Observados'}
+  ];
+  const barH=barItems.map((b,i)=>'<div class="p-bar-item"><div class="p-bar-ic" style="background:'+b.cl+'"><i class="'+b.ic+'"></i></div><div><div class="p-bar-n">'+b.n+'</div><div class="p-bar-l">'+b.l+'</div></div></div>').join('');
+
+  const colores=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D','#D97706','#4338CA'];
+  const rows=items.map(p=>{
     const init=p.n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-    return '<div class="pr-card"><div class="pr-av">'+init+'</div><div class="pr-n">'+p.n+'</div><div class="pr-cat">'+p.cat+'</div><div class="pr-rate">★ '+p.calif+'</div><div class="pr-info"><div class="pr-row"><i class="ri-map-pin-line"></i> '+p.ciudad+'</div><div class="pr-row"><i class="ri-user-line"></i> '+p.contacto+'</div><div class="pr-row"><i class="ri-phone-line"></i> '+p.tel+'</div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--neutral-bg)"><span class="badge '+(p.estado==='Activo'?'bg':'by')+'">'+p.estado+'</span><a href="compras.html" class="btn btn-sm" style="background:var(--rojo);color:#fff;text-decoration:none"><i class="ri-shopping-cart-2-line"></i> Generar OC</a></div></div>';
+    const ci=DB.proveedores.indexOf(p)%colores.length;
+    return '<tr><td data-l="Proveedor"><div style="display:flex;align-items:center;gap:8px"><div class="p-init" style="background:'+colores[ci]+'">'+init+'</div><div><div class="p-name">'+p.n+'</div><span class="p-cat">'+p.cat+'</span></div></div></td><td data-l="Ciudad"><span class="p-ciudad"><i class="ri-map-pin-line" style="font-size:12px"></i>'+p.ciudad+'</span></td><td data-l="Contacto"><span class="p-contact">'+p.contacto+' <small>'+p.tel+'</small></span></td><td data-l="Calif."><span class="p-rate" style="color:'+(p.calif>=4.5?'var(--success-txt)':p.calif>=4?'var(--warn-txt)':'var(--danger-txt)')+'">★ '+p.calif+'</span></td><td data-l="Estado"><span class="badge '+(p.estado==='Activo'?'bg':'by')+'" style="font-size:10px">'+p.estado+'</span></td><td class="p-action"><a href="compras.html" class="btn" style="background:var(--rojo);color:#fff;text-decoration:none"><i class="ri-shopping-cart-2-line"></i> OC</a></td></tr>';
   }).join('');
-  $('pg').innerHTML='<div class="page th-prov"><div class="hero"><div class="hero-ic"><i class="ri-truck-line"></i></div><h1>Proveedores</h1><p>Directorio de proveedores. Debes registrar un proveedor antes de generarle una orden de compra.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoProv()"><i class="ri-add-line"></i> Nuevo Proveedor</button></div></div><div class="body">'+(DB.proveedores.length?'<div class="prov-grid">'+cards+'</div>':'<div class="empty"><i class="ri-truck-line"></i><h3>Sin proveedores</h3><p>Crea tu primer proveedor para poder generar órdenes de compra.</p></div>')+'</div></div>';
+
+  const pills=cols.map(c=>'<span class="pill '+(provFiltro===(c.k==='Activo'?'Activo':c.k==='Observado'?'Observado':'todas')?'sel':'')+'" onclick="provFiltro=\''+(c.k==='Activo'?'Activo':c.k==='Observado'?'Observado':'todas')+'\';renderProv()">'+c.l+' <span style="font-weight:400;opacity:.7">'+c.c+'</span></span>').join('');
+
+  $('pg').innerHTML='<div class="page th-prov"><div class="hero"><div class="hero-ic"><i class="ri-truck-line"></i></div><h1>Proveedores</h1><p>Directorio de proveedores. Registra un proveedor antes de generarle una orden de compra.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoProv()"><i class="ri-add-line"></i> Nuevo Proveedor</button></div></div><div class="body"><div class="p-bar">'+barH+'</div><div class="pills">'+pills+'</div><div class="p-busq"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar por nombre, ciudad o contacto..." value="'+provBusq+'" oninput="provBusq=this.value;renderProv()">'+(q?'<button class="btn btn-o btn-sm" onclick="provBusq=\'\';renderProv()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div>'+(items.length?'<div class="p-wrap"><table class="p-table"><thead><tr><th>Proveedor</th><th>Ciudad</th><th>Contacto</th><th>Calif.</th><th>Estado</th><th style="text-align:right">Acción</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<div class="p-empty"><i class="ri-inbox-line"></i><span>'+(q?'No se encontraron proveedores con "'+q+'"':'No hay proveedores '+(provFiltro!=='todas'?'en esta categoría':'registrados'))+'</span></div>')+'</div></div>';
 }
 renderProv();
 

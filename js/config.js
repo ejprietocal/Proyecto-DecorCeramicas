@@ -1,16 +1,16 @@
 /* ========================= MODULES / USERS / PERMS ========================= */
 const MODS={
-  dashboard:    {n:'Dashboard',            ic:'ri-dashboard-line',          g:'Principal',       cr:'Inicio'},
-  pedidos:      {n:'Pedidos de Venta',     ic:'ri-send-plane-line',         g:'Ventas',          cr:'Ventas · Pedidos'},
-  inventario:   {n:'Inventario',           ic:'ri-archive-2-line',          g:'Bodega',          cr:'Bodega · Inventario'},
-  sobrantes:    {n:'Sobrantes',            ic:'ri-question-line',           g:'Bodega',          cr:'Bodega · Sobrantes'},
-  movimientos:  {n:'Movimientos',          ic:'ri-swap-box-line',           g:'Bodega',          cr:'Bodega · Movimientos'},
-  transferencias:{n:'Transferencias',      ic:'ri-arrow-left-right-line',   g:'Bodega',          cr:'Bodega · Transferencias'},
-  proveedores:  {n:'Proveedores',          ic:'ri-truck-line',              g:'Abastecimiento',  cr:'Abastecimiento · Proveedores'},
-  compras:      {n:'Órdenes de Compra',    ic:'ri-shopping-cart-2-line',    g:'Abastecimiento',  cr:'Abastecimiento · Compras'},
-  reclamar:     {n:'Mercancía por Reclamar',ic:'ri-inbox-unarchive-line',  g:'Abastecimiento',  cr:'Abastecimiento · Por reclamar'},
-  vencimientos: {n:'Vencimientos',         ic:'ri-time-line',               g:'Abastecimiento',  cr:'Abastecimiento · Vencimientos'},
-  usuarios:     {n:'Usuarios y Roles',     ic:'ri-shield-user-line',        g:'Sistema',         cr:'Sistema · Usuarios'}
+  dashboard:    {n:'Dashboard',            ic:'ri-dashboard-line',          g:'Principal',       cr:'Inicio',                     desc:'Panel principal con indicadores y resumen operativo'},
+  pedidos:      {n:'Pedidos de Venta',     ic:'ri-send-plane-line',         g:'Ventas',          cr:'Ventas · Pedidos',           desc:'Gestión de pedidos, asignación de stock y despachos'},
+  inventario:   {n:'Inventario',           ic:'ri-archive-2-line',          g:'Bodega',          cr:'Bodega · Inventario',        desc:'Stock por bodega, ajustes y control de existencias'},
+  sobrantes:    {n:'Sobrantes',            ic:'ri-question-line',           g:'Bodega',          cr:'Bodega · Sobrantes',         desc:'Productos sin origen claro, pendientes de identificar'},
+  movimientos:  {n:'Movimientos',          ic:'ri-swap-box-line',           g:'Bodega',          cr:'Bodega · Movimientos',       desc:'Historial de entradas, salidas y transferencias'},
+  transferencias:{n:'Transferencias',      ic:'ri-arrow-left-right-line',   g:'Bodega',          cr:'Bodega · Transferencias',    desc:'Flujo de stock entre bodegas: solicitar, autorizar, recibir'},
+  proveedores:  {n:'Proveedores',          ic:'ri-truck-line',              g:'Abastecimiento',  cr:'Abastecimiento · Proveedores', desc:'Catálogo de proveedores activos y su información'},
+  compras:      {n:'Órdenes de Compra',    ic:'ri-shopping-cart-2-line',    g:'Abastecimiento',  cr:'Abastecimiento · Compras',   desc:'Órdenes de compra a proveedores, recepción y reclamación'},
+  reclamar:     {n:'Mercancía por Reclamar',ic:'ri-inbox-unarchive-line',  g:'Abastecimiento',  cr:'Abastecimiento · Por reclamar', desc:'OC recibidas pendientes de reclamar y pasar a inventario'},
+  vencimientos: {n:'Vencimientos',         ic:'ri-time-line',               g:'Abastecimiento',  cr:'Abastecimiento · Vencimientos', desc:'Control de fechas de caducidad y bajas por vencimiento'},
+  usuarios:     {n:'Usuarios y Roles',     ic:'ri-shield-user-line',        g:'Sistema',         cr:'Sistema · Usuarios',         desc:'Gestión de usuarios del sistema y permisos por rol'}
 };
 const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Sistema'];
 const USERS=[

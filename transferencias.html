@@ -19,7 +19,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -34,28 +34,101 @@
 <script src="js/draft.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/ui.js"></script>
+<style>
+.tr-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+.tr-col{background:var(--neutral-bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tr-col-h{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.tr-col-h.l1{background:linear-gradient(135deg,var(--info-bg),var(--surface))}
+.tr-col-h.l2{background:linear-gradient(135deg,var(--warn-bg),var(--surface))}
+.tr-col-h.l3{background:linear-gradient(135deg,var(--info-bg),var(--surface))}
+.tr-col-h.l4{background:linear-gradient(135deg,var(--success-bg),var(--surface))}
+.tr-col-t{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:7px}
+.tr-col-t i{font-size:15px}
+.tr-col-c{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;min-width:22px;text-align:center}
+.tr-col-c.c1{background:var(--info-bg);color:var(--info-txt)}
+.tr-col-c.c2{background:var(--warn-bg);color:var(--warn-txt)}
+.tr-col-c.c3{background:var(--info-bg);color:var(--info-txt)}
+.tr-col-c.c4{background:var(--success-bg);color:var(--success-txt)}
+.tr-col-b{padding:10px;min-height:120px;display:flex;flex-direction:column;gap:10px}
+.tr-kcard{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px;position:relative;overflow:hidden;border-left:4px solid}
+.tr-kcard.step-solicitada{border-left-color:var(--info-txt)}
+.tr-kcard.step-autorizada{border-left-color:var(--warn-txt)}
+.tr-kcard.step-despachada{border-left-color:var(--link)}
+.tr-kcard.step-recibida{border-left-color:var(--success-txt)}
+.tr-kid{font-size:13px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px}
+.tr-kid small{font-weight:500;font-size:10px;color:var(--mut);margin-left:auto}
+.tr-kroute{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt);margin:6px 0 8px;padding:4px 8px;background:var(--bg);border-radius:6px;font-weight:600}
+.tr-kroute i{font-size:12px;color:var(--ph)}
+.tr-kitems{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tr-kitem{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--neutral-bg);color:var(--neutral-txt);display:flex;align-items:center;gap:4px}
+.tr-kitem b{color:var(--ink)}
+.tr-kmeta{font-size:10px;color:var(--ph);display:flex;align-items:center;gap:4px;margin-top:4px}
+.tr-kcard .btn{padding:5px 10px;font-size:11px;margin-top:6px;width:100%;justify-content:center}
+.tr-kcard .badge{font-size:10px;padding:3px 8px}
+.tr-empty-col{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 10px;color:var(--ph);text-align:center;gap:6px}
+.tr-empty-col i{font-size:22px;opacity:.5}
+.tr-empty-col span{font-size:11px}
+.tr-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.tr-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.tr-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.tr-bar-ic.i1{background:var(--info-txt)}
+.tr-bar-ic.i2{background:var(--warn-txt)}
+.tr-bar-ic.i3{background:var(--link)}
+.tr-bar-ic.i4{background:var(--success-txt)}
+.tr-bar-n{font-size:20px;font-weight:800;color:var(--ink);line-height:1.1}
+.tr-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+@media(max-width:1100px){.tr-board{grid-template-columns:repeat(2,1fr)}.tr-bar{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.tr-board{grid-template-columns:1fr}.tr-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
 <script>
 renderShell('transferencias');
 
 function renderTr(){
-  const steps=['Solicitud','Autorización','Despacho','Recepción'];
-  const stateIdx={solicitada:0,autorizada:1,despachada:2,recibida:3};
-  const trCards=DB.transferencias.map(tr=>{
-    const idx=stateIdx[tr.estado]??0;
-    const stepsH=steps.map((s,i)=>{
-      const cls=i<idx?'done':i===idx?'active':'pend';
-      const ln=i<steps.length-1?'<div class="step-line '+(i<idx?'sl-done':'sl-pend')+'"></div>':'';
-      return '<div class="step '+cls+'"><div class="step-wrap"><div class="step-dot">'+(i<idx?'✓':(i+1))+'</div><div class="step-l">'+s+'</div></div></div>'+ln;
-    }).join('');
-    const boton=tr.estado==='solicitada'&&PERMS[currentUser.id].includes('usuarios')
-      ?'<button class="btn btn-sm" style="background:#15803D;color:#fff" onclick="autorizarTransferencia(\''+tr.id+'\');window.location.reload()"><i class="ri-checkbox-circle-line"></i> Autorizar</button>'
-      :tr.estado==='autorizada'?'<button class="btn btn-blue btn-sm" onclick="despacharTransferencia(\''+tr.id+'\');window.location.reload()"><i class="ri-send-plane-line"></i> Despachar</button>'
-      :tr.estado==='despachada'?'<button class="btn btn-green btn-sm" onclick="recibirTransferencia(\''+tr.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-inbox-unarchive-line"></i> Recibir</button>'
-      :'<span class="badge bg"><i class="ri-checkbox-circle-line"></i> Completada</span>';
-    const itemsH=tr.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 8px;background:#F8FAFC;border-radius:7px;margin-bottom:5px"><span>'+it.n+'</span><b>'+fmt(it.cant)+' '+it.u+'</b></div>').join('');
-    return '<div class="tr-card"><div class="tr-head"><div><div class="tr-id">'+tr.id+'</div><div class="tr-route"><i class="ri-store-2-line"></i>'+(DB.bodegas.find(b=>b.id===tr.org)?.n||tr.org)+'<i class="ri-arrow-right-line"></i>'+(DB.bodegas.find(b=>b.id===tr.dst)?.n||tr.dst)+'</div></div><span class="badge '+(tr.estado==='recibida'?'bg':tr.estado==='despachada'?'bb':tr.estado==='autorizada'?'bi':'bs')+'">'+trEstLabel(tr.estado)+'</span></div><div class="stepper">'+stepsH+'</div><div class="tr-body">'+itemsH+'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px"><div style="font-size:11.5px;color:var(--mut)">Solicitado por '+tr.solPor+' · '+tr.fecha+'</div>'+boton+'</div></div></div>';
+  const cols=[
+    {key:'solicitada', ic:'ri-file-list-3-line', lbl:'Solicitadas',    cls:'l1', cc:'c1'},
+    {key:'autorizada', ic:'ri-check-double-line',lbl:'Autorizadas',    cls:'l2', cc:'c2'},
+    {key:'despachada', ic:'ri-send-plane-line',  lbl:'Despachadas',    cls:'l3', cc:'c3'},
+    {key:'recibida',   ic:'ri-inbox-line',       lbl:'Recibidas',      cls:'l4', cc:'c4'}
+  ];
+  const counts={solicitada:0,autorizada:0,despachada:0,recibida:0};
+  DB.transferencias.forEach(t=>{if(counts[t.estado]!==undefined)counts[t.estado]++});
+
+  const barHtml=cols.map((c,i)=>{
+    const ics=['ri-file-list-3-line','ri-check-double-line','ri-send-plane-line','ri-inbox-line'][i];
+    return '<div class="tr-bar-item"><div class="tr-bar-ic i'+(i+1)+'"><i class="'+ics+'"></i></div><div><div class="tr-bar-n">'+counts[c.key]+'</div><div class="tr-bar-l">'+c.lbl+'</div></div></div>';
   }).join('');
-  $('pg').innerHTML='<div class="page th-trans"><div class="hero"><div class="hero-ic"><i class="ri-arrow-left-right-line"></i></div><h1>Transferencias entre Bodegas</h1><p>Detecta exceso en una bodega y déficit en otra → Solicita → Autoriza → Despacha → Recibe. Inventario actualizado automáticamente.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaTransferencia()"><i class="ri-add-line"></i> Solicitar transferencia</button></div></div><div class="body">'+(DB.transferencias.length?'<div>'+trCards+'</div>':'<div class="empty"><i class="ri-arrow-left-right-line"></i><h3>Sin transferencias</h3><p>Cuando detectes exceso en una bodega y déficit en otra, solicita una transferencia.</p></div>')+'</div></div>';
+
+  const boardHtml=cols.map(c=>{
+    const trs=DB.transferencias.filter(t=>t.estado===c.key);
+    let body='';
+    if(!trs.length){
+      body='<div class="tr-empty-col"><i class="ri-inbox-line"></i><span>Sin transferencias</span></div>';
+    }else{
+      body=trs.map(tr=>{
+        const orgN=DB.bodegas.find(b=>b.id===tr.org)?.n||tr.org;
+        const dstN=DB.bodegas.find(b=>b.id===tr.dst)?.n||tr.dst;
+        const itemsH=tr.items.map(it=>'<span class="tr-kitem"><b>'+fmt(it.cant)+' '+it.u+'</b> '+it.n+'</span>').join('');
+
+        let accion='';
+        if(tr.estado==='solicitada'){
+          accion=PERMS[currentUser.id].includes('usuarios')
+            ?'<button class="btn" style="background:var(--success-txt);color:#fff" onclick="autorizarTransferencia(\''+tr.id+'\');setTimeout(function(){window.location.reload()},300)"><i class="ri-checkbox-circle-line"></i> Autorizar</button>'
+            :'<span class="badge bs" style="width:100%;text-align:center;padding:5px"><i class="ri-time-line"></i> Pendiente</span>';
+        }else if(tr.estado==='autorizada'){
+          accion='<button class="btn btn-blue" onclick="despacharTransferencia(\''+tr.id+'\');setTimeout(function(){window.location.reload()},300)"><i class="ri-send-plane-line"></i> Despachar</button>';
+        }else if(tr.estado==='despachada'){
+          accion='<button class="btn btn-green" onclick="recibirTransferencia(\''+tr.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-inbox-unarchive-line"></i> Recibir</button>';
+        }else{
+          accion='<span class="badge bg" style="width:100%;text-align:center;padding:5px"><i class="ri-checkbox-circle-line"></i> Completada</span>';
+        }
+
+        return '<div class="tr-kcard step-'+tr.estado+'"><div class="tr-kid">'+tr.id+' <small>'+tr.fecha+'</small></div><div class="tr-kroute"><i class="ri-store-2-line"></i>'+orgN+' <i class="ri-arrow-right-line"></i> '+dstN+'</div><div class="tr-kitems">'+itemsH+'</div><div class="tr-kmeta"><i class="ri-user-line"></i> '+tr.solPor+'</div>'+accion+'</div>';
+      }).join('');
+    }
+    return '<div class="tr-col"><div class="tr-col-h '+c.cls+'"><div class="tr-col-t"><i class="'+c.ic+'"></i>'+c.lbl+'</div><span class="tr-col-c '+c.cc+'">'+counts[c.key]+'</span></div><div class="tr-col-b">'+body+'</div></div>';
+  }).join('');
+
+  $('pg').innerHTML='<div class="page th-trans"><div class="hero"><div class="hero-ic"><i class="ri-arrow-left-right-line"></i></div><h1>Transferencias entre Bodegas</h1><p>Flujo: Solicita → Autoriza → Despacha → Recibe. El inventario se actualiza automáticamente al despachar y recibir.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaTransferencia()"><i class="ri-add-line"></i> Solicitar transferencia</button></div></div><div class="body"><div class="tr-bar">'+barHtml+'</div>'+(DB.transferencias.length?'<div class="tr-board">'+boardHtml+'</div>':'<div class="empty"><i class="ri-arrow-left-right-line"></i><h3>Sin transferencias</h3><p>Cuando detectes exceso en una bodega y déficit en otra, solicita una transferencia.</p></div>')+'</div></div>';
 }
 renderTr();
 
@@ -63,7 +136,7 @@ function modalNuevaTransferencia(){
   const bOpts=DB.bodegas.map(b=>'<option value="'+b.id+'">'+b.n+'</option>').join('');
   draft={items:[{sku:'',cant:1}]};
   openMod('<i class="ri-arrow-left-right-line"></i> Solicitar Transferencia entre Bodegas',
-    '<div class="note"><i class="ri-information-line"></i> Detecta exceso en una bodega y solicita el traslado a la que tiene déficit.</div><div class="ff2"><div class="ff"><label>Bodega Origen</label><select id="dOrg">'+bOpts+'</select></div><div class="ff"><label>Bodega Destino</label><select id="dDst">'+bOpts+'</select></div></div><div class="ff"><label>Productos a transferir</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<div class="note"><i class="ri-information-line"></i> Selecciona origen y destino, luego agrega los productos a transferir. El inventario se actualizará al despachar y recibir.</div><div class="ff2"><div class="ff"><label>Bodega Origen</label><select id="dOrg">'+bOpts+'</select></div><div class="ff"><label>Bodega Destino</label><select id="dDst">'+bOpts+'</select></div></div><div class="ff"><label>Productos a transferir</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearTransferencia()"><i class="ri-check-line"></i> Solicitar</button>'
   );renderLines();
 }

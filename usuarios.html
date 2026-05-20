@@ -19,7 +19,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -33,6 +33,31 @@
 <script src="js/operations.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/ui.js"></script>
+<style>
+.u-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.u-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px}
+.u-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.u-bar-n{font-size:20px;font-weight:800;color:var(--ink);line-height:1.1}
+.u-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.u-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.u-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
+.u-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.u-card-h{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.u-av{width:40px;height:40px;border-radius:11px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.u-info{flex:1;min-width:0}
+.u-n{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-r{font-size:11px;color:var(--mut);margin-top:1px}
+.u-login{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--info-bg);color:var(--info-txt);white-space:nowrap}
+.u-card-b{padding:10px 16px 14px}
+.u-perms{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.u-perm{font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:5px;display:flex;align-items:center;gap:4px}
+.u-perm.on{background:var(--success-bg);color:var(--success-txt)}
+.u-perm.off{background:var(--neutral-bg);color:var(--neutral-txt)}
+.u-perm i{font-size:11px}
+.u-card-f{display:flex;gap:6px;justify-content:flex-end;border-top:1px solid var(--line);padding:8px 16px}
+.u-card-f .btn{padding:5px 10px;font-size:10.5px}
+@media(max-width:860px){.u-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
 <script>
 renderShell('usuarios');
 
@@ -45,19 +70,45 @@ function togglePerm(uid,mod){
 }
 
 function renderUsr(){
-  const boxes=USERS.map((u,i)=>'<div class="role-box"><div class="role-bh"><div class="sb-av" style="background:'+u.c+';width:38px;height:38px;border-radius:10px;font-size:13px">'+u.in+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--ink)">'+u.n+'</div><div style="font-size:11.5px;color:var(--mut)">'+u.r+'</div></div><span class="badge bb" title="Número de ingreso">Login: '+(i+1)+'</span></div><div class="perm-list">'+Object.keys(MODS).map(k=>{
-    const on=PERMS[u.id]?.includes(k);const lk=k==='dashboard';
-    return '<div class="pr-row-p"><span><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px"></i> '+MODS[k].n+'</span><label class="sw '+(lk?'locked':'')+'"><input type="checkbox" '+(on?'checked':'')+' '+(lk?'disabled':'')+' onchange="togglePerm(\''+u.id+'\',\''+k+'\');renderUsr()"><span class="swsl"></span></label></div>';
-  }).join('')+'</div></div>').join('');
-  $('pg').innerHTML='<div class="page th-usr"><div class="hero"><div class="hero-ic"><i class="ri-shield-user-line"></i></div><h1>Usuarios y Roles</h1><p>Cada persona accede solo a los módulos de su función. Ante la rotación de personal, el nuevo empleado hereda exactamente el mismo alcance.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoUsuario()"><i class="ri-user-add-line"></i> Nuevo Usuario</button></div></div><div class="body"><div style="background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-txt);font-size:12.5px;padding:11px 14px;border-radius:10px;margin-bottom:18px;display:flex;gap:9px"><i class="ri-lightbulb-flash-line" style="margin-top:1px;flex-shrink:0"></i><span>Los cambios de permisos son en vivo. Si modificas al usuario con el que iniciaste sesión, el menú lateral cambia inmediatamente. Dashboard es obligatorio para todos.</span></div><div class="role-grid">'+boxes+'</div></div></div>';
+  const total=USERS.length;
+  const conPermisos=Object.keys(PERMS).length;
+  const totalMods=Object.keys(MODS).length;
+
+  const usrCards=USERS.map((u,i)=>{
+    const mods=PERMS[u.id]||['dashboard'];
+    const permPills=Object.keys(MODS).map(k=>{
+      const on=mods.includes(k);
+      const m=MODS[k];
+      return '<span class="u-perm '+(on?'on':'off')+'"><i class="'+m.ic+'"></i>'+m.n+'</span>';
+    }).join('');
+
+    return '<div class="u-card"><div class="u-card-h"><div class="u-av" style="background:'+u.c+'">'+u.in+'</div><div class="u-info"><div class="u-n">'+u.n+'</div><div class="u-r">'+u.r+'</div></div><span class="u-login">Login: '+(i+1)+'</span></div><div class="u-card-b"><div class="u-perms">'+permPills+'</div></div><div class="u-card-f"><button class="btn btn-o btn-sm" onclick="modalEditarPermisos(\''+u.id+'\')"><i class="ri-edit-line"></i> Editar permisos</button></div></div>';
+  }).join('');
+
+  $('pg').innerHTML='<div class="page th-usr"><div class="hero"><div class="hero-ic"><i class="ri-shield-user-line"></i></div><h1>Usuarios y Roles</h1><p>Gestión de accesos al sistema. Cada usuario ve solo los módulos de su función.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoUsuario()"><i class="ri-user-add-line"></i> Nuevo Usuario</button></div></div><div class="body"><div class="u-bar"><div class="u-bar-item"><div class="u-bar-ic" style="background:var(--slate)"><i class="ri-user-3-line"></i></div><div><div class="u-bar-n">'+total+'</div><div class="u-bar-l">Usuarios registrados</div></div></div><div class="u-bar-item"><div class="u-bar-ic" style="background:var(--info-txt)"><i class="ri-shield-keyhole-line"></i></div><div><div class="u-bar-n">'+conPermisos+'</div><div class="u-bar-l">Con permisos asignados</div></div></div><div class="u-bar-item"><div class="u-bar-ic" style="background:var(--success-txt)"><i class="ri-grid-line"></i></div><div><div class="u-bar-n">'+totalMods+'</div><div class="u-bar-l">Módulos del sistema</div></div></div><div class="u-bar-item"><div class="u-bar-ic" style="background:var(--warn-txt)"><i class="ri-user-smile-line"></i></div><div><div class="u-bar-n">'+USERS.filter(u=>u.id==='carlos'||u.id==='maria').length+'</div><div class="u-bar-l">Admin + Jefe Bodega</div></div></div></div><div style="background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-txt);font-size:12px;padding:10px 14px;border-radius:10px;margin-bottom:16px;display:flex;gap:8px"><i class="ri-lightbulb-flash-line" style="margin-top:1px;flex-shrink:0"></i><span>Los cambios de permisos son en vivo. Dashboard es obligatorio para todos. Edita permisos desde el botón de cada tarjeta.</span></div><div class="u-grid">'+usrCards+'</div></div></div>';
 }
 renderUsr();
 
+function modalEditarPermisos(uid){
+  const u=USERS.find(x=>x.id===uid);
+  if(!u)return;
+  const mods=PERMS[uid]||['dashboard'];
+  const toggles=Object.keys(MODS).map(k=>{
+    const on=mods.includes(k);
+    const lk=k==='dashboard';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;background:var(--bg);margin-bottom:3px"><span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink)"><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px"></i>'+MODS[k].n+'</span><label class="sw '+(lk?'locked':'')+'"><input type="checkbox" '+(on?'checked':'')+' '+(lk?'disabled':'')+' onchange="togglePerm(\''+uid+'\',\''+k+'\')"><span class="swsl"></span></label></div>';
+  }).join('');
+  openMod('<i class="ri-shield-user-line"></i> Permisos: '+u.n,
+    '<div style="max-height:380px;overflow-y:auto;padding-right:4px">'+toggles+'</div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="closeMod();renderUsr()"><i class="ri-check-line"></i> Guardar y cerrar</button>'
+  );
+}
+
 function modalNuevoUsuario(){
-  const mOpts=Object.keys(MODS).filter(k=>k!=='dashboard').map(k=>'<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 0"><input type="checkbox" class="nuMod" value="'+k+'"> '+MODS[k].n+'</label>').join('');
+  const mOpts=Object.keys(MODS).filter(k=>k!=='dashboard').map(k=>'<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;background:var(--bg);margin-bottom:3px"><input type="checkbox" class="nuMod" value="'+k+'" style="accent-color:var(--rojo)"><span style="font-size:12.5px;color:var(--ink)"><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px;margin-right:4px"></i>'+MODS[k].n+'</span></div>').join('');
   openMod('<i class="ri-user-add-line"></i> Crear Usuario',
     '<div class="ff"><label>Nombre completo</label><input id="nuN" placeholder="Ej: Andrés Felipe Bravo"></div><div class="ff"><label>Cargo / Rol</label><input id="nuR" placeholder="Ej: Auxiliar de Bodega"></div><div class="ff"><label>Módulos con acceso (Dashboard incluido siempre)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">'+mOpts+'</div></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear</button>'
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear usuario</button>'
   );
 }
 function crearUsuario(){
@@ -69,7 +120,7 @@ function crearUsuario(){
   const colors=['#D9383A','#0369A1','#15803D','#B45309','#2D3748','#3B82F6','#1E293B','#64748B'];
   USERS.push({id,nm:nm,r:rl,in:init,c:colors[USERS.length%colors.length]});
   PERMS[id]=mods;
-  closeMod();saveDB();renderUsr();toast('Usuario creado. Ingresa con el número '+USERS.length,'ok');
+  closeMod();saveDB();renderUsr();toast('Usuario "'+nm+'" creado. Ingresa con el #'+USERS.length,'ok');
 }
 </script>
 </body>

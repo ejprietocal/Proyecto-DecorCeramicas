@@ -19,7 +19,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -34,22 +34,127 @@
 <script src="js/draft.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/ui.js"></script>
+<style>
+.c-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.c-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.c-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.c-bar-n{font-size:18px;font-weight:800;color:var(--ink);line-height:1.1}
+.c-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.c-top{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.c-pill{padding:5px 12px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:11px;font-weight:600;color:var(--mut);transition:.12s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.c-pill:hover{border-color:var(--line-m);background:var(--bg)}
+.c-pill.sel{color:#fff;border-color:transparent}
+.c-pill.sel.p-transito{background:var(--info-txt)}
+.c-pill.sel.p-recibida{background:var(--warn-txt)}
+.c-pill.sel.p-reclamada{background:var(--success-txt)}
+.c-pill.sel.p-borrador{background:var(--neutral-txt)}
+.c-pill.sel.p-todas{background:var(--slate)}
+.c-grp{margin-bottom:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.c-grp-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;gap:10px;transition:.12s;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.c-grp-h:hover{filter:brightness(.95)}
+.c-grp-h.g-transito{background:var(--info-bg);color:var(--info-txt)}
+.c-grp-h.g-recibida{background:var(--warn-bg);color:var(--warn-txt)}
+.c-grp-h.g-reclamada{background:var(--success-bg);color:var(--success-txt)}
+.c-grp-c{font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;background:rgba(0,0,0,.1)}
+.c-grp-arr{font-size:16px;transition:transform .2s;opacity:.6}.c-grp-arr.open{transform:rotate(180deg)}
+.c-grp-b{padding:0}
+.c-table{width:100%;border-collapse:collapse}
+.c-table th{padding:7px 10px;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--line);background:var(--neutral-bg);white-space:nowrap}
+.c-table td{padding:8px 10px;font-size:11.5px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--txt)}
+.c-table tr:last-child td{border-bottom:none}
+.c-table tbody tr{transition:.1s;cursor:pointer}
+.c-table tbody tr:hover{background:var(--neutral-bg)}
+.c-table .c-id{font-weight:800;color:var(--ink)}
+.c-table .c-prov{display:flex;align-items:center;gap:4px;color:var(--mut)}
+.c-table .c-prov i{font-size:12px}
+.c-table .c-val{font-weight:700;color:var(--ink);text-align:right}
+.c-table .c-its{text-align:center;color:var(--mut)}
+.c-table .c-action{text-align:right;white-space:nowrap}
+.c-table .c-action .btn{padding:4px 8px;font-size:10px}
+.c-table .c-expand{background:var(--bg);padding:0}
+.c-table .c-expand-in{padding:10px 14px;display:none}
+.c-table .c-expand-in.open{display:block}
+.c-exp-item{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:var(--surface);border-radius:5px;margin-bottom:3px;font-size:11.5px}
+.c-exp-item:last-child{margin-bottom:0}
+.c-exp-item span{font-weight:600;color:var(--ink)}
+.c-exp-item small{font-weight:400;color:var(--mut)}
+.c-search{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.c-search input{flex:1;min-width:140px;padding:6px 10px 6px 26px;border:1.5px solid var(--line);border-radius:7px;font-size:12px;outline:none;background:var(--bg);color:var(--txt)}
+.c-search input:focus{border-color:var(--link)}
+.c-empty{text-align:center;padding:50px 20px;color:var(--mut)}
+.c-empty i{font-size:36px;opacity:.4;display:block;margin-bottom:8px}
+.c-empty span{font-size:13px}
+.c-grp-b-hide .c-grp-b{display:none}
+@media(max-width:860px){.c-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
 <script>
 renderShell('compras');
 
+let compFiltroEstado='todas',compBusqueda='';
+
 function renderComp(){
-  const list=DB.compras.map(oc=>{
-    const pv=getProv(oc.provId);
-    const val=ocValor(oc);
-    const linesH=oc.items.map(it=>'<div class="oc-line"><span>'+it.n+'</span><span>'+fmt(it.cant)+' '+it.u+' · '+money(it.cant*it.precio)+'</span></div>').join('');
-    const acciones=oc.estado==='transito'
-      ?'<button class="btn btn-blue btn-sm" onclick="recibirOC(\''+oc.id+'\');window.location.reload()"><i class="ri-inbox-unarchive-line"></i> Recibir en bodega</button>'
-      :oc.estado==='recibida'
-      ?'<a href="reclamar.html" class="btn btn-orange btn-sm" style="text-decoration:none"><i class="ri-hand-coin-line"></i> Ir a reclamar</a>'
-      :'<span class="badge bg"><i class="ri-checkbox-circle-line"></i> Reclamada por '+oc.reclPor+'</span>';
-    return '<div class="oc"><div class="oc-h"><div><div class="oc-id">'+oc.id+'</div><div class="oc-prov"><i class="ri-truck-line"></i> '+pv.n+' · '+oc.fecha+'</div></div><span class="badge '+compEstBadge(oc.estado)+'">'+compEstLabel(oc.estado)+'</span></div><div class="oc-items">'+linesH+'</div><div class="oc-f"><b style="font-size:14px">'+money(val)+'</b>'+acciones+'</div></div>';
-  }).join('');
-  $('pg').innerHTML='<div class="page th-comp"><div class="hero"><div class="hero-ic"><i class="ri-shopping-cart-2-line"></i></div><h1>Órdenes de Compra</h1><p>Compras a proveedores. Flujo: Generar OC → Llega en tránsito → Recibir → Reclamar → Entra al inventario.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaOC()"><i class="ri-add-line"></i> Nueva OC</button></div></div><div class="body">'+(DB.compras.length?'<div class="oc-list">'+list+'</div>':'<div class="empty"><i class="ri-shopping-cart-2-line"></i><h3>Sin órdenes</h3><p>Crea tu primera orden de compra. Primero necesitas un proveedor registrado.</p></div>')+'</div></div>';
+  const q=compBusqueda.toLowerCase();
+  let all=[...DB.compras];
+  if(compFiltroEstado!=='todas')all=all.filter(c=>c.estado===compFiltroEstado);
+  if(q)all=all.filter(c=>c.id.toLowerCase().includes(q)||getProv(c.provId)?.n.toLowerCase().includes(q));
+
+  const countE={transito:0,recibida:0,reclamada:0,borrador:0};
+  DB.compras.forEach(c=>{if(countE[c.estado]!==undefined)countE[c.estado]++});
+  const total=DB.compras.length;
+
+  const bar=[{k:'transito',l:'En tránsito',ic:'ri-truck-line',cl:'#0369A1',c:countE.transito},{k:'recibida',l:'Por reclamar',ic:'ri-inbox-unarchive-line',cl:'#B45309',c:countE.recibida},{k:'reclamada',l:'Reclamadas',ic:'ri-checkbox-circle-line',cl:'#15803D',c:countE.reclamada},{k:'borrador',l:'Borradores',ic:'ri-file-edit-line',cl:'#475569',c:countE.borrador}];
+  const barH=bar.map((b,i)=>'<div class="c-bar-item"><div class="c-bar-ic" style="background:'+b.cl+'"><i class="'+['ri-truck-line','ri-inbox-unarchive-line','ri-checkbox-circle-line','ri-file-edit-line'][i]+'"></i></div><div><div class="c-bar-n">'+b.c+'</div><div class="c-bar-l">'+b.l+'</div></div></div>').join('');
+
+  const pills=[{k:'todas',l:'Todas',c:total,pl:'p-todas'},{k:'transito',l:'En tránsito',c:countE.transito,pl:'p-transito'},{k:'recibida',l:'Por reclamar',c:countE.recibida,pl:'p-recibida'},{k:'reclamada',l:'Reclamadas',c:countE.reclamada,pl:'p-reclamada'}];
+  const pillsH=pills.map(p=>'<span class="c-pill '+(compFiltroEstado===p.k?'sel '+p.pl:'')+'" onclick="compFiltroEstado=\''+p.k+'\';renderComp()">'+p.l+' <span style="font-size:10px;opacity:.7">'+p.c+'</span></span>').join('');
+
+  const grupos=[
+    {k:'transito', lbl:'En tránsito', ic:'ri-truck-line', cl:'g-transito'},
+    {k:'recibida', lbl:'Por reclamar', ic:'ri-inbox-unarchive-line', cl:'g-recibida'},
+    {k:'reclamada',lbl:'Reclamadas',  ic:'ri-checkbox-circle-line', cl:'g-reclamada'}
+  ];
+
+  function tdAccion(oc){
+    if(oc.estado==='transito')return '<button class="btn btn-blue btn-sm" onclick="event.stopPropagation();recibirOC(\''+oc.id+'\');window.location.reload()"><i class="ri-inbox-unarchive-line"></i> Recibir</button>';
+    if(oc.estado==='recibida')return '<a href="reclamar.html" class="btn btn-sm" style="background:var(--warn-txt);color:#fff;text-decoration:none" onclick="event.stopPropagation()"><i class="ri-hand-coin-line"></i> Reclamar</a>';
+    if(oc.estado==='reclamada')return '<span class="badge bg" style="font-size:10px;padding:3px 7px"><i class="ri-checkbox-circle-line"></i> '+oc.reclPor+'</span>';
+    return '<button class="btn btn-o btn-sm" onclick="event.stopPropagation();toast(\'OC en borrador\',\'warn\')"><i class="ri-edit-line"></i> Editar</button>';
+  }
+
+  function tdItems(oc){
+    return oc.items.map(it=>'<div class="c-exp-item"><span>'+it.n+' <small>'+it.sku+'</small></span><span>'+fmt(it.cant)+' '+it.u+' <small>· '+money(it.cant*it.precio)+'</small></span></div>').join('');
+  }
+
+  let html='',hasAny=false;
+  grupos.forEach(g=>{
+    const its=all.filter(c=>c.estado===g.k);
+    if(!its.length)return;
+    hasAny=true;
+    const rows=its.map(oc=>{
+      const pv=getProv(oc.provId);
+      const val=ocValor(oc);
+      const eid=oc.id.replace(/[^a-zA-Z0-9]/g,'_');
+      return '<tr onclick="document.getElementById(\'cExp_'+eid+'\').classList.toggle(\'open\')"><td class="c-id">'+oc.id+'</td><td class="c-prov"><i class="ri-truck-line"></i>'+pv.n+'</td><td style="white-space:nowrap;color:var(--mut);font-size:10.5px">'+oc.fecha+'</td><td class="c-its">'+oc.items.length+'</td><td class="c-val">'+money(val)+'</td><td class="c-action">'+tdAccion(oc)+'</td></tr>'+
+        '<tr id="cExp_'+eid+'" class="c-expand"><td colspan="6"><div class="c-expand-in">'+tdItems(oc)+'</div></td></tr>';
+    }).join('');
+    html+='<div class="c-grp"><div class="c-grp-h '+g.cl+'" onclick="const b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'\':\'none\';this.querySelector(\'.c-grp-arr\').classList.toggle(\'open\')"><div style="display:flex;align-items:center;gap:8px"><i class="'+g.ic+'"></i>'+g.lbl+'</div><div style="display:flex;align-items:center;gap:8px"><span class="c-grp-c">'+its.length+'</span><i class="ri-arrow-down-s-line c-grp-arr open"></i></div></div><div class="c-grp-b"><table class="c-table"><thead><tr><th>OC</th><th>Proveedor</th><th>Fecha</th><th style="text-align:center">Items</th><th style="text-align:right">Valor</th><th style="text-align:right">Acción</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  });
+
+  let body='<div class="page th-comp"><div class="hero"><div class="hero-ic"><i class="ri-shopping-cart-2-line"></i></div><h1>Órdenes de Compra</h1><p>Gestión de compras a proveedores. Haz clic en una fila para ver detalles del pedido.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaOC()"><i class="ri-add-line"></i> Nueva OC</button></div></div><div class="body">';
+  body+='<div class="c-bar">'+barH+'</div>';
+  body+='<div class="c-top">'+pillsH+'</div>';
+  body+='<div class="c-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar OC o proveedor..." value="'+compBusqueda+'" oninput="compBusqueda=this.value;renderComp()">';
+  if(q)body+='<button class="btn btn-o btn-sm" onclick="compBusqueda=\'\';renderComp()"><i class="ri-close-line"></i> Limpiar</button>';
+  body+='</div>';
+  if(hasAny){body+=html;}
+  else{
+    body+='<div class="c-empty"><i class="ri-inbox-line"></i><span>';
+    if(q)body+='No se encontraron OC con "'+q+'"';
+    else{body+='No hay órdenes';if(compFiltroEstado!=='todas')body+=' '+compEstLabel(compFiltroEstado).toLowerCase();}
+    body+='</span></div>';
+  }
+  body+='</div></div>';
+  $('pg').innerHTML=body;
 }
 renderComp();
 

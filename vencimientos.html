@@ -19,7 +19,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -33,20 +33,138 @@
 <script src="js/operations.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/ui.js"></script>
+<style>
+.v-top{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.v-pill{padding:6px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:11.5px;font-weight:600;color:var(--mut);transition:.12s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.v-pill:hover{border-color:var(--line-m);background:var(--bg)}
+.v-pill.sel{color:#fff;border-color:transparent}
+.v-pill.sel.p-vencidos{background:var(--danger-txt)}
+.v-pill.sel.p-criticos{background:var(--warn-txt)}
+.v-pill.sel.p-vigentes{background:var(--success-txt)}
+.v-pill.sel.p-todos{background:var(--slate)}
+.v-pill .v-pc{font-size:10px;opacity:.7;font-weight:400}
+.v-search{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.v-search input{flex:1;min-width:160px;padding:7px 10px 7px 28px;border:1.5px solid var(--line);border-radius:7px;font-size:12.5px;outline:none;background:var(--bg);color:var(--txt)}
+.v-search input:focus{border-color:var(--link)}
+.v-search-ic{position:relative}
+.v-search-ic i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ph);font-size:13px}
+.v-wrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.v-table{width:100%;border-collapse:collapse}
+.v-table th{padding:10px 12px;font-size:9.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--neutral-bg)}
+.v-table td{padding:10px 12px;font-size:12.5px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--txt)}
+.v-table tr:last-child td{border-bottom:none}
+.v-table tbody tr{transition:.1s}
+.v-table tbody tr:hover{background:var(--neutral-bg)}
+.v-table tr.row-vencido{background:var(--danger-bg)}
+.v-table tr.row-vencido:hover{background:#FDD}
+.v-table tr.row-critico{background:var(--warn-bg)}
+.v-table tr.row-critico:hover{background:#FED7AA}
+.v-table tr.row-ok{background:transparent}
+.v-prod{font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.v-prod .v-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.v-prod .v-dot.d-vencido{background:var(--danger-txt)}
+.v-prod .v-dot.d-critico{background:var(--warn-txt)}
+.v-prod .v-dot.d-ok{background:var(--success-txt)}
+.v-lote{font-family:monospace;font-size:11px;color:var(--mut)}
+.v-cant{font-weight:600}
+.v-bg{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:5px;background:var(--neutral-bg);color:var(--neutral-txt)}
+.v-venc{font-size:11.5px}
+.v-days{font-weight:700;white-space:nowrap;text-align:center}
+.v-days.d-vencido{color:var(--danger-txt)}
+.v-days.d-critico{color:var(--warn-txt)}
+.v-days.d-ok{color:var(--success-txt)}
+.v-actions{white-space:nowrap;text-align:right}
+.v-actions .btn{padding:5px 10px;font-size:10.5px}
+.v-empty{text-align:center;padding:50px 20px;color:var(--mut)}
+.v-empty i{font-size:36px;opacity:.4;display:block;margin-bottom:8px}
+.v-empty span{font-size:13px}
+@media(max-width:860px){
+  .v-table{display:block}
+  .v-table thead{display:none}
+  .v-table tbody,.v-table tr,.v-table td{display:block}
+  .v-table tr{padding:12px;margin:4px 0;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+  .v-table td{padding:5px 0;border:none;font-size:12.5px;display:flex;align-items:center;gap:6px}
+  .v-table td::before{content:attr(data-label);display:inline-block;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;width:80px;flex-shrink:0}
+  .v-table td.v-actions::before{display:none}
+  .v-table td.v-actions{text-align:left;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+  .v-table tr.row-vencido,.v-table tr.row-critico,.v-table tr.row-ok{background:var(--surface)}
+  .v-table tr.row-vencido{border-left:3px solid var(--danger-txt)}
+  .v-table tr.row-critico{border-left:3px solid var(--warn-txt)}
+}
+</style>
 <script>
 renderShell('vencimientos');
-$('pg').innerHTML=function(){
-  const sorted=[...DB.vencimientos].sort((a,b)=>a.dias-b.dias);
-  const vcards=sorted.map(v=>{
-    const cls=v.dias<0?'vencido':v.dias<=20?'critico':'';
-    const label=v.dias<0?'Vencido hace '+(-v.dias)+'d':v.dias+' días';
-    const pct=Math.max(0,Math.min(100,100-v.dias/120*100));
-    return '<div class="vcard"><div class="vc-days '+cls+'"><div class="vc-days-n">'+(v.dias<0?'!':v.dias)+'</div><div class="vc-days-l">'+(v.dias<0?'vencido':'días')+'</div></div><div class="vc-info"><div style="font-size:14px;font-weight:700;color:var(--ink)">'+v.prod+'</div><div style="font-size:12px;color:var(--mut);margin:3px 0">'+v.lote+' · '+v.cant+' · Bodega: '+v.bodega+'</div><div style="font-size:11px;color:var(--mut);margin-bottom:6px">Vence: '+v.vence+'</div><div class="bar"><span style="width:'+pct+'%;background:'+(cls==='vencido'?'var(--ph)':cls==='critico'?'var(--danger-txt)':'var(--warn-txt)')+'"></span></div></div><span class="badge '+(v.dias<0?'bs':v.dias<=20?'br':'by')+'">'+label+'</span></div>';
+
+let filtroBusqueda='', filtroEstado='todos';
+
+function renderVenc(){
+  const query=filtroBusqueda.toLowerCase();
+  let items=[...DB.vencimientos].sort((a,b)=>a.dias-b.dias);
+  if(query)items=items.filter(v=>v.prod.toLowerCase().includes(query)||v.lote.toLowerCase().includes(query)||v.bodega.toLowerCase().includes(query));
+  if(filtroEstado==='vencidos')items=items.filter(v=>v.dias<0);
+  else if(filtroEstado==='criticos')items=items.filter(v=>v.dias>=0&&v.dias<=20);
+  else if(filtroEstado==='vigentes')items=items.filter(v=>v.dias>20);
+
+  const totalVencidos=DB.vencimientos.filter(v=>v.dias<0).length;
+  const totalCriticos=DB.vencimientos.filter(v=>v.dias>=0&&v.dias<=20).length;
+  const totalVigentes=DB.vencimientos.filter(v=>v.dias>20).length;
+
+  const pills=[
+    {k:'todos',   l:'Todos',      c:totalVencidos+totalCriticos+totalVigentes,pl:'p-todos'},
+    {k:'vencidos',l:'Vencidos',   c:totalVencidos,                               pl:'p-vencidos'},
+    {k:'criticos',l:'Críticos',   c:totalCriticos,                               pl:'p-criticos'},
+    {k:'vigentes',l:'Vigentes',   c:totalVigentes,                               pl:'p-vigentes'}
+  ];
+
+  const rows=items.map(v=>{
+    const rowCls=v.dias<0?'row-vencido':v.dias<=20?'row-critico':'row-ok';
+    const dotCls=v.dias<0?'d-vencido':v.dias<=20?'d-critico':'d-ok';
+    const diasCls=v.dias<0?'d-vencido':v.dias<=20?'d-critico':'d-ok';
+    const diasTxt=v.dias<0?'VENCIDO':v.dias+' días';
+    return '<tr class="'+rowCls+'"><td data-label="Producto"><span class="v-prod"><span class="v-dot '+dotCls+'"></span>'+v.prod+'</span></td><td data-label="Lote"><span class="v-lote">'+v.lote+'</span></td><td data-label="Cant."><span class="v-cant">'+v.cant+'</span></td><td data-label="Bodega"><span class="v-bg">'+v.bodega+'</span></td><td data-label="Vence"><span class="v-venc">'+v.vence+'</span></td><td data-label="Días" class="v-days '+diasCls+'">'+diasTxt+'</td><td class="v-actions">'+
+      (v.dias<0
+        ?'<button class="btn" style="background:var(--danger-txt);color:#fff" onclick="modalDarDeBaja(\''+v.lote+'\')"><i class="ri-delete-bin-line"></i> Dar de baja</button>'
+        :v.dias<=20
+          ?'<button class="btn btn-o btn-sm" onclick="toast(\'Notificar a compras: '+v.prod+' ('+v.lote+') — vence en '+v.dias+' días\',\'warn\')"><i class="ri-notification-3-line"></i> Notificar</button>'
+          :'<span class="badge bg" style="font-size:10px">Vigente</span>'
+      )+
+    '</td></tr>';
   }).join('');
-  const vencidos=DB.vencimientos.filter(v=>v.dias<0).length;
-  const criticos=DB.vencimientos.filter(v=>v.dias>=0&&v.dias<=20).length;
-  return '<div class="page th-venc"><div class="hero"><div class="hero-ic"><i class="ri-time-line"></i></div><h1>Control de Vencimientos</h1><p>Adhesivos, morteros, selladores y materiales con fecha de caducidad. Ordena el despacho por FIFO.</p></div><div class="body"><div class="grid" style="margin-bottom:20px"><div class="stat c4"><div class="stat-ic" style="background:var(--danger-txt)"><i class="ri-close-circle-line"></i></div><div class="stat-n">'+vencidos+'</div><div class="stat-l">Ya vencidos — dar de baja</div></div><div class="stat c4"><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-alert-line"></i></div><div class="stat-n">'+criticos+'</div><div class="stat-l">Vencen en ≤20 días</div></div><div class="stat c4"><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-checkbox-circle-line"></i></div><div class="stat-n">'+DB.vencimientos.filter(v=>v.dias>20).length+'</div><div class="stat-l">Vigentes</div></div></div><div>'+vcards+'</div></div></div>';
-}();
+
+  const pillsH=pills.map(p=>'<span class="v-pill '+(filtroEstado===p.k?'sel '+p.pl:'')+'" onclick="filtroEstado=\''+p.k+'\';renderVenc()">'+p.l+' <span class="v-pc">'+p.c+'</span></span>').join('');
+
+  $('pg').innerHTML='<div class="page th-venc"><div class="hero"><div class="hero-ic"><i class="ri-time-line"></i></div><h1>Control de Vencimientos</h1><p>Gestiona productos próximos a vencer. Acciones: dar de baja vencidos y notificar críticos.</p></div><div class="body"><div class="grid" style="margin-bottom:16px"><div class="stat c4"><div class="stat-ic" style="background:var(--danger-txt)"><i class="ri-close-circle-line"></i></div><div class="stat-n">'+totalVencidos+'</div><div class="stat-l">Vencidos — dar de baja</div></div><div class="stat c4"><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-alert-line"></i></div><div class="stat-n">'+totalCriticos+'</div><div class="stat-l">Críticos (≤20 días)</div></div><div class="stat c4"><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-checkbox-circle-line"></i></div><div class="stat-n">'+totalVigentes+'</div><div class="stat-l">Vigentes</div></div></div><div class="v-top">'+pillsH+'</div><div class="v-search"><i class="ri-search-line" style="color:var(--ph);font-size:14px"></i><input type="text" placeholder="Buscar producto, lote o bodega..." value="'+filtroBusqueda+'" oninput="filtroBusqueda=this.value;renderVenc()">'+(query?'<button class="btn btn-o btn-sm" onclick="filtroBusqueda=\'\';renderVenc()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div>'+(items.length?'<div class="v-wrap"><table class="v-table"><thead><tr><th>Producto</th><th>Lote</th><th>Cant.</th><th>Bodega</th><th>Vence</th><th style="text-align:center">Estado</th><th style="text-align:right">Acción</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<div class="v-empty"><i class="ri-inbox-line"></i><span>No se encontraron productos'+(query?' con "'+query+'"':' en esta categoría')+'</span></div>')+'</div></div>';
+}
+renderVenc();
+
+function modalDarDeBaja(lote){
+  const v=DB.vencimientos.find(x=>x.lote===lote);
+  if(!v)return;
+  openMod('<i class="ri-delete-bin-line" style="color:var(--danger-txt)"></i> Dar de baja producto',
+    '<div class="note warn" style="background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-txt)"><i class="ri-alert-line"></i> Esta acción registrará una salida de inventario por <b>producto vencido</b> y lo eliminará del control de vencimientos.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
+      '<div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px">Producto</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px">'+v.prod+'</div></div>'+
+      '<div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px">Lote</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px;font-family:monospace">'+v.lote+'</div></div>'+
+      '<div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px">Cantidad</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px">'+v.cant+'</div></div>'+
+      '<div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px">Bodega</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px">'+v.bodega+'</div></div>'+
+    '</div>'+
+    '<div style="background:var(--warn-bg);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--warn-txt);display:flex;gap:8px;align-items:flex-start"><i class="ri-information-line" style="margin-top:1px;flex-shrink:0"></i><span>Se registrará un movimiento de <b>Salida</b> por "Baja x vencimiento" y se liberará el espacio en bodega.</span></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--danger-txt);color:#fff" onclick="closeMod();ejecutarDarDeBaja(\''+lote+'\')"><i class="ri-delete-bin-line"></i> Confirmar baja</button>'
+  );
+}
+function ejecutarDarDeBaja(lote){
+  const idx=DB.vencimientos.findIndex(v=>v.lote===lote);
+  if(idx===-1)return;
+  const v=DB.vencimientos[idx];
+  DB.movimientos.unshift({
+    f:now(),sku:v.sku||'—',n:v.prod,tipo:'Salida',cant:parseInt(v.cant)||0,
+    u:(v.cant.match(/[a-zA-Z]+/g)||['unid']).pop(),resp:currentUser.n,ref:'Baja x vencimiento',bodega:v.bodega,est:'Completado'
+  });
+  DB.vencimientos.splice(idx,1);
+  saveDB();
+  renderVenc();
+  toast('Producto dado de baja: '+v.prod,'ok');
+}
 </script>
 </body>
 </html>

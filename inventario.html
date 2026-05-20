@@ -27,17 +27,6 @@
 .inv-tr .td-acts button{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s}
 .td-edit{background:var(--rojo-l);color:var(--rojo)}.td-edit:hover{background:var(--rojo);color:#fff}
 .td-detail{background:var(--info-bg);color:var(--info-txt)}.td-detail:hover{background:var(--info-txt);color:#fff}
-.alarm-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.alarm-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;flex:1;min-width:180px}
-.alarm-card.agotado{background:var(--danger-bg);border:1px solid var(--danger-bd)}
-.alarm-card.bajo{background:var(--warn-bg);border:1px solid var(--warn-bd)}
-.alarm-ic{font-size:18px}
-.alarm-card.agotado .alarm-ic{color:var(--danger-txt)}
-.alarm-card.bajo .alarm-ic{color:var(--warn-txt)}
-.alarm-n{font-size:20px;font-weight:800;line-height:1}
-.alarm-card.agotado .alarm-n,.alarm-card.agotado .alarm-l{color:var(--danger-txt)}
-.alarm-card.bajo .alarm-n,.alarm-card.bajo .alarm-l{color:var(--warn-txt)}
-.alarm-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
 .inv-bar{height:3px;background:var(--neutral-bg);border-radius:2px;overflow:hidden;min-width:40px}
 .inv-bar span{display:block;height:100%;border-radius:2px}
 .filter-tag{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);transition:.12s}
@@ -56,7 +45,7 @@
 <main class="main">
 <div class="topbar">
 <div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
-<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:#94A3B8;font-size:14px"></i></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
 </div>
 <div id="pg"></div>
 </main>
@@ -82,9 +71,9 @@ function renderInv(){
 
   const agotados=filtered.filter(p=>stockBodega(selBodega,p.sku)===0);
   const bajoStock=filtered.filter(p=>{const s=stockBodega(selBodega,p.sku);return s>0&&s<100});
-  const alarmHtml=(agotados.length||bajoStock.length)?'<div class="alarm-row">'+
-    (agotados.length?'<div class="alarm-card agotado"><i class="ri-close-circle-line alarm-ic"></i><div><div class="alarm-n">'+agotados.length+'</div><div class="alarm-l">Agotado'+(agotados.length>1?'s':'')+' · '+agotados.map(p=>'<span style="font-size:10px;opacity:.8">'+p.n+'</span>').join(', ')+'</div></div></div>':'')+
-    (bajoStock.length?'<div class="alarm-card bajo"><i class="ri-alert-line alarm-ic"></i><div><div class="alarm-n">'+bajoStock.length+'</div><div class="alarm-l">Stock bajo · '+bajoStock.map(p=>'<span style="font-size:10px;opacity:.8">'+p.n+' ('+fmt(stockBodega(selBodega,p.sku))+' '+p.u+')</span>').join(', ')+'</div></div></div>':'')+
+  const alarmHtml=(agotados.length||bajoStock.length)?'<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+    (agotados.length?'<div style="display:flex;align-items:center;gap:7px;background:var(--danger-bg);border:1px solid var(--danger-bd);border-radius:8px;padding:7px 11px;cursor:pointer" onclick="toast(\'Agotados: '+agotados.map(p=>p.n).join(', ')+'\',\'warn\')"><span style="font-size:16px;color:var(--danger-txt)"><i class="ri-close-circle-line"></i></span><span style="font-size:16px;font-weight:800;color:var(--danger-txt)">'+agotados.length+'</span><span style="font-size:10px;font-weight:600;color:var(--danger-txt)">agotado'+(agotados.length>1?'s':'')+'</span></div>':'')+
+    (bajoStock.length?'<div style="display:flex;align-items:center;gap:7px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:7px 11px;cursor:pointer" onclick="toast(\'Stock bajo: '+bajoStock.map(p=>p.n+' ('+fmt(stockBodega(selBodega,p.sku))+' '+p.u+')').join(', ')+'\',\'warn\')"><span style="font-size:16px;color:var(--warn-txt)"><i class="ri-alert-line"></i></span><span style="font-size:16px;font-weight:800;color:var(--warn-txt)">'+bajoStock.length+'</span><span style="font-size:10px;font-weight:600;color:var(--warn-txt)">stock bajo</span></div>':'')+
   '</div>':'';
 
   const totalStk=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku),0);
@@ -92,18 +81,18 @@ function renderInv(){
   const totalVal=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku)*(p.costo||0),0);
   const bgStocks=DB.bodegas.map(b=>{return{id:b.id,st:filtered.reduce((a,p)=>a+stockBodega(b.id,p.sku),0)}});
   const bgTotal=bgStocks.reduce((s,b)=>s+b.st,0);
-  const summary='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Productos</div><div style="font-size:20px;font-weight:800;color:var(--ink)">'+filtered.length+'</div><div style="font-size:10px;color:var(--mut)">de '+DB.productos.length+' total</div></div>'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Stock en '+selBodega+'</div><div style="font-size:20px;font-weight:800;color:var(--ink)">'+fmt(totalStk)+'</div><div style="font-size:10px;color:var(--mut)">unidades base</div></div>'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Conversión</div><div style="font-size:20px;font-weight:800;color:var(--link)">'+convCount+'</div><div style="font-size:10px;color:var(--mut)">productos con factor</div></div>'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Valor inventario</div><div style="font-size:20px;font-weight:800;color:var(--success-txt)">'+money(totalVal)+'</div><div style="font-size:10px;color:var(--mut)">costo total</div></div>'+
+  const summary='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--slate);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-box-3-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+filtered.length+'</div><div style="font-size:9px;color:var(--mut)">de '+DB.productos.length+' total</div></div></div>'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--info-txt);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-store-2-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+fmt(totalStk)+'</div><div style="font-size:9px;color:var(--mut)">stock en '+selBodega+'</div></div></div>'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--link);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-exchange-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+convCount+'</div><div style="font-size:9px;color:var(--mut)">conversiones</div></div></div>'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--success-txt);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-money-dollar-circle-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+money(totalVal)+'</div><div style="font-size:9px;color:var(--mut)">valor inventario</div></div></div>'+
   '</div>'+
-  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px"><i class="ri-store-2-line"></i> Stock por bodega</div>'+
-      bgStocks.map(b=>{const p=bgTotal>0?b.st/bgTotal*100:0;const bg=DB.bodegas.find(x=>x.id===b.id);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:10px;font-weight:600;color:var(--txt);width:28px">'+b.id+'</span><div style="flex:1;height:6px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--'+(bg.estado==='verde'?'success-txt':bg.estado==='amarillo'?'warn-txt':'danger-txt')+');border-radius:3px"></span></div><span style="font-size:10px;color:var(--mut);width:60px;text-align:right">'+fmt(b.st)+'</span></div>'}).join('')+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px"><i class="ri-store-2-line"></i> Stock x bodega</div>'+
+      bgStocks.map(b=>{const p=bgTotal>0?b.st/bgTotal*100:0;const bg=DB.bodegas.find(x=>x.id===b.id);return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="font-size:9px;font-weight:600;color:var(--txt);width:26px">'+b.id+'</span><div style="flex:1;height:5px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--'+(bg.estado==='verde'?'success-txt':bg.estado==='amarillo'?'warn-txt':'danger-txt')+');border-radius:3px"></span></div><span style="font-size:9px;color:var(--mut);width:50px;text-align:right">'+fmt(b.st)+'</span></div>'}).join('')+
     '</div>'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px"><i class="ri-grid-line"></i> Productos por categoría</div>'+
-      cats.map(c=>{const cnt=DB.productos.filter(p=>p.cat===c).length;const p=cnt/DB.productos.length*100;return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:10px;font-weight:600;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c+'</span><div style="width:70px;height:6px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--rojo);border-radius:3px"></span></div><span style="font-size:10px;color:var(--mut);width:24px;text-align:right">'+cnt+'</span></div>'}).join('')+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px"><i class="ri-grid-line"></i> Productos x categoría</div>'+
+      cats.map(c=>{const cnt=DB.productos.filter(p=>p.cat===c).length;const p=cnt/DB.productos.length*100;return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="font-size:9px;font-weight:600;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c+'</span><div style="width:60px;height:5px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--rojo);border-radius:3px"></span></div><span style="font-size:9px;color:var(--mut);width:20px;text-align:right">'+cnt+'</span></div>'}).join('')+
     '</div>'+
   '</div>';
 
@@ -200,46 +189,73 @@ function verDetalleProducto(sku){
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button>'
   );
 }
+let acFilter='';
+
+function renderAcPills(){
+  return DB.bodegas.map(b=>'<span class="inv-pill '+(b.id===selBodega?'sel':'')+'" onclick="selBodega=\''+b.id+'\';renderAcRows()">'+b.id+'</span>').join('');
+}
+function renderAcRows(){
+  const pils=$('acPills');
+  if(pils)pils.innerHTML=renderAcPills();
+  const prods=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
+  const q=acFilter.toLowerCase();
+  const filtered=q?prods.filter(p=>p.n.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)):prods;
+  if(!filtered.length){
+    $('acBody').innerHTML='<div style="text-align:center;padding:30px;color:var(--mut);font-size:12px"><i class="ri-inbox-line" style="font-size:28px;display:block;margin-bottom:6px;opacity:.4"></i>No se encontraron productos con "'+q+'"</div>';
+    return;
+  }
+  const bodega=selBodega;
+  const rows=filtered.map((p,i)=>{
+    const stk=stockBodega(bodega,p.sku);
+    const sec=p.caja?Math.round(stk/p.caja):null;
+    const secInp=p.caja?'<input id="acSec_'+i+'" type="number" min="0" value="'+sec+'" style="width:100%;padding:2px 4px;border:1.5px solid var(--line);border-radius:4px;font-size:11px;text-align:center;background:var(--bg);outline:none;box-sizing:border-box" oninput="syncBaseFromSec_('+i+','+p.caja+')" placeholder="'+p.cajaN+'">':'-';
+    return '<div style="display:grid;grid-template-columns:1fr 55px 65px 60px 55px;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--line)">'+
+      '<div style="min-width:0"><div style="font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.n+'</div><div style="font-size:9px;color:var(--mut);font-family:monospace">'+p.sku+'</div></div>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--ink);text-align:right">'+fmt(stk)+' <span style="font-weight:400;color:var(--mut);font-size:9px">'+p.u+'</span></span>'+
+      '<input id="acBase_'+i+'" type="number" min="0" value="'+stk+'" style="width:100%;padding:3px 5px;border:1.5px solid var(--line);border-radius:5px;font-size:12px;text-align:center;background:var(--bg);outline:none;box-sizing:border-box" oninput="syncSecFromBase_('+i+','+p.caja+')">'+
+      secInp+
+      '<span id="acDiff_'+i+'" style="font-size:11px;font-weight:800;text-align:right;color:var(--mut)">0</span></div>';
+  }).join('');
+  $('acBody').innerHTML=rows;
+  const total=prods.length;
+  const vis=filtered.length;
+  document.querySelector('.ac-info').textContent=vis+' de '+total+' producto'+(total!==1?'s':'');
+}
+
 function modalAjusteCategoria(){
+  acFilter='';
   const prods=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
   if(!prods.length){toast('No hay productos','warn');return}
-  const rows=prods.map((p,i)=>{
-    const stk=stockBodega(selBodega,p.sku);
-    const sec=p.caja?Math.round(stk/p.caja):null;
-    const hasConv=p.caja?'<span style="font-size:9px;color:var(--ph)">~'+fmt(sec)+' '+p.cajaN+'</span>':'';
-    const secInp=p.caja?'<input id="acSec_'+i+'" type="number" min="0" value="'+sec+'" style="width:80px;padding:3px 5px;border:1.5px solid var(--line);border-radius:5px;font-size:11px;text-align:center;background:var(--bg);outline:none" oninput="syncBaseFromSec('+i+','+p.caja+')" placeholder="'+p.cajaN+'">':'-';
-    return '<div style="padding:7px 0;border-bottom:1px solid var(--line)">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:600;font-size:12px;color:var(--ink)">'+p.n+'</span><span style="font-size:11px;color:var(--mut)">Actual: <b>'+fmt(stk)+'</b> '+p.u+' '+hasConv+'</span></div>'+
-      '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;font-weight:600;color:var(--mut);width:50px">Conteo:</span><input id="acBase_'+i+'" type="number" min="0" value="'+stk+'" style="flex:1;padding:4px 6px;border:1.5px solid var(--line);border-radius:6px;font-size:12px;text-align:center;background:var(--bg);outline:none" oninput="syncSecFromBase('+i+','+p.caja+')">'+
-      '<span style="font-size:10px;font-weight:600;color:var(--mut);width:20px">'+p.u+'</span>'+
-      secInp+
-      '<span id="acDiff_'+i+'" style="font-size:12px;font-weight:800;min-width:60px;text-align:right;color:var(--mut)">0</span></div>'+
-    '</div>';
-  }).join('');
-  const tit=selCat==='Todos'?'Todos los productos':'Categoría '+selCat;
-  $('modal').querySelector('.mox').style.maxWidth='780px';
-  openMod('<i class="ri-scales-line"></i> Ajustar Inventario · '+tit,
-    '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--rojo);display:flex;gap:9px;line-height:1.55">'+
-    '<i class="ri-information-line" style="font-size:16px;flex-shrink:0;margin-top:1px"></i>'+
-    '<span>Este ajuste permite <b>regularizar el inventario físico</b> de '+(selCat==='Todos'?'todos los productos':'los productos en la categoría <b>'+selCat+'</b>')+' para la bodega <b>'+selBodega+'</b>. Ingresa el <b>conteo físico real</b> en la unidad base (m², lb, unid, sacos) o en la unidad secundaria (caja, pale...). El sistema calculará automáticamente la diferencia y registrará excedentes o castigos en el historial.</span></div>'+
-    '<div style="background:var(--neutral-bg);border-radius:8px;padding:5px 8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px"><span style="flex:1">Producto</span><span style="width:50px;text-align:right">Actual</span><span style="flex:1;text-align:center">Conteo</span></div>'+
-    '<div style="max-height:340px;overflow-y:auto">'+rows+'</div>'+
-    '<div class="ff" style="margin-top:10px"><label>Observación general</label><input id="acObs" placeholder="Ej: Conteo mensual de inventario — mayo 2026"></div>',
+  $('modal').querySelector('.mox').style.maxWidth='900px';
+  openMod('<i class="ri-scales-line"></i> Ajustar Inventario',
+    '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--rojo);display:flex;gap:8px;line-height:1.5"><i class="ri-information-line" style="font-size:15px;flex-shrink:0;margin-top:1px"></i><span>Ingresa el conteo físico real. El sistema calcula diferencias y registra movimientos. <b>Los campos en blanco se ignoran.</b></span></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">'+
+      '<span style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px">Bodega:</span><span id="acPills" style="display:flex;gap:5px;flex-wrap:wrap">'+renderAcPills()+'</span>'+
+      '<span style="flex:1"></span>'+
+      '<i class="ri-search-line" style="color:var(--ph);font-size:12px"></i>'+
+      '<input type="text" placeholder="Buscar producto..." value="" style="width:180px;padding:5px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:11px;outline:none;background:var(--bg)" oninput="acFilter=this.value;renderAcRows()">'+
+      '<span class="ac-info" style="font-size:10px;color:var(--mut)"></span>'+
+    '</div>'+
+    '<div style="background:var(--neutral-bg);border-radius:6px;padding:4px 8px;margin-bottom:6px;display:grid;grid-template-columns:1fr 55px 65px 60px 55px;align-items:center;gap:6px;font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px"><span style="text-align:left">Producto</span><span style="text-align:right">Actual</span><span style="text-align:center">Conteo</span><span style="text-align:center">Sec.</span><span style="text-align:right">Diff</span></div>'+
+    '<div id="acBody" style="max-height:300px;overflow-y:auto"></div>'+
+    '<div class="ff" style="margin-top:8px"><label>Observación</label><input id="acObs" placeholder="Ej: Conteo mensual mayo 2026"></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="aplicarAjusteCategoria()"><i class="ri-check-line"></i> Aplicar ajustes</button>'
   );
+  renderAcRows();
 }
-function syncSecFromBase(i,factor){
+function syncSecFromBase_(i,factor){
   const v=parseFloat($('acBase_'+i).value);
   if(!isNaN(v)&&factor){$('acSec_'+i).value=Math.round(v/factor)}else if($('acSec_'+i))$('acSec_'+i).value=''
-  updateDiff(i);
+  upDiff_(i);
 }
-function syncBaseFromSec(i,factor){
+function syncBaseFromSec_(i,factor){
   const v=parseFloat($('acSec_'+i).value);
   if(!isNaN(v)&&factor){$('acBase_'+i).value=Math.round(v*factor)}else if($('acBase_'+i))$('acBase_'+i).value=''
-  updateDiff(i);
+  upDiff_(i);
 }
-function updateDiff(i){
-  const prods=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
+function upDiff_(i){
+  const prods=(selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat)).filter(p=>{
+    const q=acFilter.toLowerCase();return q?p.n.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q):true});
   const p=prods[i];if(!p)return;
   const actual=stockBodega(selBodega,p.sku);
   const v=parseFloat($('acBase_'+i).value);
@@ -249,7 +265,8 @@ function updateDiff(i){
   $('acDiff_'+i).style.color=d>0?'var(--success-txt)':d<0?'var(--danger-txt)':'var(--mut)';
 }
 function aplicarAjusteCategoria(){
-  const prods=selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat);
+  const prods=(selCat==='Todos'?DB.productos:DB.productos.filter(p=>p.cat===selCat)).filter(p=>{
+    const q=acFilter.toLowerCase();return q?p.n.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q):true});
   const obs=$('acObs').value||'Conteo físico '+(selCat==='Todos'?'general':selCat);
   let applied=0;
   prods.forEach((p,i)=>{

@@ -9,6 +9,7 @@
 </head>
 <body>
 <div id="screen-login" class="screen active">
+<button class="l-theme" onclick="toggleTheme()"><i class="ri-moon-line"></i></button>
 <div class="lw">
   <div class="lb">
     <div class="lb-logo"><div class="lb-logo-ic"><i class="ri-building-2-line"></i></div><span class="lb-logo-t">Decorcerámica</span></div>
@@ -74,6 +75,7 @@ function closeDemo(){$('modalDemo').classList.remove('show')}
 document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 $('usr').focus();
 setTimeout(()=>$('modalDemo').classList.add('show'),200);
+applyTheme();
 </script>
 </body>
 </html>
