@@ -1,27 +1,64 @@
 /* ========================= OPERACIONES CONECTADAS ========================= */
 function asignarStock(pdId){
   const pd=DB.pedidos.find(p=>p.id===pdId);
+  if(!pd)return;
   let allOk=true;
+  let allDelivered=true;
   pd.items.forEach(it=>{
+    if(it.entregado===undefined)it.entregado=0;
+    const restante=it.cant-it.entregado;
+    if(restante<=0){
+      it.asig=0;
+      it.falt=0;
+      return;
+    }
+    allDelivered=false;
     const tot=stockTotal(it.sku);
     const best=bestBodega(it.sku);
-    if(tot>=it.cant){it.bodega=best;it.asig=it.cant;it.falt=0}
-    else{it.bodega=best;it.asig=tot;it.falt=it.cant-tot;allOk=false}
+    if(tot>=restante){
+      it.bodega=best;
+      it.asig=restante;
+      it.falt=0;
+    }else{
+      it.bodega=best;
+      it.asig=tot;
+      it.falt=restante-tot;
+      allOk=false;
+    }
   });
-  pd.estado=allOk?'asignado':'resagado';
+  if(allDelivered){
+    pd.estado='despachado';
+  }else{
+    const algunEntregado=pd.items.some(it=>(it.entregado||0)>0);
+    if(algunEntregado){
+      pd.estado=allOk?'parcial_asignado':'parcial_resagado';
+    }else{
+      pd.estado=allOk?'asignado':'resagado';
+    }
+  }
 }
 function despacharPedido(pdId){
   const pd=DB.pedidos.find(p=>p.id===pdId);
+  if(!pd)return;
   if(pd.estado==='despachado'){toast('Ya fue despachado','warn');return}
-  if(pd.estado==='resagado'){toast('Pedido resagado: hay items sin stock suficiente','warn');return}
+  let despachadoAlgo=false;
   pd.items.forEach(it=>{
     if(!it.bodega||!it.asig)return;
+    despachadoAlgo=true;
     DB.stock[it.bodega][it.sku]=(DB.stock[it.bodega][it.sku]||0)-it.asig;
     if(DB.stock[it.bodega][it.sku]<0)DB.stock[it.bodega][it.sku]=0;
+    if(it.entregado===undefined)it.entregado=0;
+    it.entregado+=it.asig;
     const pr=getProd(it.sku);
     DB.movimientos.unshift({f:now(),sku:it.sku,n:pr?.n||it.sku,tipo:'Salida',cant:it.asig,u:pr?.u||'unid',resp:currentUser.n,ref:pd.id,bodega:it.bodega,est:'Completado'});
+    it.asig=0;
   });
-  pd.estado='despachado';pd.despPor=currentUser.n;
+  if(!despachadoAlgo){
+    toast('No hay stock asignado para despachar','warn');
+    return;
+  }
+  asignarStock(pd.id);
+  if(pd.estado==='despachado')pd.despPor=currentUser.n;
   refresh();toast('Pedido '+pd.id+' despachado. Inventario actualizado.','ok');
 }
 function recibirOC(ocId){
@@ -39,8 +76,8 @@ function reclamarOC(ocId){
     DB.movimientos.unshift({f:now(),sku:it.sku,n:pr?.n||it.sku,tipo:'Entrada',cant:it.cant,u:it.u,resp:currentUser.n,ref:ocId,bodega:bg,est:'Completado'});
   });
   oc.estado='reclamada';oc.reclPor=currentUser.n;
-  // re-assign pending pedidos that might now have stock
-  DB.pedidos.filter(p=>p.estado==='resagado').forEach(p=>asignarStock(p.id));
+  // re-assign pending/backordered pedidos that might now have stock
+  DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
   refresh();toast('Mercancía reclamada. Inventario Bodega A actualizado.','ok');
 }
 function autorizarTransferencia(id){
@@ -69,7 +106,7 @@ function recibirTransferencia(id){
     DB.movimientos.unshift({f:now(),sku:it.sku,n:pr?.n||it.sku,tipo:'Transferencia',cant:it.cant,u:pr?.u||'unid',resp:currentUser.n,ref:id,bodega:tr.org+'→'+tr.dst,est:'Completado'});
   });
   tr.estado='recibida';tr.recibPor=currentUser.n;
-  DB.pedidos.filter(p=>p.estado==='resagado').forEach(p=>asignarStock(p.id));
+  DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
   refresh();toast('Recibido en '+tr.dst+'. Inventario actualizado.','ok');
 }
 function modalAjusteInventario(bodega,sku){
@@ -110,9 +147,9 @@ function confirmarAjuste(bodega,sku){
   DB.stock[bodega][sku]=v;
   const pr=getProd(sku);const nota=$('ajNota').value||'Conteo físico';
   DB.movimientos.unshift({f:now(),sku,n:pr?.n||sku,tipo:'Ajuste',cant:Math.abs(diff)||0,u:pr?.u||'unid',resp:currentUser.n,ref:'CONT-'+bodega,bodega,est:'Completado',nota});
-  DB.pedidos.filter(p=>p.estado==='resagado').forEach(p=>asignarStock(p.id));
+  DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
   closeMod();refresh();
-  if(diff===0)toast('Inventario confirmado. Sin diferencias.','ok');
+  if(diff===0)toast('Inventario confirmed. Sin diferencias.','ok');
   else if(diff>0)toast(`Excedente registrado: +${fmt(diff)} ${pr?.u||'unid'} en ${bodega}`,'ok');
   else toast(`Castigo aplicado: ${fmt(diff)} ${pr?.u||'unid'} en ${bodega}. Movimiento registrado.`,'ok');
 }
@@ -124,7 +161,7 @@ function reintegrarSobrante(sbId){
   const pr=getProd(sb.sku);
   DB.movimientos.unshift({f:now(),sku:sb.sku,n:pr?.n||sb.sku,tipo:'Ajuste',cant:sb.add,u:pr?.u||'unid',resp:currentUser.n,ref:sb.id,bodega:sb.bodega,est:'Completado'});
   sb.estado='Reintegrado';
-  DB.pedidos.filter(p=>p.estado==='resagado').forEach(p=>asignarStock(p.id));
+  DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
   refresh();toast('Sobrante reintegrado al inventario de '+sb.bodega,'ok');
 }
 function investigarSobrante(sbId){

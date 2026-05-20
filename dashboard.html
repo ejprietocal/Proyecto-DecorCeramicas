@@ -37,8 +37,8 @@
 renderShell('dashboard');
 $('pg').innerHTML=function(){
   const pend=DB.pedidos.filter(p=>p.estado==='pendiente').length;
-  const asig=DB.pedidos.filter(p=>p.estado==='asignado').length;
-  const res=DB.pedidos.filter(p=>p.estado==='resagado').length;
+  const asig=DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado').length;
+  const res=DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;
   const desp=DB.pedidos.filter(p=>p.estado==='despachado').length;
   const porRec=DB.compras.filter(c=>c.estado==='recibida').length;
   const bdgCards=DB.bodegas.map(b=>{

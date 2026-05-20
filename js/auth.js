@@ -40,7 +40,7 @@ function buildSb(activeMod){
     its.forEach(k=>{
       const m=MODS[k];let bdg='';
       if(k==='reclamar'){const a=DB.compras.filter(c=>c.estado==='recibida').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
-      if(k==='pedidos'){const a=DB.pedidos.filter(p=>p.estado==='resagado').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
+      if(k==='pedidos'){const a=DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
       if(k==='transferencias'){const a=DB.transferencias.filter(t=>t.estado!=='recibida').length;if(a)bdg=`<span class="mi-badge">${a}</span>`}
       h+=`<a class="mi ${k===activeMod?'active':''}" href="${PAGE_MAP[k]}"><i class="${m.ic}"></i><span>${m.n}</span>${bdg}</a>`;
     });

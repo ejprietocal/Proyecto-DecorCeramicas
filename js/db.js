@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=2;
+const DB_VER=3;
 
 const DB={
   bodegas:[
@@ -50,12 +50,20 @@ const DB={
      items:[{sku:'PC-6060-BE',n:'Piso Cerámico 60×60',cant:1200,u:'m²',precio:28500}]}
   ],
   pedidos:[
+    {id:'PD-3405',cliente:'Ferretería Central', fecha:'19/05/2026',estado:'parcial_asignado',despPor:null,
+     items:[{sku:'HR-NV-1',cant:3,bodega:'BGA',asig:3,falt:0,entregado:0},{sku:'MO-PEG-25',cant:25,bodega:'BGA',asig:0,falt:0,entregado:25}]},
+    {id:'PD-3404',cliente:'Pisos Ipiales Ltda',  fecha:'19/05/2026',estado:'asignado',despPor:null,
+     items:[{sku:'EL-CA-10',cant:5,bodega:'BGA',asig:5,falt:0,entregado:0},{sku:'SN-IN-1',cant:2,bodega:'BGA',asig:2,falt:0,entregado:0}]},
+    {id:'PD-3403',cliente:'Consorcio Vial Nariño',fecha:'18/05/2026',estado:'parcial_asignado',despPor:null,
+     items:[{sku:'AD-PORC-25',cant:50,bodega:'BGA',asig:30,falt:0,entregado:20},{sku:'PC-6060-BE',cant:100,bodega:'BGA',asig:0,falt:0,entregado:100}]},
+    {id:'PD-3402',cliente:'Cerámicas del Norte', fecha:'18/05/2026',estado:'resagado',despPor:null,
+     items:[{sku:'AZ-3060-BL',cant:1500,bodega:'BGA',asig:1500,falt:0,entregado:0},{sku:'GR-CM-CROM',cant:15,bodega:null,asig:0,falt:15,entregado:0}]},
     {id:'PD-3401',cliente:'Constructora Ipiales',fecha:'17/05/2026',estado:'resagado',despPor:null,
-     items:[{sku:'PC-6060-BE',cant:8000,bodega:null,asig:0,falt:8000},{sku:'AD-PORC-25',cant:30,bodega:'BGA',asig:30,falt:0}]},
+     items:[{sku:'PC-6060-BE',cant:8000,bodega:null,asig:0,falt:8000,entregado:0},{sku:'AD-PORC-25',cant:30,bodega:'BGA',asig:30,falt:0,entregado:0}]},
     {id:'PD-3398',cliente:'Remodelaciones Sur',  fecha:'16/05/2026',estado:'asignado',despPor:null,
-     items:[{sku:'AZ-3060-BL',cant:400,bodega:'BGA',asig:400,falt:0}]},
+     items:[{sku:'AZ-3060-BL',cant:400,bodega:'BGA',asig:400,falt:0,entregado:0}]},
     {id:'PD-3390',cliente:'Hogar & Diseño',      fecha:'14/05/2026',estado:'despachado',despPor:'Jhon Castillo',
-     items:[{sku:'GR-LM-CROM',cant:20,bodega:'BGA',asig:20,falt:0}]}
+     items:[{sku:'GR-LM-CROM',cant:20,bodega:'BGA',asig:20,falt:0,entregado:20}]}
   ],
   transferencias:[
     {id:'TR-001',org:'BGD',dst:'BGA',fecha:'15/05/2026',estado:'recibida',solPor:'María López',autPor:'Carlos Rojas',despPor:'Diego Muñoz',recibPor:'Diego Muñoz',
@@ -102,7 +110,7 @@ const DB={
     {lote:'L-AD-0102',prod:'Adhesivo Cerámico Gris',sku:'',cant:'60 sacos',bodega:'BGD',vence:'22/08/2026',dias:97}
   ]
 };
-let OC_SEQ=2471,PD_SEQ=3402,TR_SEQ=2;
+let OC_SEQ=2471,PD_SEQ=3406,TR_SEQ=2;
 let currentUser=null,selBodega='BGA';
 
 /* ---- persistencia localStorage ---- */

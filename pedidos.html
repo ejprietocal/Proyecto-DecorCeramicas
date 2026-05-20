@@ -6,6 +6,197 @@
 <title>Decorcerámica ERP — Pedidos de Venta</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+/* Grilla de facturas compacta */
+.tickets{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+/* Simulación de Hojas de Papel / Notas Engrapadas */
+.ticket{
+  background: #fdfdf9; /* Papel crema cálido */
+  border: 1px solid #e4e2d7;
+  border-radius: 4px; /* Bordes más rectos estilo papel cortado */
+  box-shadow: 2px 5px 12px rgba(67, 65, 55, 0.07);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  padding-top: 14px; /* Espacio para la grapa */
+}
+.ticket:hover{
+  transform: translateY(-2px);
+  box-shadow: 2px 8px 16px rgba(67, 65, 55, 0.12);
+}
+
+/* Grapa Metálica en el centro superior */
+.ticket-staple {
+  width: 24px;
+  height: 5px;
+  background: #cbd5e1;
+  border: 1px solid #94a3b8;
+  border-radius: 1px;
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+
+
+.ticket-h{
+  padding: 8px 12px;
+  background: #f7f6ec; /* Fondo del encabezado de la nota */
+  border-bottom: 1px dashed #d1cfc0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.invoice-meta{
+  flex: 1;
+}
+.invoice-label{
+  font-size: 7.5px;
+  font-weight: 800;
+  color: #8c8975;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 1px;
+}
+.ticket-id{
+  font-size: 13px;
+  font-weight: 800;
+  color: #3f3e36;
+}
+.ticket-cl{
+  font-size: 10.5px;
+  color: #706e5d;
+  margin-top: 1px;
+}
+
+/* Gráfico de Torta / Circular Progress Compacto */
+.pie-chart {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+.pie-chart::after {
+  content: '';
+  width: 22px;
+  height: 22px;
+  background: #fdfdf9;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 1;
+}
+.pie-chart-val {
+  position: relative;
+  z-index: 2;
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #3f3e36;
+}
+
+.ticket-b{
+  padding: 10px 12px;
+  flex: 1;
+  background: #fdfdf9;
+}
+
+/* Lista de Renglones en Papel */
+.task-list {
+  display: flex;
+  flex-direction: column;
+}
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border: none;
+  background: transparent;
+  border-bottom: 1px dashed #e4e2d7;
+  border-radius: 0;
+  transition: background 0.15s ease;
+}
+.task-item:last-child {
+  border-bottom: none;
+}
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.task-checkbox {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ticket-f{
+  padding: 8px 12px;
+  background: #f7f6ec;
+  border-top: 1px dashed #d1cfc0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ticket-f-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #706e5d;
+  font-weight: 600;
+}
+.ticket-f-actions {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ticket-f-actions .btn {
+  padding: 3px 6px;
+  font-size: 10px;
+}
+
+.filter-pill{
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mut);
+  transition: .12s;
+}
+.filter-pill:hover{
+  background: var(--bg);
+  color: var(--txt);
+}
+.filter-pill.sel{
+  background: var(--rojo-l);
+  border-color: var(--rojo);
+  color: var(--rojo);
+}
+</style>
 </head>
 <body>
 <div id="screen-app" class="screen active">
@@ -36,42 +227,466 @@
 <script src="js/ui.js"></script>
 <script>
 renderShell('pedidos');
-$('pg').innerHTML=function(){
-  const tickets=DB.pedidos.map(pd=>{
-    const isRes=pd.estado==='resagado';
-    const itemsH=pd.items.map(it=>{
-      const pr=getProd(it.sku)||{n:it.sku,u:'unid'};
-      const stk=stockTotal(it.sku);
-      return '<div class="ticket-item"><div><div class="t-it-n">'+pr.n+'</div><div class="t-it-d">Pedido: '+fmt(it.cant)+' '+pr.u+' · Stock total: '+fmt(stk)+' '+pr.u+(it.bodega?' · Bodega asignada: <b>'+it.bodega+'</b>':'')+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(it.asig>0?'<span class="badge bg">✓ '+fmt(it.asig)+' '+pr.u+'</span>':'')+(it.falt>0?'<span class="badge br">Faltante: '+fmt(it.falt)+' '+pr.u+'</span>':'')+'</div></div>';
+
+let filterStatus = 'Todos';
+let searchQuery = '';
+
+function renderPedidosScreen(){
+  const numPend = DB.pedidos.filter(p=>p.estado==='pendiente').length;
+  const numAsig = DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado').length;
+  const numRes = DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;
+  const numDesp = DB.pedidos.filter(p=>p.estado==='despachado').length;
+
+  const headerStats = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.3px">Pendientes</span><span style="font-size:14px;font-weight:800;color:var(--slate)">${numPend}</span></div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.3px">Asignados</span><span style="font-size:14px;font-weight:800;color:var(--link)">${numAsig}</span></div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.3px">Rezagos</span><span style="font-size:14px;font-weight:800;color:var(--warn-txt)">${numRes}</span></div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.3px">Entregados</span><span style="font-size:14px;font-weight:800;color:var(--success-txt)">${numDesp}</span></div>
+    </div>
+  `;
+
+  const searchAndFilter = `
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px;position:relative">
+        <i class="ri-search-line" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ph);font-size:12px"></i>
+        <input type="text" id="pedSearch" placeholder="Buscar por cliente o factura..." oninput="updateSearch(this.value)" value="${searchQuery}" style="width:100%;padding:6px 10px 6px 28px;border:1.5px solid var(--line);border-radius:6px;font-size:12px;outline:none;background:var(--bg)">
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap" id="filterStatusPills">
+        ${renderFilterPill('Todos', DB.pedidos.length)}
+        ${renderFilterPill('Pendiente', numPend)}
+        ${renderFilterPill('Asignado', numAsig)}
+        ${renderFilterPill('Rezago', numRes)}
+        ${renderFilterPill('Despachado', numDesp)}
+      </div>
+    </div>
+  `;
+
+  $('pg').innerHTML = `
+    <div class="page th-pedidos">
+      <div class="hero">
+        <h1>Pedidos de Venta</h1>
+        <p>Paso 1: el cliente pide → el sistema verifica stock en todas las bodegas → asigna la bodega óptima → despacha o resaga.</p>
+        <div class="hero-ic"><i class="ri-send-plane-line"></i></div>
+        <div class="hero-act">
+          <button class="btn btn-light" onclick="modalNuevoPedido()"><i class="ri-add-line"></i> Nuevo Pedido</button>
+          <button class="btn btn-light" onclick="simularLlegadaPedido()" style="background:#fff;color:var(--rojo);border:1px solid var(--rojo);font-weight:800"><i class="ri-flashlight-line"></i> Simular Llegada</button>
+        </div>
+      </div>
+      <div class="body">
+        ${headerStats}
+        ${searchAndFilter}
+        <div id="ticketsContainer" class="tickets"></div>
+      </div>
+    </div>
+  `;
+  renderTickets();
+}
+
+function renderFilterPill(status, count){
+  const isSel = filterStatus === status ? 'sel' : '';
+  return `<span class="filter-pill ${isSel}" onclick="setFilterStatus('${status}')">${status} <span style="font-weight:400;opacity:.7">(${count})</span></span>`;
+}
+
+function setFilterStatus(status){
+  filterStatus = status;
+  renderPedidosScreen();
+}
+
+function updateSearch(val){
+  searchQuery = val.trim().toLowerCase();
+  renderTickets();
+}
+
+function renderTickets(){
+  let filtered = DB.pedidos;
+  
+  if (filterStatus !== 'Todos') {
+    if (filterStatus === 'Pendiente') {
+      filtered = filtered.filter(p=>p.estado==='pendiente');
+    } else if (filterStatus === 'Asignado') {
+      filtered = filtered.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado');
+    } else if (filterStatus === 'Rezago') {
+      filtered = filtered.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado');
+    } else if (filterStatus === 'Despachado') {
+      filtered = filtered.filter(p=>p.estado==='despachado');
+    }
+  }
+
+  if (searchQuery) {
+    filtered = filtered.filter(p => p.id.toLowerCase().includes(searchQuery) || p.cliente.toLowerCase().includes(searchQuery));
+  }
+
+  const html = filtered.map(pd=>{
+    const totalCant = pd.items.reduce((s, it) => s + it.cant, 0);
+    const totalEntregado = pd.items.reduce((s, it) => s + (it.entregado || 0), 0);
+    const pct = totalCant > 0 ? Math.round((totalEntregado / totalCant) * 100) : 0;
+    
+    let pieChartStyle = '';
+    if (pct === 100) {
+      pieChartStyle = 'background: var(--success-txt);';
+    } else if (pct === 0) {
+      pieChartStyle = 'background: #e2e8f0;';
+    } else {
+      pieChartStyle = `background: conic-gradient(var(--link) 0% ${pct}%, #e2e8f0 ${pct}% 100%);`;
+    }
+
+    const itemsH = pd.items.map(it=>{
+      const pr = getProd(it.sku) || {n:it.sku, u:'unid', ic:'ri-grid-line'};
+      const entregado = it.entregado || 0;
+      const asig = it.asig || 0;
+      const falt = it.falt || 0;
+      
+      let checkIcon = '';
+      if (entregado === it.cant) {
+        // Entregado (Check en verde)
+        checkIcon = '<i class="ri-checkbox-circle-fill" style="color:var(--success-txt)" title="Entregado Total"></i>';
+      } else if (entregado > 0) {
+        // Reloj de pendiente por completar (Entrega parcial)
+        checkIcon = '<i class="ri-time-fill" style="color:var(--link)" title="Entrega Parcial en curso"></i>';
+      } else if (pd.estado === 'pendiente') {
+        // Icono de no gestionado
+        checkIcon = '<i class="ri-question-line" style="color:var(--ph)" title="Sin gestionar (Pendiente de evaluar)"></i>';
+      } else {
+        // Gestionado pero pendiente de iniciar despacho
+        checkIcon = '<i class="ri-checkbox-blank-circle-line" style="color:var(--mut)" title="Pendiente de Despacho"></i>';
+      }
+
+      let allocHtml = '';
+      if (entregado < it.cant) {
+        if (asig > 0) {
+          allocHtml += `<span class="badge bb" style="margin-top:1px; font-size:8.5px; padding: 1px 4px"><i class="ri-store-2-line"></i> Listo: ${fmt(asig)} en ${it.bodega}</span>`;
+        }
+        if (falt > 0) {
+          allocHtml += `<span class="badge br" style="margin-top:1px; font-size:8.5px; padding: 1px 4px"><i class="ri-alert-line"></i> Falta: ${fmt(falt)}</span>`;
+        }
+      }
+
+      return `
+        <div class="task-item">
+          <div class="task-left">
+            <div class="task-checkbox">
+              ${checkIcon}
+            </div>
+            <div>
+              <div style="font-weight:700; color:#3f3e36; font-size:11.5px; line-height:1.2">${pr.n}</div>
+              <div style="font-family:monospace; color:#8c8975; font-size:9.5px; margin-top:1px">${it.sku}</div>
+              <div style="display:flex; gap:3px; flex-wrap:wrap; margin-top:1px">
+                ${allocHtml}
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right; font-size:11.5px; font-weight:800; color:#3f3e36">
+            <span>${fmt(it.cant)} ${pr.u}</span>
+            <div style="font-size:9.5px; font-weight:500; color:#8c8975">Recibido: ${fmt(entregado)}</div>
+          </div>
+        </div>
+      `;
     }).join('');
-    const acciones=pd.estado==='despachado'?'<span class="badge bg"><i class="ri-checkbox-circle-line"></i> Entregado por '+pd.despPor+'</span>'
-      :pd.estado==='asignado'?'<button class="btn btn-green btn-sm" onclick="despacharPedido(\''+pd.id+'\');setTimeout(function(){window.location.reload()},500)"><i class="ri-send-plane-line"></i> Despachar</button>'
-      :pd.estado==='resagado'?'<a href="transferencias.html" class="btn btn-sm" style="background:#B45309;color:#fff;text-decoration:none" title="Solicitar transferencia para cubrir faltantes"><i class="ri-arrow-left-right-line"></i> Cubrir con transferencia</a>'
-      :'<button class="btn btn-blue btn-sm" onclick="asignarStock(\''+pd.id+'\');window.location.reload()"><i class="ri-refresh-line"></i> Revisar stock</button>';
-    return '<div class="ticket"><div class="ticket-h"><div><div class="ticket-id">'+pd.id+'</div><div class="ticket-cl">'+pd.cliente+' · '+pd.fecha+'</div></div><span class="badge '+pedEstBadge(pd.estado)+'">'+pedEstLabel(pd.estado)+'</span></div><div class="ticket-b">'+itemsH+'</div><div class="ticket-f"><div style="font-size:13px;color:var(--mut)">'+pd.items.length+' producto(s)</div>'+acciones+'</div></div>';
+
+    let acciones = '';
+    const hasAssigned = pd.items.some(it => it.asig > 0);
+    const hasFaltante = pd.items.some(it => it.falt > 0);
+
+    if (pd.estado === 'despachado') {
+      acciones = `<span style="font-size:10px; font-weight:700; color:var(--success-txt); display:flex; align-items:center; gap:3px"><i class="ri-checkbox-circle-line"></i> Despachado por ${pd.despPor || '—'}</span>`;
+    } else {
+      let bActions = [];
+      if (hasAssigned) {
+        bActions.push(`<button class="btn btn-green btn-sm" onclick="modalDespacharPedido('${pd.id}')"><i class="ri-send-plane-line"></i> Despachar</button>`);
+      }
+      if (hasFaltante) {
+        bActions.push(`<button class="btn btn-orange btn-sm" onclick="solicitarTransferenciaAutomatica('${pd.id}')" title="Trasladar stock de otra bodega"><i class="ri-arrow-left-right-line"></i> Trasladar</button>`);
+      }
+      bActions.push(`<button class="btn btn-o btn-sm" onclick="revisarStockPedido('${pd.id}')" style="padding: 2px 6px" title="Re-evaluar"><i class="ri-refresh-line"></i></button>`);
+      acciones = bActions.join(' ');
+    }
+
+    return `
+      <div class="ticket ${pd.estado}">
+        <div class="ticket-staple"></div>
+        <div class="ticket-h">
+          <div class="invoice-meta">
+            <div class="invoice-label">Factura de Pedido</div>
+            <div class="ticket-id">${pd.id}</div>
+            <div class="ticket-cl">${pd.cliente} · <span style="font-weight:600">${pd.fecha}</span></div>
+          </div>
+          <div class="pie-chart" style="${pieChartStyle}">
+            <div class="pie-chart-val">${pct}%</div>
+          </div>
+        </div>
+        <div class="ticket-b">
+          <div class="task-list">${itemsH}</div>
+        </div>
+        <div class="ticket-f">
+          <div class="ticket-f-top">
+            <span>Productos: <b>${pd.items.length}</b></span>
+            <span class="badge ${pedEstBadge(pd.estado)}" style="font-size:9.5px; padding: 2px 6px">${pedEstLabel(pd.estado)}</span>
+          </div>
+          <div class="ticket-f-actions">${acciones}</div>
+        </div>
+      </div>
+    `;
   }).join('');
-  const noPed=DB.pedidos.length===0;
-  return '<div class="page th-pedidos"><div class="hero"><div class="hero-ic"><i class="ri-send-plane-line"></i></div><h1>Pedidos de Venta</h1><p>Paso 1: el cliente pide → el sistema verifica stock en todas las bodegas → asigna la bodega óptima → despacha o resaga.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevoPedido()"><i class="ri-add-line"></i> Nuevo Pedido</button></div></div><div class="body">'+(noPed?'<div class="empty"><i class="ri-send-plane-line"></i><h3>Sin pedidos</h3><p>Crea el primer pedido con el botón de arriba.</p></div>':'<div class="tickets">'+tickets+'</div>')+'</div></div>';
-}();
+
+  $('ticketsContainer').innerHTML = html || `<div class="empty" style="grid-column: 1 / -1; padding:30px"><i class="ri-send-plane-line"></i><h3>Sin pedidos</h3><p>No se encontraron pedidos con el filtro actual.</p></div>`;
+}
+
+renderPedidosScreen();
 
 function modalNuevoPedido(){
   draft={items:[{sku:'',cant:1}]};
   openMod('<i class="ri-send-plane-line"></i> Nuevo Pedido de Venta',
-    '<div class="note"><i class="ri-information-line"></i> El sistema verificará stock en todas las bodegas y asignará la bodega óptima automáticamente.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente o empresa"></div><div class="ff"><label>Productos del pedido</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<div class="note"><i class="ri-information-line"></i> El sistema buscará stock disponible y asignará la bodega óptima automáticamente al crear el pedido.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente o constructora"></div><div class="ff"><label>Productos del pedido</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPedido()"><i class="ri-check-line"></i> Crear pedido</button>'
-  );renderLines();
+  );
+  renderLines();
 }
+
 function crearPedido(){
   const cl=$('dCliente').value.trim();
   if(!cl){toast('Ingresa el nombre del cliente','warn');return}
   if(!draft.items.length||!draft.items[0].sku){toast('Agrega al menos un producto','warn');return}
   const id='PD-'+PD_SEQ++;
-  const items=draft.items.filter(i=>i.sku).map(i=>({sku:i.sku,cant:i.cant,bodega:null,asig:0,falt:0}));
+  const items=draft.items.filter(i=>i.sku).map(i=>({sku:i.sku,cant:i.cant,bodega:null,asig:0,falt:0,entregado:0}));
   DB.pedidos.unshift({id,cliente:cl,fecha:now().split(' ')[0],estado:'pendiente',despPor:null,items});
-  asignarStock(id);closeMod();saveDB();
-  const pd=DB.pedidos.find(p=>p.id===id);
-  toast(id+' creado → '+pedEstLabel(pd.estado),'ok');
+  asignarStock(id);
+  closeMod();
+  saveDB();
+  toast(id+' creado en estado: '+pedEstLabel(DB.pedidos[0].estado),'ok');
   setTimeout(function(){window.location.reload()},600);
+}
+
+function simularLlegadaPedido(){
+  const clientes = ["Constructora Ipiales", "Remodelaciones Sur", "Hogar & Diseño", "Cerámicas del Norte", "Ferretería Central", "Consorcio Vial Nariño", "Pisos Ipiales Ltda"];
+  const cliente = clientes[Math.floor(Math.random() * clientes.length)];
+  const numItems = Math.floor(Math.random() * 3) + 1; // 1 to 3 items
+  const items = [];
+  
+  const availableProds = [...DB.productos];
+  for(let i=0; i<numItems; i++){
+    if(availableProds.length === 0) break;
+    const idx = Math.floor(Math.random() * availableProds.length);
+    const prod = availableProds.splice(idx, 1)[0];
+    
+    let cant = 10;
+    if (prod.u === 'm²') {
+      cant = (Math.floor(Math.random() * 6) + 1) * 100; // 100 a 600
+    } else if (prod.u === 'sacos') {
+      cant = (Math.floor(Math.random() * 4) + 1) * 10;  // 10 a 40
+    } else {
+      cant = Math.floor(Math.random() * 15) + 5;        // 5 a 20
+    }
+    
+    items.push({
+      sku: prod.sku,
+      cant: cant,
+      bodega: null,
+      asig: 0,
+      falt: 0,
+      entregado: 0
+    });
+  }
+  
+  const id = 'PD-' + PD_SEQ++;
+  DB.pedidos.unshift({
+    id,
+    cliente,
+    fecha: now().split(' ')[0],
+    estado: 'pendiente',
+    despPor: null,
+    items
+  });
+  
+  asignarStock(id);
+  saveDB();
+  toast('Simulación: Nuevo pedido ' + id + ' recibido de ' + cliente, 'ok');
+  setTimeout(function(){window.location.reload()},800);
+}
+
+function modalDespacharPedido(pdId){
+  const pd = DB.pedidos.find(p=>p.id===pdId);
+  if(!pd) return;
+  
+  const rows = pd.items.map((it, idx) => {
+    if (it.entregado === it.cant) {
+      return `
+        <div style="padding:8px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
+          <div>
+            <div style="font-weight:600; font-size:12px; color:var(--mut)">${getProd(it.sku)?.n || it.sku}</div>
+            <div style="font-size:10.5px; color:var(--success-txt)"><i class="ri-checkbox-circle-line"></i> Totalmente entregado</div>
+          </div>
+          <span style="font-weight:600; font-size:12px; color:var(--mut)">${fmt(it.cant)} / ${fmt(it.cant)}</span>
+        </div>
+      `;
+    }
+    
+    const maxDesp = it.asig;
+    const pr = getProd(it.sku) || {u:'unid'};
+    const stockLoc = stockBodega(it.bodega, it.sku);
+    
+    return `
+      <div style="padding:8px 0; border-bottom:1px solid var(--line)">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start">
+          <div>
+            <div style="font-weight:700; font-size:12px; color:var(--ink)">${pr.n} <small style="font-family:monospace; color:var(--mut)">(${it.sku})</small></div>
+            <div style="font-size:10.5px; color:var(--mut); margin-top:2px">
+              Asignado en <b style="color:var(--ink)">${it.bodega}</b>: ${fmt(it.asig)} ${pr.u} (Stock físico: ${fmt(stockLoc)})
+            </div>
+          </div>
+          <div style="text-align:right">
+            <span style="font-size:10.5px; color:var(--mut); display:block">Entregado: ${fmt(it.entregado || 0)}/${fmt(it.cant)}</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:6px">
+          <label style="font-size:10.5px; font-weight:700; color:var(--slate)">Despachar ahora:</label>
+          <input type="number" id="despCant_${idx}" value="${maxDesp}" min="0" max="${maxDesp}" style="width:70px; padding:3px 5px; border:1.5px solid var(--line); border-radius:5px; font-size:11.5px; text-align:center">
+          <span style="font-size:10.5px; color:var(--mut); width:28px">${pr.u}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  openMod(`<i class="ri-send-plane-line"></i> Gestionar Despacho — ${pdId}`,
+    `<div class="note"><i class="ri-information-line"></i> Confirma las cantidades que saldrán físicamente de bodega en este despacho. Se restarán del stock de la bodega asignada.</div>
+     <div style="max-height:260px; overflow-y:auto; padding-right:4px">${rows}</div>`,
+    `<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button>
+     <button class="btn btn-green btn-sm" onclick="confirmarDespachoPedidoParcial('${pdId}')"><i class="ri-check-line"></i> Confirmar Despacho</button>`
+  );
+}
+
+function confirmarDespachoPedidoParcial(pdId){
+  const pd = DB.pedidos.find(p=>p.id===pdId);
+  if(!pd) return;
+  
+  let totalDispatched = 0;
+  
+  for(let idx=0; idx<pd.items.length; idx++){
+    const it = pd.items[idx];
+    if ((it.entregado || 0) === it.cant) continue;
+    
+    const el = $(`despCant_${idx}`);
+    if (!el) continue;
+    
+    const v = parseInt(el.value);
+    if (isNaN(v) || v < 0 || v > it.asig) {
+      toast('Ingresa una cantidad válida a despachar (entre 0 y ' + it.asig + ')', 'warn');
+      return;
+    }
+    
+    if (v > 0) {
+      // Deduct stock from assigned warehouse
+      if (!DB.stock[it.bodega]) DB.stock[it.bodega] = {};
+      DB.stock[it.bodega][it.sku] = (DB.stock[it.bodega][it.sku] || 0) - v;
+      if (DB.stock[it.bodega][it.sku] < 0) DB.stock[it.bodega][it.sku] = 0;
+      
+      // Update delivered
+      if (it.entregado === undefined) it.entregado = 0;
+      it.entregado += v;
+      
+      // Register movement
+      const pr = getProd(it.sku) || {n:it.sku, u:'unid'};
+      DB.movimientos.unshift({
+        f: now(),
+        sku: it.sku,
+        n: pr.n,
+        tipo: 'Salida',
+        cant: v,
+        u: pr.u || 'unid',
+        resp: currentUser.n,
+        ref: pd.id,
+        bodega: it.bodega,
+        est: 'Completado'
+      });
+      
+      totalDispatched += v;
+    }
+  }
+  
+  if (totalDispatched === 0) {
+    toast('No seleccionaste cantidades para despachar', 'warn');
+    return;
+  }
+  
+  // Reassign remaining
+  asignarStock(pd.id);
+  if (pd.estado === 'despachado') {
+    pd.despPor = currentUser.n;
+  }
+  
+  closeMod();
+  saveDB();
+  toast('Despacho confirmado e inventario actualizado', 'ok');
+  setTimeout(function(){window.location.reload()},800);
+}
+
+function solicitarTransferenciaAutomatica(pdId){
+  const pd = DB.pedidos.find(p=>p.id===pdId);
+  if (!pd) return;
+  
+  const faltantes = pd.items.filter(it=>it.falt>0);
+  if (!faltantes.length) {
+    toast('No hay productos con faltante en este pedido', 'warn');
+    return;
+  }
+  
+  let creadas = 0;
+  faltantes.forEach(it => {
+    let maxBg = null;
+    let maxVal = 0;
+    DB.bodegas.forEach(b => {
+      const s = stockBodega(b.id, it.sku);
+      if (s > maxVal) {
+        maxVal = s;
+        maxBg = b.id;
+      }
+    });
+    
+    const dstBg = 'BGA'; // BGA es donde usualmente centralizamos stock para despachos
+    const srcBg = maxBg;
+    
+    if (srcBg && srcBg !== dstBg && maxVal > 0) {
+      const trId = 'TR-' + String(TR_SEQ++).padStart(3, '0');
+      const pr = getProd(it.sku);
+      const cantTrans = Math.min(it.falt, maxVal);
+      
+      DB.transferencias.unshift({
+        id: trId,
+        org: srcBg,
+        dst: dstBg,
+        fecha: now().split(' ')[0],
+        estado: 'solicitada',
+        solPor: currentUser.n,
+        autPor: null,
+        despPor: null,
+        recibPor: null,
+        items: [{
+          sku: it.sku,
+          n: pr?.n || it.sku,
+          cant: cantTrans,
+          u: pr?.u || 'unid'
+        }]
+      });
+      creadas++;
+    }
+  });
+  
+  if (creadas > 0) {
+    saveDB();
+    toast('Se crearon ' + creadas + ' solicitudes de transferencia para suplir faltantes. Redirigiendo...', 'ok');
+    setTimeout(() => {
+      window.location.href = 'transferencias.html';
+    }, 1500);
+  } else {
+    toast('No se encontró stock excedente en otras bodegas para solicitar transferencias', 'warn');
+  }
+}
+
+function revisarStockPedido(pdId){
+  asignarStock(pdId);
+  saveDB();
+  toast('Existencias re-evaluadas para el pedido ' + pdId, 'ok');
+  setTimeout(function(){window.location.reload()},500);
 }
 </script>
 </body>
