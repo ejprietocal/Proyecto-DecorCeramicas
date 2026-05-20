@@ -114,13 +114,13 @@ function modalAjusteInventario(bodega,sku){
   openMod(`<i class="ri-scales-line"></i> Ajuste de Inventario`,
     `<div class="note warn"><i class="ri-alert-line"></i> Ingresa el <b>conteo físico real</b>. Si hay diferencia, el sistema aplica automáticamente un castigo (faltante) o registra el excedente.</div>
      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-       <div style="background:#F8FAFC;border:1.5px solid var(--line);border-radius:10px;padding:14px;text-align:center">
+       <div style="background:var(--neutral-bg);border:1.5px solid var(--line);border-radius:10px;padding:14px;text-align:center">
          <div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">En sistema</div>
          <div style="font-size:26px;font-weight:800;color:var(--ink)">${fmt(actual)}</div>
          <div style="font-size:11px;color:var(--mut)">${pr?.u||'unid'}</div>
        </div>
-       <div style="background:#FDF4FF;border:1.5px solid #E9D5FF;border-radius:10px;padding:14px;text-align:center">
-         <div style="font-size:10px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Conteo Físico</div>
+       <div style="background:var(--rojo-l);border:1.5px solid var(--rojo);border-radius:10px;padding:14px;text-align:center">
+         <div style="font-size:10px;font-weight:700;color:var(--rojo);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Conteo Físico</div>
          <input type="number" id="ajCnt" min="0" value="${actual}" style="width:100%;font-size:20px;font-weight:800;text-align:center;border:none;background:transparent;color:var(--ink);outline:none" oninput="previewAjuste(${actual},'${pr?.u||'unid'}')">
          <div style="font-size:11px;color:var(--mut)">${pr?.u||'unid'}</div>
        </div>
@@ -128,16 +128,16 @@ function modalAjusteInventario(bodega,sku){
      <div id="ajPreview" style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;display:none;text-align:center;margin-bottom:8px"></div>
      <div class="ff"><label>Observación</label><input id="ajNota" placeholder="Ej: Conteo mensual — rotura en almacén"></div>`,
     `<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button>
-     <button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="confirmarAjuste('${bodega}','${sku}')"><i class="ri-check-line"></i> Aplicar ajuste</button>`
+     <button class="btn btn-p btn-sm" onclick="confirmarAjuste('${bodega}','${sku}')"><i class="ri-check-line"></i> Aplicar ajuste</button>`
   );
 }
 function previewAjuste(actual,u){
   const v=parseInt($('ajCnt').value);const pv=$('ajPreview');
   if(isNaN(v)){pv.style.display='none';return}
   const d=v-actual;pv.style.display='block';
-  if(d===0){pv.style.background='#ECFDF5';pv.style.color='#15803D';pv.innerHTML='<i class="ri-checkbox-circle-line"></i> Sin diferencia — inventario correcto'}
-  else if(d>0){pv.style.background='#ECFDF5';pv.style.color='#15803D';pv.innerHTML=`<i class="ri-add-circle-line"></i> Excedente físico: +${fmt(d)} ${u}`}
-  else{pv.style.background='#FEE2E2';pv.style.color='#B91C1C';pv.innerHTML=`<i class="ri-subtract-line"></i> Castigo / faltante: ${fmt(d)} ${u}`}
+  if(d===0){pv.style.background='var(--success-bg)';pv.style.color='var(--success-txt)';pv.innerHTML='<i class="ri-checkbox-circle-line"></i> Sin diferencia — inventario correcto'}
+  else if(d>0){pv.style.background='var(--success-bg)';pv.style.color='var(--success-txt)';pv.innerHTML=`<i class="ri-add-circle-line"></i> Excedente físico: +${fmt(d)} ${u}`}
+  else{pv.style.background='var(--danger-bg)';pv.style.color='var(--danger-txt)';pv.innerHTML=`<i class="ri-subtract-line"></i> Castigo / faltante: ${fmt(d)} ${u}`}
 }
 function confirmarAjuste(bodega,sku){
   const v=parseInt($('ajCnt').value);
