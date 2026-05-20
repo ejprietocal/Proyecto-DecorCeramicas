@@ -14,12 +14,12 @@ const MODS={
 };
 const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Sistema'];
 const USERS=[
-  {id:'carlos',n:'Carlos Andrés Rojas',  r:'Administrador del Sistema', in:'CR',c:'#D9383A'},
-  {id:'maria',  n:'María Fernanda López', r:'Jefe de Bodega',             in:'ML',c:'#0369A1'},
-  {id:'diego',  n:'Diego A. Muñoz',       r:'Auxiliar de Recepción',      in:'DM',c:'#15803D'},
-  {id:'sandra', n:'Sandra P. Gómez',      r:'Coordinadora de Compras',    in:'SG',c:'#B45309'},
+  {id:'carlos',n:'Carlos Andrés Rojas',  r:'Administrador del Sistema', in:'CR',c:'#4F46E5'},
+  {id:'maria',  n:'María Fernanda López', r:'Jefe de Bodega',             in:'ML',c:'#0284C7'},
+  {id:'diego',  n:'Diego A. Muñoz',       r:'Auxiliar de Recepción',      in:'DM',c:'#16A34A'},
+  {id:'sandra', n:'Sandra P. Gómez',      r:'Coordinadora de Compras',    in:'SG',c:'#D97706'},
   {id:'jhon',   n:'Jhon E. Castillo',     r:'Operario de Despacho',       in:'JC',c:'#7C3AED'},
-  {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#2D3748'}
+  {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#DB2777'}
 ];
 let PERMS={
   carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','usuarios'],

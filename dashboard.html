@@ -40,14 +40,265 @@ $('pg').innerHTML=function(){
   const asig=DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado').length;
   const res=DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;
   const desp=DB.pedidos.filter(p=>p.estado==='despachado').length;
-  const porRec=DB.compras.filter(c=>c.estado==='recibida').length;
-  const bdgCards=DB.bodegas.map(b=>{
-    const prods=Object.keys(DB.stock[b.id]||{}).length;
-    const items=Object.values(DB.stock[b.id]||{}).reduce((s,v)=>s+v,0);
-    return '<div class="bcard '+b.estado+'"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="dot '+b.estado+'"></div><div class="bcard-id">'+b.id+'</div></div><div class="bcard-n">'+b.n+'</div><div class="bcard-d">'+b.dir+' · '+b.area+' m²</div><div class="bcard-stats"><div class="bcard-stat"><div class="bcard-stat-n">'+prods+'</div><div class="bcard-stat-l">Productos</div></div><div class="bcard-stat"><div class="bcard-stat-n">'+fmt(items)+'</div><div class="bcard-stat-l">Unidades</div></div><div class="bcard-stat"><div class="bcard-stat-n badge '+(b.estado==='verde'?'bg':b.estado==='amarillo'?'by':'br')+'">'+(b.estado==='verde'?'OK':b.estado==='amarillo'?'⚠':'!')+'</div></div></div></div>';
+  const activeOC=DB.compras.filter(c=>c.estado!=='reclamada').length;
+  const expiringLots=DB.vencimientos.filter(v=>v.dias<=15).length;
+  const unresolvedLeftovers=DB.sobrantes.filter(s=>s.estado!=='Reintegrado').length;
+  const leftoverCost=DB.sobrantes.filter(s=>s.estado!=='Reintegrado').reduce((sum,s)=>sum+s.costo_est,0);
+
+  let totalUnits=0;
+  let activeSKUs=new Set();
+  Object.values(DB.stock).forEach(wh=>{
+    Object.keys(wh).forEach(sku=>{
+      const qty=wh[sku]||0;
+      if(qty>0){
+        totalUnits+=qty;
+        activeSKUs.add(sku);
+      }
+    });
+  });
+
+  const capacities={BGA:30000,BGB:15000,BGC:5000,BGD:4000};
+  const totalMaxCap=54000;
+  const globalOccupancy=Math.min(100,Math.round((totalUnits/totalMaxCap)*100));
+
+  const bdgRows=DB.bodegas.map(b=>{
+    const units=Object.values(DB.stock[b.id]||{}).reduce((s,v)=>s+v,0);
+    const max=capacities[b.id]||10000;
+    const pct=Math.min(100,Math.round((units/max)*100));
+    let statusClass='verde';
+    let statusLabel='Óptimo';
+    if(pct>=90){
+      statusClass='rojo';
+      statusLabel='Saturado';
+    }else if(pct>=75){
+      statusClass='amarillo';
+      statusLabel='Atención';
+    }
+    return `
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;font-weight:600">
+          <div>
+            <span style="font-weight:700;color:var(--ink)">${b.id}</span>
+            <span style="color:var(--mut);font-size:11px;margin-left:4px">${b.n}</span>
+          </div>
+          <div style="color:var(--ink)">${fmt(units)} / ${fmt(max)} <span style="color:var(--mut);font-size:10px;font-weight:500">(${pct}%)</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="bar" style="flex:1;height:6px;background:var(--neutral-bg);border-radius:4px;overflow:hidden">
+            <span style="display:block;height:100%;border-radius:4px;background:var(--${statusClass==='verde'?'success-txt':statusClass==='amarillo'?'warn-txt':'danger-txt'});width:${pct}%"></span>
+          </div>
+          <span class="badge ${statusClass==='verde'?'bg':statusClass==='amarillo'?'by':'br'}" style="font-size:9px;padding:1px 6px;font-weight:700">${statusLabel}</span>
+        </div>
+      </div>
+    `;
   }).join('');
+
+  const donutTotal = pend + asig + res + desp;
+  let svgDonut = '';
+  const donutSlices = [
+    { label: 'Pendiente', count: pend, color: 'var(--link)' },
+    { label: 'Asignado', count: asig, color: 'var(--success-txt)' },
+    { label: 'Resagado', count: res, color: 'var(--warn-txt)' },
+    { label: 'Despachado', count: desp, color: 'var(--neutral-txt)' }
+  ];
+  if(donutTotal===0){
+    svgDonut = '<circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--line)" stroke-width="12"/>';
+  }else{
+    const circ = 2 * Math.PI * 38;
+    let accumulatedPercent = 0;
+    donutSlices.forEach(slice=>{
+      if(slice.count>0){
+        const pct = slice.count / donutTotal;
+        const strokeLength = pct * circ;
+        const offset = (accumulatedPercent / donutTotal) * circ;
+        svgDonut += `<circle cx="50" cy="50" r="38" fill="transparent" stroke="${slice.color}" stroke-width="10" stroke-dasharray="${strokeLength} ${circ}" stroke-dashoffset="-${offset}" transform="rotate(-90 50 50)"/>`;
+        accumulatedPercent += slice.count;
+      }
+    });
+  }
+
+  const donutLegend = donutSlices.map(s => {
+    const pct = donutTotal ? Math.round((s.count / donutTotal) * 100) : 0;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11.5px;padding:4px 0;border-bottom:1px dashed var(--line)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${s.color}"></div>
+          <span style="color:var(--txt);font-weight:500">${s.label}</span>
+        </div>
+        <div style="font-weight:700;color:var(--ink)">${s.count} <span style="font-size:9.5px;color:var(--mut);font-weight:500">(${pct}%)</span></div>
+      </div>
+    `;
+  }).join('');
+
+  const lowStockItems = [];
+  DB.productos.forEach(p => {
+    let tot = 0;
+    DB.bodegas.forEach(b => {
+      tot += (DB.stock[b.id][p.sku] || 0);
+    });
+    if (tot <= 20) {
+      lowStockItems.push({ sku: p.sku, n: p.n, total: tot, u: p.u });
+    }
+  });
+  lowStockItems.sort((a,b) => a.total - b.total);
+  const alertsHtml = lowStockItems.slice(0, 4).map(item => {
+    const isZero = item.total === 0;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:var(--neutral-bg);margin-bottom:6px;border-left:3px solid var(--${isZero ? 'danger-txt' : 'warn-txt'})">
+        <div style="min-width:0;flex:1;margin-right:8px">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${item.n}">${item.n}</div>
+          <div style="font-size:9.5px;color:var(--mut)">SKU: ${item.sku}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11.5px;font-weight:800;color:var(--${isZero ? 'danger-txt' : 'warn-txt'})">${item.total === 0 ? 'AGOTADO' : fmt(item.total) + ' ' + item.u}</div>
+          <div style="font-size:9px;color:var(--mut)">Stock Total</div>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div style="text-align:center;color:var(--mut);padding:20px;font-size:12px">Sin alertas de stock bajo</div>';
+
   const movs=DB.movimientos.slice(0,5).map(m=>'<tr><td><b>'+m.n+'</b></td><td><span class="badge '+(m.tipo==='Entrada'?'bg':m.tipo==='Salida'?'bb':m.tipo==='Transferencia'?'bi':'bp')+'">'+m.tipo+'</span></td><td>'+fmt(m.cant)+' '+m.u+'</td><td>'+m.bodega+'</td><td>'+m.resp+'</td><td style="color:var(--mut)">'+m.f+'</td></tr>').join('');
-  return '<div class="page th-dash"><div class="hero"><div class="hero-ic"><i class="ri-dashboard-line"></i></div><h1>Dashboard Operativo</h1><p>Visibilidad total del inventario en todas las bodegas — Ciclo continuo de atención a pedidos</p></div><div class="body"><div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px">Estado de Bodegas en tiempo real</div><div class="bodegas-band" style="margin-bottom:20px">'+bdgCards+'</div><div class="grid"><div class="stat c2"><div class="stat-ring" style="background:var(--link)"></div><div class="stat-ic" style="background:var(--link)"><i class="ri-send-plane-line"></i></div><div class="stat-n">'+(asig+desp)+'</div><div class="stat-l">Pedidos asignados / despachados</div></div><div class="stat c2"><div class="stat-ring" style="background:var(--warn-txt)"></div><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-alert-line"></i></div><div class="stat-n">'+res+'</div><div class="stat-l">Pedidos resagados</div></div><div class="stat c2"><div class="stat-ring" style="background:var(--danger-txt)"></div><div class="stat-ic" style="background:var(--danger-txt)"><i class="ri-inbox-unarchive-line"></i></div><div class="stat-n">'+porRec+'</div><div class="stat-l">OC por reclamar</div></div><div class="stat c2"><div class="stat-ring" style="background:var(--slate)"></div><div class="stat-ic" style="background:var(--slate)"><i class="ri-question-line"></i></div><div class="stat-n">'+DB.sobrantes.filter(s=>s.estado!=='Reintegrado').length+'</div><div class="stat-l">Sobrantes sin resolver</div></div><div class="stat c2"><div class="stat-ring" style="background:var(--info-txt)"></div><div class="stat-ic" style="background:var(--info-txt)"><i class="ri-arrow-left-right-line"></i></div><div class="stat-n">'+DB.transferencias.filter(t=>t.estado!=='recibida').length+'</div><div class="stat-l">Transferencias en curso</div></div><div class="stat c2"><div class="stat-ring" style="background:var(--success-txt)"></div><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-loop-left-line"></i></div><div class="stat-n">10</div><div class="stat-l">Ciclo continuo activo</div></div><div class="card c12"><div class="ch"><div class="ct"><i class="ri-swap-box-line"></i> Últimos movimientos</div><a href="movimientos.html" class="btn btn-o btn-sm">Ver todos</a></div><table class="table"><thead><tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Bodega</th><th>Responsable</th><th>Fecha</th></tr></thead><tbody>'+(movs||'<tr><td colspan="6" style="text-align:center;color:var(--mut);padding:20px">Sin movimientos aún</td></tr>')+'</tbody></table></div></div></div></div>';
+
+  return `
+    <div class="page th-dash">
+      <div class="hero">
+        <div class="hero-ic"><i class="ri-dashboard-line"></i></div>
+        <h1>Dashboard Operativo</h1>
+        <p>Visibilidad total del inventario en todas las bodegas — Ciclo continuo de atención a pedidos</p>
+      </div>
+      <div class="body">
+        
+        <!-- KPI Cards Grid -->
+        <div class="grid" style="margin-bottom:20px">
+          
+          <div class="stat c3">
+            <div class="stat-ring" style="background:var(--link)"></div>
+            <div class="stat-ic" style="background:var(--link)"><i class="ri-database-2-line"></i></div>
+            <div class="stat-n">${fmt(totalUnits)}</div>
+            <div class="stat-l">Stock Total Global (${activeSKUs.size} SKUs)</div>
+            <div class="pbar" style="margin-top:8px">
+              <div class="bar" style="height:6px;background:var(--neutral-bg);border-radius:4px;overflow:hidden">
+                <span style="display:block;height:100%;border-radius:4px;background:var(--link);width:${globalOccupancy}%"></span>
+              </div>
+              <span style="font-size:10px;font-weight:700;color:var(--ink)">${globalOccupancy}% Ocupado</span>
+            </div>
+          </div>
+
+          <div class="stat c3">
+            <div class="stat-ring" style="background:var(--success-txt)"></div>
+            <div class="stat-ic" style="background:var(--success-txt)"><i class="ri-truck-line"></i></div>
+            <div class="stat-n">${desp}</div>
+            <div class="stat-l">Pedidos Despachados</div>
+            <div class="pbar" style="margin-top:8px">
+              <div class="bar" style="height:6px;background:var(--neutral-bg);border-radius:4px;overflow:hidden">
+                <span style="display:block;height:100%;border-radius:4px;background:var(--success-txt);width:${donutTotal ? Math.round(((asig+desp)/donutTotal)*100) : 0}%"></span>
+              </div>
+              <span style="font-size:10px;font-weight:700;color:var(--ink)">${donutTotal ? Math.round(((asig+desp)/donutTotal)*100) : 0}% Procesado</span>
+            </div>
+          </div>
+
+          <div class="stat c3">
+            <div class="stat-ring" style="background:var(--warn-txt)"></div>
+            <div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-shopping-bag-line"></i></div>
+            <div class="stat-n">${activeOC}</div>
+            <div class="stat-l">Órdenes de Compra Activas</div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11px;color:var(--danger-txt);font-weight:600">
+              <i class="ri-alarm-warning-line"></i> ${expiringLots} lotes vencen pronto
+            </div>
+          </div>
+
+          <div class="stat c3">
+            <div class="stat-ring" style="background:var(--danger-txt)"></div>
+            <div class="stat-ic" style="background:var(--danger-txt)"><i class="ri-scales-line"></i></div>
+            <div class="stat-n">${unresolvedLeftovers}</div>
+            <div class="stat-l">Sobrantes Pendientes</div>
+            <div style="font-size:11px;color:var(--mut);margin-top:8px;font-weight:600">
+              Valor Est: <span style="color:var(--ink);font-weight:700">${money(leftoverCost)}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Charts Grid (Warehouses Capacity vs Sales Orders Donut) -->
+        <div class="grid" style="margin-bottom:20px">
+          
+          <!-- Warehouse Capacity Card -->
+          <div class="card c6">
+            <div class="ch">
+              <div class="ct"><i class="ri-building-2-line"></i> Capacidad y Distribución de Bodegas</div>
+              <span class="badge bg" style="font-size:10px;font-weight:700">Total Cap: ${fmt(totalMaxCap)} u</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              ${bdgRows}
+            </div>
+          </div>
+
+          <!-- Sales Orders Donut Card -->
+          <div class="card c6">
+            <div class="ch">
+              <div class="ct"><i class="ri-pie-chart-2-line"></i> Estado General de Pedidos</div>
+              <span class="badge bi" style="font-size:10px;font-weight:700">Total: ${donutTotal}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:24px;height:160px;margin-top:8px">
+              <div style="position:relative;width:115px;height:115px;flex-shrink:0">
+                <svg viewBox="0 0 100 100" width="115" height="115">
+                  ${svgDonut}
+                </svg>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                  <div style="font-size:20px;font-weight:800;color:var(--ink);line-height:1">${donutTotal}</div>
+                  <div style="font-size:9px;color:var(--mut);text-transform:uppercase;font-weight:700;letter-spacing:0.5px">Pedidos</div>
+                </div>
+              </div>
+              <div style="flex:1;min-width:0">
+                ${donutLegend}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Lower Grid (Latest movements & Critical stock alerts) -->
+        <div class="grid">
+          
+          <!-- Movements Table -->
+          <div class="card c8">
+            <div class="ch">
+              <div class="ct"><i class="ri-swap-box-line"></i> Últimos movimientos</div>
+              <a href="movimientos.html" class="btn btn-o btn-sm">Ver todos</a>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Bodega</th>
+                  <th>Responsable</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${movs || '<tr><td colspan="6" style="text-align:center;color:var(--mut);padding:20px">Sin movimientos aún</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Critical Stock Alerts -->
+          <div class="card c4">
+            <div class="ch">
+              <div class="ct"><i class="ri-alert-line"></i> Alertas de Stock Crítico</div>
+              <span class="badge br" style="font-size:10px;font-weight:700">Crítico</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              ${alertsHtml}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;
 }();
 </script>
 </body>

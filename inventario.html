@@ -81,6 +81,85 @@ function renderInv(){
   const totalVal=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku)*(p.costo||0),0);
   const bgStocks=DB.bodegas.map(b=>{return{id:b.id,st:filtered.reduce((a,p)=>a+stockBodega(b.id,p.sku),0)}});
   const bgTotal=bgStocks.reduce((s,b)=>s+b.st,0);
+
+  // Chart 1: Bar Chart for Stock by Warehouse
+  const maxBgStock = bgTotal > 0 ? Math.max(...bgStocks.map(b => b.st)) : 0;
+  const bgBars = bgStocks.map(b => {
+    const pct = maxBgStock > 0 ? Math.round((b.st / maxBgStock) * 100) : 0;
+    const bgInfo = DB.bodegas.find(x => x.id === b.id);
+    return `
+      <div style="margin-bottom: 5px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:9.5px;margin-bottom:2px">
+          <span style="font-weight:700;color:var(--txt)">${b.id} <span style="font-weight:400;color:var(--mut)">(${bgInfo.n.split(' - ')[1] || ''})</span></span>
+          <span style="font-weight:700;color:var(--ink)">${fmt(b.st)}</span>
+        </div>
+        <div class="bar" style="height:5px;background:var(--neutral-bg);border-radius:3px;overflow:hidden">
+          <span style="display:block;height:100%;border-radius:3px;background:var(--rojo);width:${pct}%;transition:width 0.3s ease;"></span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Chart 2: SVG Donut Chart for Categories
+  const catCounts = cats.map(c => ({
+    cat: c,
+    cnt: DB.productos.filter(p => p.cat === c).length
+  })).filter(c => c.cnt > 0)
+     .sort((a, b) => b.cnt - a.cnt);
+
+  const totalProdsCount = catCounts.reduce((s, c) => s + c.cnt, 0);
+
+  let catSlices = [];
+  if (catCounts.length > 0) {
+    let topCats = [];
+    let otherCount = 0;
+    catCounts.forEach((c, idx) => {
+      if (idx < 4) {
+        topCats.push(c);
+      } else {
+        otherCount += c.cnt;
+      }
+    });
+    if (otherCount > 0) {
+      topCats.push({ cat: 'Otros', cnt: otherCount });
+    }
+
+    const catColors = ['var(--rojo)', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'];
+    catSlices = topCats.map((c, i) => ({
+      label: c.cat,
+      count: c.cnt,
+      color: catColors[i % catColors.length]
+    }));
+  }
+
+  let catDonutSvg = '';
+  if (totalProdsCount === 0) {
+    catDonutSvg = '<circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--line)" stroke-width="10"/>';
+  } else {
+    const circ = 2 * Math.PI * 38;
+    let accumulatedPercent = 0;
+    catSlices.forEach(slice => {
+      const pct = slice.count / totalProdsCount;
+      const strokeLength = pct * circ;
+      const offset = (accumulatedPercent / totalProdsCount) * circ;
+      catDonutSvg += `<circle cx="50" cy="50" r="38" fill="transparent" stroke="${slice.color}" stroke-width="9" stroke-dasharray="${strokeLength} ${circ}" stroke-dashoffset="-${offset}" transform="rotate(-90 50 50)"/>`;
+      accumulatedPercent += slice.count;
+    });
+  }
+
+  const catLegendHtml = catSlices.map(s => {
+    const pct = totalProdsCount ? Math.round((s.count / totalProdsCount) * 100) : 0;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:9.5px;margin-bottom:3.5px;gap:8px">
+        <div style="display:flex;align-items:center;gap:4px;min-width:0">
+          <div style="width:6px;height:6px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--txt)">${s.label}</span>
+        </div>
+        <span style="font-weight:700;color:var(--ink)">${pct}%</span>
+      </div>
+    `;
+  }).join('');
+
   const summary='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--slate);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-box-3-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+filtered.length+'</div><div style="font-size:9px;color:var(--mut)">de '+DB.productos.length+' total</div></div></div>'+
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--info-txt);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-store-2-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+fmt(totalStk)+'</div><div style="font-size:9px;color:var(--mut)">stock en '+selBodega+'</div></div></div>'+
@@ -88,11 +167,24 @@ function renderInv(){
     '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:var(--success-txt);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0"><i class="ri-money-dollar-circle-line"></i></div><div><div style="font-size:16px;font-weight:800;color:var(--ink);line-height:1.1">'+money(totalVal)+'</div><div style="font-size:9px;color:var(--mut)">valor inventario</div></div></div>'+
   '</div>'+
   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px"><i class="ri-store-2-line"></i> Stock x bodega</div>'+
-      bgStocks.map(b=>{const p=bgTotal>0?b.st/bgTotal*100:0;const bg=DB.bodegas.find(x=>x.id===b.id);return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="font-size:9px;font-weight:600;color:var(--txt);width:26px">'+b.id+'</span><div style="flex:1;height:5px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--'+(bg.estado==='verde'?'success-txt':bg.estado==='amarillo'?'warn-txt':'danger-txt')+');border-radius:3px"></span></div><span style="font-size:9px;color:var(--mut);width:50px;text-align:right">'+fmt(b.st)+'</span></div>'}).join('')+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px"><i class="ri-store-2-line"></i> Ocupación por bodega (Unidades)</div>'+
+      bgBars+
     '</div>'+
-    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px"><i class="ri-grid-line"></i> Productos x categoría</div>'+
-      cats.map(c=>{const cnt=DB.productos.filter(p=>p.cat===c).length;const p=cnt/DB.productos.length*100;return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="font-size:9px;font-weight:600;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c+'</span><div style="width:60px;height:5px;background:var(--neutral-bg);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+p+'%;background:var(--rojo);border-radius:3px"></span></div><span style="font-size:9px;color:var(--mut);width:20px;text-align:right">'+cnt+'</span></div>'}).join('')+
+    '<div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px"><div style="font-size:8.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px"><i class="ri-grid-line"></i> Productos por categoría (Distribución)</div>'+
+      `<div style="display:flex;align-items:center;gap:16px;padding:2px 0">
+        <div style="position:relative;width:68px;height:68px;flex-shrink:0">
+          <svg viewBox="0 0 100 100" width="68" height="68">
+            ${catDonutSvg}
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+            <div style="font-size:11px;font-weight:800;color:var(--ink);line-height:1">${totalProdsCount}</div>
+            <div style="font-size:6px;color:var(--mut);text-transform:uppercase;font-weight:700">SKUs</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          ${catLegendHtml}
+        </div>
+      </div>`+
     '</div>'+
   '</div>';
 
@@ -107,7 +199,7 @@ function renderInv(){
     const imgSrc='https://picsum.photos/seed/'+p.sku+'/44/44';
     return '<div class="inv-tr"><div class="td-img"><img src="'+imgSrc+'" onerror="this.style.display=\'none\';this.parentNode.style.background=\'var(--rojo)\'" style="width:44px;height:44px;object-fit:cover;border-radius:0 6px 6px 0" loading="lazy"></div><div class="td-sku">'+p.sku+'</div><div style="flex-direction:column;align-items:flex-start;gap:1px"><span class="td-n">'+p.n+'</span>'+bar+'</div><div><span class="td-cat">'+p.cat+'</span></div><div class="td-det" style="flex-direction:column;align-items:flex-start;gap:1px">'+conv+'</div><div style="flex-direction:column;align-items:flex-start;gap:0"><span class="td-q">'+fmt(stk)+'</span><span style="font-size:9px;color:var(--mut)">'+p.u+'</span></div><div class="td-q2">'+fmt(Math.round(stk/(p.caja||1)))+' <span style="font-size:9px;color:var(--mut)">'+(p.cajaN||'—')+'</span></div><div class="td-cost" style="flex-direction:column;align-items:flex-start;gap:0"><span>'+money(p.costo||0)+'</span><span style="font-size:9px;color:var(--ph)">'+((p.precio&&p.costo)?' margen '+Math.round((1-p.costo/p.precio)*100)+'%':'')+'</span></div><div class="td-acts"><button class="td-edit" onclick="modalEditarProducto(\''+p.sku+'\')" title="Editar"><i class="ri-pencil-line"></i></button><button class="td-detail" onclick="verDetalleProducto(\''+p.sku+'\')" title="Detalle"><i class="ri-eye-line"></i></button></div></div>';
   }).join('');
-  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>'+DB.productos.length+' productos · Gestión por unidad base con conversión a unidad secundaria de despacho</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalEditarProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button><button class="btn" onclick="modalAjusteCategoria()" style="background:#fff;color:var(--rojo);border:2px solid var(--rojo);font-weight:800"><i class="ri-scales-line"></i> Ajustar inventario</button></div></div><div class="body">'+alarmHtml+summary+'<div class="inv-top">'+filterTag+'<span style="font-size:11px;color:var(--mut)">'+filtered.length+' producto'+(filtered.length!==1?'s':'')+'</span></div>'+(rows?'<div class="inv-wrap"><div class="inv-table"><div class="inv-th"><span>Foto</span><span>SKU</span><span>Producto</span><span>Categoría</span><span>Conversión</span><span>Stock</span><span>Stock sec.</span><span>Costo</span><span>Acción</span></div>'+rows+'</div></div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
+  $('pg').innerHTML='<div class="page th-inv"><div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Inventario</h1><p>'+DB.productos.length+' productos · Gestión por unidad base con conversión a unidad secundaria de despacho</p><div class="hero-act"><button class="btn btn-light" onclick="renderInv()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-refresh-line"></i> Actualizar</button><button class="btn btn-light" onclick="modalEditarProducto()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)"><i class="ri-add-line"></i> Nuevo Producto</button><button class="btn" onclick="modalAjusteCategoria()" style="background:#fff;color:var(--rojo);border:2px solid var(--rojo);font-weight:800"><i class="ri-scales-line"></i> Ajustar inventario</button></div></div><div class="body">'+alarmHtml+summary+'<div class="inv-top" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px">'+filterTag+'<span style="font-size:11px;color:var(--mut)">'+filtered.length+' producto'+(filtered.length!==1?'s':'')+'</span></div></div>'+(rows?'<div class="inv-wrap"><div class="inv-table"><div class="inv-th"><span>Foto</span><span>SKU</span><span>Producto</span><span>Categoría</span><span>Conversión</span><span>Stock</span><span>Stock sec.</span><span>Costo</span><span>Acción</span></div>'+rows+'</div></div>':'<div class="empty" style="padding:30px"><i class="ri-inbox-line"></i><h3>Sin productos</h3><p>No hay productos en esta categoría. Crea uno nuevo.</p></div>')+'</div></div>';
 }
 renderInv();
 
