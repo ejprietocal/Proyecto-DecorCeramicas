@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=4;
+const DB_VER=5;
 
 const DB={
   bodegas:[
@@ -73,14 +73,33 @@ const DB={
     {id:'PR-02',n:'Pegantes del Sur',  cat:'Adhesivos y morteros',  ciudad:'Pasto',  contacto:'Marta Ruiz',  tel:'320 778 0094',calif:4.2,estado:'Activo'},
     {id:'PR-03',n:'Hidro Import',      cat:'Grifería',              ciudad:'Cali',   contacto:'Andrés Polo', tel:'301 556 7723',calif:3.8,estado:'Observado'}
   ],
-  compras:[
-    {id:'OC-2451',provId:'PR-02',fecha:'12/04/2026',estado:'reclamada',recibPor:'Diego Muñoz',reclPor:'María López',
-     items:[{sku:'AD-PORC-25',n:'Adhesivo Porcelana 25kg',cant:100,u:'sacos',precio:38000}]},
-    {id:'OC-2462',provId:'PR-01',fecha:'28/04/2026',estado:'recibida',recibPor:'Diego Muñoz',reclPor:null,
-     items:[{sku:'RV-2550-GR',n:'Revestimiento Pared',cant:500,u:'m²',precio:35800}]},
-    {id:'OC-2470',provId:'PR-01',fecha:'09/05/2026',estado:'transito',recibPor:null,reclPor:null,
-     items:[{sku:'PC-6060-BE',n:'Piso Cerámico 60×60',cant:1200,u:'m²',precio:28500}]}
-  ],
+  compras:function(){
+    const provs=['PR-01','PR-02','PR-03'];
+    const names={1:'Cerámica Nariño',2:'Pegantes del Sur',3:'Hidro Import'};
+    const skus=['AD-PORC-25','MO-IM-40','MO-PEG-25','PC-6060-BE','AZ-3060-BL','RV-2550-GR','GR-LM-CROM','GR-CM-CROM','HR-PT-100','EL-CA-10','PT-BL-1','SN-LV-40','HR-NV-1','PC-4545-BE','PC-3333-GR','AZ-2020-BL','RV-2040-BE','GR-DU-AL','AD-FLEX-20','PC-POR-60','MO-NIV-25','EL-TO-20','PT-ES-1','SN-IN-1','HR-PA-1'];
+    const uMap={'AD-PORC-25':'sacos','MO-IM-40':'sacos','MO-PEG-25':'sacos','PC-6060-BE':'m²','AZ-3060-BL':'m²','RV-2550-GR':'m²','GR-LM-CROM':'unid','GR-CM-CROM':'unid','HR-PT-100':'unid','EL-CA-10':'unid','PT-BL-1':'unid','SN-LV-40':'unid','HR-NV-1':'unid','PC-4545-BE':'m²','PC-3333-GR':'m²','AZ-2020-BL':'m²','RV-2040-BE':'m²','GR-DU-AL':'unid','AD-FLEX-20':'sacos','PC-POR-60':'m²','MO-NIV-25':'sacos','EL-TO-20':'unid','PT-ES-1':'unid','SN-IN-1':'unid','HR-PA-1':'unid'};
+    const pMap={'AD-PORC-25':38000,'MO-IM-40':35000,'MO-PEG-25':28000,'PC-6060-BE':28500,'AZ-3060-BL':22300,'RV-2550-GR':35800,'GR-LM-CROM':45200,'GR-CM-CROM':52000,'HR-PT-100':8500,'EL-CA-10':125000,'PT-BL-1':42000,'SN-LV-40':89000,'HR-NV-1':165000,'PC-4545-BE':23500,'PC-3333-GR':19800,'AZ-2020-BL':18500,'RV-2040-BE':32500,'GR-DU-AL':38500,'AD-FLEX-20':34000,'PC-POR-60':42000,'MO-NIV-25':31000,'EL-TO-20':4500,'PT-ES-1':18500,'SN-IN-1':210000,'HR-PA-1':12500};
+    const nMap={'AD-PORC-25':'Adhesivo Porcelana','MO-IM-40':'Mortero Impermeable','MO-PEG-25':'Mortero Pegacor','PC-6060-BE':'Piso Cerámico 60×60','AZ-3060-BL':'Azulejo Baño 30×60','RV-2550-GR':'Revestimiento Pared','GR-LM-CROM':'Grifo Lavamanos','GR-CM-CROM':'Grifo Cocina','HR-PT-100':'Perfil T','EL-CA-10':'Cable #10','PT-BL-1':'Pintura Blanca','SN-LV-40':'Lavamanos','HR-NV-1':'Nivel Láser','PC-4545-BE':'Piso 45×45 Beige','PC-3333-GR':'Piso 33×33 Gris','AZ-2020-BL':'Azulejo 20×20','RV-2040-BE':'Revest. Piedra','GR-DU-AL':'Grifo Ducha','AD-FLEX-20':'Adhesivo Flex','PC-POR-60':'Porcelanato','MO-NIV-25':'Mortero Nivelador','EL-TO-20':'Toma Corriente','PT-ES-1':'Esmalte','SN-IN-1':'Inodoro','HR-PA-1':'Palustre'};
+    const users=['Diego Muñoz','María López','Jhon Castillo'];
+    const res=[];
+    for(let i=0;i<100;i++){
+      const id='OC-'+(2500+i);
+      const provId=provs[i%3];
+      const est=i<50?'reclamada':i<80?'recibida':'transito';
+      const di=i%25+1;const me=4+Math.floor(i/25);const f=''+(di<10?'0'+di:di)+'/'+(me<10?'0'+me:me)+'/2026';
+      const nItems=1+Math.floor(Math.random()*3);
+      const its=[];
+      for(let j=0;j<nItems;j++){
+        const sku=skus[(i*3+j)%skus.length];
+        const cant=50+Math.floor(Math.random()*500);
+        its.push({sku,n:nMap[sku]||sku,cant,u:uMap[sku]||'unid',precio:pMap[sku]||10000});
+      }
+      const rP=est!=='transito'?users[i%3]:null;
+      const rPor=est==='reclamada'?users[(i+1)%3]:null;
+      res.push({id,provId,fecha:f,estado:est,recibPor:rP,reclPor:rPor,items:its});
+    }
+    return res;
+  }(),
   pedidos:[
     {id:'PD-3405',cliente:'Ferretería Central', fecha:'19/05/2026',estado:'parcial_asignado',despPor:null,
      items:[{sku:'HR-NV-1',cant:3,bodega:'BGA',asig:3,falt:0,entregado:0},{sku:'MO-PEG-25',cant:25,bodega:'BGA',asig:0,falt:0,entregado:25}]},
