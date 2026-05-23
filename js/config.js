@@ -10,9 +10,14 @@ const MODS={
   compras:      {n:'Órdenes de Compra',    ic:'ri-shopping-cart-2-line',    g:'Abastecimiento',  cr:'Abastecimiento · Compras',   desc:'Órdenes de compra a proveedores, recepción y reclamación'},
   reclamar:     {n:'Mercancía por Reclamar',ic:'ri-inbox-unarchive-line',  g:'Abastecimiento',  cr:'Abastecimiento · Por reclamar', desc:'OC recibidas pendientes de reclamar y pasar a inventario'},
   vencimientos: {n:'Vencimientos',         ic:'ri-time-line',               g:'Abastecimiento',  cr:'Abastecimiento · Vencimientos', desc:'Control de fechas de caducidad y bajas por vencimiento'},
-  usuarios:     {n:'Usuarios y Roles',     ic:'ri-shield-user-line',        g:'Sistema',         cr:'Sistema · Usuarios',         desc:'Gestión de usuarios del sistema y permisos por rol'}
+  facturas:     {n:'Facturación',          ic:'ri-file-list-3-line',        g:'Facturación',     cr:'Facturación · Facturas',     desc:'Facturas de venta, compra y documentos de OC'},
+  notas:        {n:'Notas Crédito/Débito', ic:'ri-swap-2-line',             g:'Facturación',     cr:'Facturación · Notas',        desc:'Notas crédito y débito vinculadas a facturas'},
+  cotizaciones: {n:'Cotizaciones',         ic:'ri-file-text-line',          g:'Facturación',     cr:'Facturación · Cotizaciones', desc:'Cotizaciones / proformas convertibles en pedidos'},
+  remisiones:   {n:'Remisiones / Albaranes',ic:'ri-truck-line',            g:'Facturación',     cr:'Facturación · Remisiones',   desc:'Documentos de traslado físico de mercancía'},
+  usuarios:     {n:'Usuarios y Roles',     ic:'ri-shield-user-line',        g:'Configuración',   cr:'Configuración · Usuarios',   desc:'Gestión de usuarios del sistema y permisos por rol'},
+  configuracion:{n:'Configuración',       ic:'ri-settings-3-line',         g:'Configuración',   cr:'Configuración',              desc:'Parámetros del sistema, prefijos, unidades y más'}
 };
-const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Sistema'];
+const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Facturación','Configuración'];
 const USERS=[
   {id:'carlos',n:'Carlos Andrés Rojas',  r:'Administrador del Sistema', in:'CR',c:'#4F46E5'},
   {id:'maria',  n:'María Fernanda López', r:'Jefe de Bodega',             in:'ML',c:'#0284C7'},
@@ -22,10 +27,10 @@ const USERS=[
   {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#DB2777'}
 ];
 let PERMS={
-  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','usuarios'],
-  maria:  ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos'],
-  diego:  ['dashboard','inventario','reclamar','movimientos'],
-  sandra: ['dashboard','proveedores','compras','reclamar','pedidos'],
-  jhon:   ['dashboard','pedidos','movimientos'],
-  luisa:  ['dashboard','sobrantes','vencimientos','movimientos','inventario']
+  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','usuarios','configuracion'],
+  maria:  ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','configuracion'],
+  diego:  ['dashboard','inventario','reclamar','movimientos','remisiones'],
+  sandra: ['dashboard','proveedores','compras','reclamar','pedidos','facturas','notas','cotizaciones'],
+  jhon:   ['dashboard','pedidos','movimientos','remisiones'],
+  luisa:  ['dashboard','sobrantes','vencimientos','movimientos','inventario','facturas','notas','configuracion']
 };

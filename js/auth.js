@@ -3,7 +3,9 @@ const PAGE_MAP={
   dashboard:'dashboard.html',pedidos:'pedidos.html',inventario:'inventario.html',
   sobrantes:'sobrantes.html',movimientos:'movimientos.html',transferencias:'transferencias.html',
   proveedores:'proveedores.html',compras:'compras.html',reclamar:'reclamar.html',
-  vencimientos:'vencimientos.html',usuarios:'usuarios.html'
+  vencimientos:'vencimientos.html',facturas:'facturas.html',notas:'notas.html',
+  cotizaciones:'cotizaciones.html',remisiones:'remisiones.html',usuarios:'usuarios.html',
+  configuracion:'configuracion.html'
 };
 
 function clearErr(){const e=$('lerr');if(e)e.classList.remove('show')}

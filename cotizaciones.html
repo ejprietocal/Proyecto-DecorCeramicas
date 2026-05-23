@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Cotizaciones</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=6">
+<style>
+.ct-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.ct-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.ct-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.ct-bar-n{font-size:18px;font-weight:800;color:var(--ink);line-height:1.1}
+.ct-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.ct-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s;border-left:4px solid}
+.ct-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.ct-card.st-borrador{border-left-color:var(--neutral-txt)}
+.ct-card.st-enviada{border-left-color:var(--info-txt)}
+.ct-card.st-aceptada{border-left-color:var(--success-txt)}
+.ct-card.st-rechazada{border-left-color:var(--danger-txt)}
+.ct-card.st-vencida{border-left-color:var(--warn-txt)}
+.ct-card-h{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--neutral-bg)}
+.ct-card-id{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px}
+.ct-card-id small{font-size:10px;font-weight:500;color:var(--mut)}
+.ct-card-cl{font-size:11px;color:var(--mut);margin-top:2px;display:flex;align-items:center;gap:4px}
+.ct-card-b{padding:10px 16px}
+.ct-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;background:var(--bg);margin-bottom:4px}
+.ct-item:last-child{margin-bottom:0}
+.ct-item-info{flex:1;min-width:0}
+.ct-item-n{font-size:12px;font-weight:600;color:var(--ink);line-height:1.2}
+.ct-item-sku{font-size:10px;color:var(--mut);font-family:monospace}
+.ct-item-q{font-size:12px;font-weight:700;color:var(--ink);text-align:right;white-space:nowrap}
+.ct-item-q small{font-weight:400;color:var(--mut);font-size:10px;display:block}
+.ct-card-f{padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ct-card-f .badge{font-size:10px;padding:3px 8px}
+.ct-card-f .btn{padding:5px 10px;font-size:10.5px}
+@media(max-width:860px){.ct-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/draft.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('cotizaciones');
+
+let ctFiltro='todas',ctBusq='';
+
+function renderCots(){
+  const cots=DB.cotizaciones;
+  const q=ctBusq.toLowerCase();
+  let items=cots;
+  if(ctFiltro!=='todas')items=items.filter(c=>c.estado===ctFiltro);
+  if(q)items=items.filter(c=>c.id.toLowerCase().includes(q)||c.cliente.toLowerCase().includes(q));
+
+  const counts={borrador:0,enviada:0,aceptada:0,rechazada:0,vencida:0};
+  cots.forEach(c=>{if(counts[c.estado]!==undefined)counts[c.estado]++});
+  const totalVal=cots.reduce((s,c)=>s+c.total,0);
+
+  const bar='<div class="ct-bar">'+[
+    {ic:'ri-file-edit-line',cl:'#64748B',l:'Borrador',v:counts.borrador},
+    {ic:'ri-send-plane-line',cl:'#0284C7',l:'Enviadas',v:counts.enviada},
+    {ic:'ri-checkbox-circle-line',cl:'#16A34A',l:'Aceptadas',v:counts.aceptada},
+    {ic:'ri-close-circle-line',cl:'#EF4444',l:'Rechazadas',v:counts.rechazada},
+    {ic:'ri-time-line',cl:'#D97706',l:'Vencidas',v:counts.vencida}
+  ].map(b=>'<div class="ct-bar-item"><div class="ct-bar-ic" style="background:'+b.cl+'"><i class="'+b.ic+'"></i></div><div><div class="ct-bar-n">'+b.v+'</div><div class="ct-bar-l">'+b.l+'</div></div></div>').join('')+'</div>';
+
+  const pills=['todas','borrador','enviada','aceptada','rechazada','vencida'].map(e=>'<span class="p-pill '+(ctFiltro===e?'sel':'')+'" onclick="ctFiltro=\''+e+'\';renderCots()">'+({todas:'Todas',borrador:'Borrador',enviada:'Enviada',aceptada:'Aceptada',rechazada:'Rechazada',vencida:'Vencida'})[e]+' <span style="font-size:10px;opacity:.7">'+(e==='todas'?cots.length:counts[e]||0)+'</span></span>').join('');
+
+  const cards=items.map(c=>{
+    const itemsHtml=c.items.map(it=>'<div class="ct-item"><div class="ct-item-info"><div class="ct-item-n">'+it.n+'</div><div class="ct-item-sku">'+it.sku+'</div></div><div class="ct-item-q">'+fmt(it.cant)+' '+it.u+'<small>'+money(it.cant*it.precioUnit)+'</small></div></div>').join('');
+    let acc='';
+    if(c.estado==='borrador'){
+      acc='<button class="btn btn-blue btn-sm" onclick="enviarCot(\''+c.id+'\')"><i class="ri-send-plane-line"></i> Enviar</button>';
+    }else if(c.estado==='enviada'){
+      acc='<button class="btn btn-green btn-sm" onclick="aceptarCot(\''+c.id+'\')"><i class="ri-check-line"></i> Aceptar</button><button class="btn btn-o btn-sm" onclick="rechazarCot(\''+c.id+'\')"><i class="ri-close-line"></i> Rechazar</button>';
+    }else if(c.estado==='aceptada'){
+      acc='<button class="btn btn-blue btn-sm" onclick="convertirAOCC(\''+c.id+'\')"><i class="ri-file-list-3-line"></i> Convertir en OC</button>';
+    }else if(c.estado==='vencida'){
+      acc='<span class="badge by" style="font-size:10px"><i class="ri-time-line"></i> Vencida</span>';
+    }else{
+      acc='<span class="badge br" style="font-size:10px"><i class="ri-close-line"></i> Rechazada</span>';
+    }
+    return '<div class="ct-card st-'+c.estado+'"><div class="ct-card-h"><div><div class="ct-card-id">'+c.id+' <small>'+c.fecha+'</small></div><div class="ct-card-cl"><i class="ri-user-line"></i>'+c.cliente+'</div></div><span class="badge '+ctEstBadge(c.estado)+'">'+ctEstLabel(c.estado)+'</span></div><div class="ct-card-b">'+itemsHtml+'</div><div class="ct-card-f"><b>'+money(c.total)+'</b>'+acc+'</div></div>';
+  }).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ri-file-text-line"></i><h3>Sin cotizaciones</h3><p>Crea la primera cotización o proforma para un cliente.</p></div>';
+
+  const body='<div class="page th-cotizaciones"><div class="hero"><div class="hero-ic"><i class="ri-file-text-line"></i></div><h1>Cotizaciones / Proformas</h1><p>Documentos pre-venta sin afectación de inventario. Al aceptarse, generan una Orden de Compra de Cliente.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaCot()"><i class="ri-add-line"></i> Nueva Cotización</button></div></div><div class="body">'+bar+'<div class="c-top">'+pills+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar cotización o cliente..." value="'+ctBusq+'" oninput="ctBusq=this.value;renderCots()">'+(ctBusq?'<button class="btn btn-o btn-sm" onclick="ctBusq=\'\';renderCots()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="ct-grid">'+cards+'</div></div></div>';
+  $('pg').innerHTML=body;
+}
+
+function modalNuevaCot(){
+  draft={items:[{sku:'',cant:1}]};
+  openMod('<i class="ri-file-text-line"></i> Nueva Cotización',
+    '<div class="note"><i class="ri-information-line"></i> Cotización sin afectar inventario. Puedes agregar productos y definir cantidades.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente"></div><div class="ff2"><div><label>Validez (días)</label><input type="number" id="ctValidez" value="15" min="1"></div><div><label>Fecha</label><input id="ctFecha" value="'+now().split(' ')[0]+'"></div></div><div class="ff"><label>Productos</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearCot()"><i class="ri-check-line"></i> Crear Cotización</button>'
+  );
+  renderLines();
+}
+
+function crearCot(){
+  const cl=$('dCliente').value.trim();
+  if(!cl){toast('Ingresa el nombre del cliente','warn');return}
+  if(!draft.items[0]?.sku){toast('Agrega al menos un producto','warn');return}
+  const id='CT-'+CT_SEQ++;
+  const items=draft.items.filter(i=>i.sku).map(i=>{
+    const p=getProd(i.sku);
+    return{sku:i.sku,n:p?.n||i.sku,cant:i.cant,u:p?.u||'unid',precioUnit:p?.precio||0};
+  });
+  const total=items.reduce((s,i)=>s+i.cant*i.precioUnit,0);
+  const validez=parseInt($('ctValidez').value)||15;
+  const fecha=$('ctFecha').value||now().split(' ')[0];
+  DB.cotizaciones.unshift({
+    id,cliente:cl,fecha:fecha,estado:'borrador',
+    validezDias:validez,items,total
+  });
+  closeMod();saveDB();renderCots();toast('Cotización '+id+' creada en borrador.','ok');
+}
+
+function enviarCot(id){
+  const c=DB.cotizaciones.find(x=>x.id===id);
+  if(!c)return;
+  c.estado='enviada';
+  saveDB();renderCots();toast('Cotización '+id+' marcada como enviada.','ok');
+}
+
+function aceptarCot(id){
+  if(!confirm('¿Aceptar cotización '+id+'?'))return
+  const c=DB.cotizaciones.find(x=>x.id===id);
+  if(!c)return;
+  c.estado='aceptada';
+  saveDB();renderCots();toast('Cotización '+id+' aceptada. Ahora puedes generar la OC de Cliente.','ok');
+}
+
+function rechazarCot(id){
+  if(!confirm('¿Rechazar cotización '+id+'?'))return
+  const c=DB.cotizaciones.find(x=>x.id===id);
+  if(!c)return;
+  c.estado='rechazada';
+  saveDB();renderCots();toast('Cotización '+id+' rechazada.','ok');
+}
+
+function convertirAOCC(cid){
+  if(!confirm('¿Generar Orden de Compra de Cliente desde cotización '+cid+'?'))return
+  const c=DB.cotizaciones.find(x=>x.id===cid);
+  if(!c)return;
+  const id='OCC-'+OC_CLI_SEQ++;
+  const items=c.items.map(i=>({sku:i.sku,n:i.n,cant:i.cant,u:i.u,precioUnit:i.precioUnit}));
+  const total=items.reduce((s,i)=>s+i.cant*i.precioUnit,0);
+  DB.ordenes_compra_cliente.unshift({
+    id,cliente:c.cliente,fecha:now().split(' ')[0],
+    cotizacionOrigen:c.id,estado:'pendiente',items,total,notas:''
+  });
+  saveDB();
+  simularEnvioEmail('oc_cliente',{destinatario:c.cliente,numero:id,total,items,origen:'cotización '+cid});
+}
+
+function simularEnvioEmail(tipo,data){
+  const asunto=tipo==='oc_cliente'?'📄 Orden de Compra — '+data.numero:'📄 Documento';
+  const cuerpo=
+    '<div style="font-family:monospace;background:#f9f9f9;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0">'+
+      '<div style="background:linear-gradient(135deg,#D9383A,#7F1D1D);padding:16px 20px;color:#fff">'+
+        '<div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ri-mail-send-line"></i> Simulación de Envío</div>'+
+        '<div style="font-size:11px;opacity:.8;margin-top:4px">'+asunto+'</div>'+
+      '</div>'+
+      '<div style="padding:18px 20px">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#F0FDF4;border-radius:8px;border:1px solid #DCFCE7">'+
+          '<i class="ri-checkbox-circle-fill" style="color:#16A34A;font-size:20px"></i>'+
+          '<div><div style="font-weight:700;color:#16A34A;font-size:13px">✅ Correo enviado con éxito</div>'+
+          '<div style="font-size:11px;color:#475569">Se ha enviado una notificación a <b>'+data.destinatario+'</b></div></div>'+
+        '</div>'+
+        '<div style="display:grid;gap:8px;font-size:12px">'+
+          '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0"><span style="color:#64748B">Destinatario:</span><b>'+data.destinatario+'</b></div>'+
+          '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0"><span style="color:#64748B">Documento:</span><b>'+data.numero+'</b></div>'+
+          '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0"><span style="color:#64748B">Origen:</span><b>'+(data.origen||'—')+'</b></div>'+
+          '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0"><span style="color:#64748B">Valor total:</span><b style="color:#D9383A">'+money(data.total)+'</b></div>'+
+          (data.items?'<div style="padding:6px 0"><div style="color:#64748B;margin-bottom:6px">Productos:</div>'+
+            data.items.map(it=>'<div style="display:flex;justify-content:space-between;padding:3px 8px;background:#f8f8f8;border-radius:4px;margin-bottom:2px;font-size:11px"><span>'+it.n+' <small>('+it.sku+')</small></span><span>'+fmt(it.cant)+' '+it.u+'</span></div>').join('')+'</div>':'')+
+        '</div>'+
+        '<div style="margin-top:14px;padding:10px 14px;background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;font-size:11px;color:#9A3412;display:flex;gap:8px;align-items:flex-start">'+
+          '<i class="ri-information-line" style="font-size:16px;flex-shrink:0"></i>'+
+          '<div><b>Simulación:</b> En un entorno real, este correo se enviaría automáticamente al cliente con el documento adjunto en PDF.</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  openMod('<i class="ri-mail-send-line" style="color:var(--success-txt)"></i> Correo Enviado',cuerpo,'<button class="btn btn-o btn-sm" onclick="closeMod()"><i class="ri-close-line"></i> Cerrar</button><a href="facturas.html" class="btn btn-p btn-sm"><i class="ri-file-list-3-line"></i> Ir a Facturación</a>');
+}
+
+renderCots();
+</script>
+</body>
+</html>

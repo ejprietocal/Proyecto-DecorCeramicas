@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Configuración</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=6">
+<style>
+.cfg-wrap{display:grid;grid-template-columns:200px 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:500px}
+.cfg-side{background:var(--neutral-bg);border-right:1px solid var(--line);padding:8px 0}
+.cfg-item{padding:10px 16px;cursor:pointer;font-size:12px;font-weight:600;color:var(--mut);display:flex;align-items:center;gap:8px;transition:.1s;border-left:3px solid transparent}
+.cfg-item:hover{background:var(--bg);color:var(--ink)}
+.cfg-item.sel{background:var(--surface);color:var(--rojo);border-left-color:var(--rojo)}
+.cfg-item i{font-size:15px}
+.cfg-body{padding:20px 24px;overflow-y:auto;max-height:calc(100vh - 260px)}
+.cfg-body h3{font-size:16px;font-weight:800;color:var(--ink);margin-bottom:4px}
+.cfg-body .sub{font-size:11.5px;color:var(--mut);margin-bottom:16px}
+.cfg-table{width:100%;border-collapse:collapse;font-size:12px}
+.cfg-table th{text-align:left;padding:8px 10px;font-size:9.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line);background:var(--neutral-bg)}
+.cfg-table td{padding:7px 10px;border-bottom:1px solid var(--line);color:var(--ink)}
+.cfg-table tr:hover td{background:var(--bg)}
+.cfg-table .acts{display:flex;gap:4px}
+.cfg-table .acts button{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s}
+.cfg-edit{background:var(--rojo-l);color:var(--rojo)}.cfg-edit:hover{background:var(--rojo);color:#fff}
+.cfg-del{background:var(--danger-bg);color:var(--danger-txt)}.cfg-del:hover{background:var(--danger-txt);color:#fff}
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px}
+.cfg-card{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface);cursor:pointer;transition:.12s}
+.cfg-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--line-m)}
+.cfg-card .cfg-card-n{font-size:14px;font-weight:700;color:var(--ink)}
+.cfg-card .cfg-card-d{font-size:10.5px;color:var(--mut);margin-top:2px}
+.empty-sm{text-align:center;padding:30px 10px;color:var(--mut);font-size:12px}
+.empty-sm i{font-size:28px;display:block;margin-bottom:6px;opacity:.4}
+@media(max-width:860px){.cfg-wrap{grid-template-columns:1fr}.cfg-side{display:flex;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line);padding:4px}.cfg-item{white-space:nowrap;border-left:none;border-bottom:3px solid transparent;padding:8px 12px}.cfg-item.sel{border-left:none;border-bottom-color:var(--rojo)}}
+</style>
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('configuracion');
+let cfgSec='usuarios';
+
+const CFG_SECS=[
+  {id:'usuarios',ic:'ri-shield-user-line',n:'Usuarios y Roles'},
+  {id:'prefijos',ic:'ri-file-list-3-line',n:'Prefijos de Documentos'},
+  {id:'pos',ic:'ri-store-2-line',n:'Puntos de Venta'},
+  {id:'unidades',ic:'ri-ruler-line',n:'Unidades de Medida'},
+  {id:'categorias',ic:'ri-grid-line',n:'Categorías'},
+  {id:'general',ic:'ri-settings-4-line',n:'Parametrización General'}
+];
+
+function renderCfg(){
+  const side=CFG_SECS.map(s=>'<div class="cfg-item '+(cfgSec===s.id?'sel':'')+'" onclick="cfgSec=\''+s.id+'\';renderCfg()"><i class="'+s.ic+'"></i>'+s.n+'</div>').join('');
+  let body='';
+  switch(cfgSec){
+    case'usuarios':body=renderUsuarios();break;
+    case'prefijos':body=renderPrefijos();break;
+    case'pos':body=renderPOS();break;
+    case'unidades':body=renderUnidades();break;
+    case'categorias':body=renderCategorias();break;
+    case'general':body=renderGeneral();break;
+  }
+  $('pg').innerHTML='<div class="page th-usr"><div class="body"><div class="cfg-wrap"><div class="cfg-side">'+side+'</div><div class="cfg-body">'+body+'</div></div></div></div>';
+}
+
+/* ==================== 1. USUARIOS ==================== */
+function renderUsuarios(){
+  const rows=USERS.map(u=>`<tr><td><b>${u.n}</b></td><td>${u.r}</td><td>${u.in}</td><td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${u.c};vertical-align:middle"></span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarUsuario('${u.id}')" title="Editar"><i class="ri-pencil-line"></i></button></div></td></tr>`).join('');
+  return '<h3><i class="ri-shield-user-line" style="color:var(--rojo)"></i> Usuarios y Roles</h3><div class="sub">Gestión de usuarios del sistema. Los permisos se asignan por módulo en config.js.</div><table class="cfg-table"><thead><tr><th>Nombre</th><th>Rol</th><th>Iniciales</th><th>Color</th><th>Acción</th></tr></thead><tbody>'+rows+'</tbody></table><div style="margin-top:12px"><a href="usuarios.html" class="btn btn-blue btn-sm"><i class="ri-external-link-line"></i> Ir al módulo completo de Usuarios</a></div>';
+}
+function modalEditarUsuario(id){
+  const u=USERS.find(x=>x.id===id);
+  if(!u)return;
+  openMod('<i class="ri-shield-user-line"></i> Editar Usuario: '+u.n,
+    '<div class="ff"><label>Nombre</label><input id="cfgUsrN" value="'+u.n+'"></div><div class="ff"><label>Rol</label><input id="cfgUsrR" value="'+u.r+'"></div><div class="ff2"><div class="ff"><label>Iniciales</label><input id="cfgUsrI" value="'+u.in+'" maxlength="2"></div><div class="ff"><label>Color</label><input type="color" id="cfgUsrC" value="'+u.c+'"></div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarUsuario(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarUsuario(id){
+  const u=USERS.find(x=>x.id===id);
+  if(!u)return;
+  u.n=$('cfgUsrN').value.trim()||u.n;
+  u.r=$('cfgUsrR').value.trim()||u.r;
+  u.in=$('cfgUsrI').value.trim().toUpperCase()||u.in;
+  u.c=$('cfgUsrC').value||u.c;
+  closeMod();saveDB();renderCfg();toast('Usuario actualizado','ok');
+}
+
+/* ==================== 2. PREFIJOS ==================== */
+function renderPrefijos(){
+  const rows=DB.config.prefijos.map(p=>{
+    const extra=p.tipo==='factura_electronica'?'<br><small>Vig: '+p.vigencia_desde+' → '+p.vigencia_hasta+' | Rango: '+p.rango_desde+'–'+p.rango_final+'</small>':'';
+    return `<tr><td><b>${p.prefijo}</b></td><td>${p.tipo.replace(/_/g,' ')}</td><td>${p.consecutivo_inicial}</td><td><b>${p.consecutivo_actual}</b></td><td>${extra}</td><td><span class="badge ${p.activo?'bg':'bs'}">${p.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarPrefijo('${p.id}')"><i class="ri-pencil-line"></i></button></div></td></tr>`;
+  }).join('');
+  return '<h3><i class="ri-file-list-3-line" style="color:var(--rojo)"></i> Prefijos de Documentos</h3><div class="sub">Configuración de prefijos y consecutivos para cada tipo de documento. Se auto-incrementan al crear documentos.</div><table class="cfg-table"><thead><tr><th>Prefijo</th><th>Tipo</th><th>Inicial</th><th>Actual</th><th>Extra</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function modalEditarPrefijo(id){
+  const p=DB.config.prefijos.find(x=>x.id===id);
+  if(!p)return;
+  openMod('<i class="ri-file-list-3-line"></i> Editar Prefijo: '+p.prefijo,
+    '<div class="ff2"><div class="ff"><label>Prefijo</label><input id="cfgPfPf" value="'+p.prefijo+'"></div><div class="ff"><label>Consecutivo Inicial</label><input type="number" id="cfgPfCi" value="'+p.consecutivo_inicial+'"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Actual</label><input type="number" id="cfgPfCa" value="'+p.consecutivo_actual+'"></div><div class="ff"><label>Activo</label><select id="cfgPfAct"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div></div>'+
+    (p.tipo==='factura_electronica'?'<div class="ff2"><div class="ff"><label>Vigencia Desde</label><input id="cfgPfVd" value="'+(p.vigencia_desde||'')+'"></div><div class="ff"><label>Vigencia Hasta</label><input id="cfgPfVh" value="'+(p.vigencia_hasta||'')+'"></div></div><div class="ff2"><div class="ff"><label>Rango Desde</label><input type="number" id="cfgPfRd" value="'+(p.rango_desde||'')+'"></div><div class="ff"><label>Rango Hasta</label><input type="number" id="cfgPfRf" value="'+(p.rango_hasta||'')+'"></div></div>':'')+
+    '<div class="ff"><label>Nota:</label><span style="font-size:11px;color:var(--mut)">El consecutivo actual se incrementa automáticamente al crear documentos del tipo correspondiente.</span></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPrefijo(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarPrefijo(id){
+  const p=DB.config.prefijos.find(x=>x.id===id);
+  if(!p)return;
+  p.prefijo=$('cfgPfPf').value.trim()||p.prefijo;
+  p.consecutivo_inicial=parseInt($('cfgPfCi').value)||p.consecutivo_inicial;
+  p.consecutivo_actual=parseInt($('cfgPfCa').value)||p.consecutivo_actual;
+  p.activo=$('cfgPfAct').value==='true';
+  if(p.tipo==='factura_electronica'){
+    p.vigencia_desde=$('cfgPfVd').value||p.vigencia_desde;
+    p.vigencia_hasta=$('cfgPfVh').value||p.vigencia_hasta;
+    p.rango_desde=parseInt($('cfgPfRd').value)||p.rango_desde;
+    p.rango_hasta=parseInt($('cfgPfRf').value)||p.rango_hasta;
+  }
+  closeMod();saveDB();renderCfg();toast('Prefijo actualizado','ok');
+}
+
+/* ==================== 3. PUNTOS DE VENTA ==================== */
+function renderPOS(){
+  const resRows=DB.config.resoluciones.map(r=>{
+    const pv=getPuntoVenta(r.punto_venta_id);
+    const pct=r.consecutivo_final?Math.round((r.consecutivo_final/r.consecutivo_final)*100):0;
+    return `<tr><td>${r.numero}</td><td>${r.prefijo}</td><td>${r.consecutivo_inicial}–${r.consecutivo_final}</td><td>${r.fecha_inicio} → ${r.fecha_fin}</td><td>${pv?pv.nombre:'—'}</td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarRes('${r.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarRes('${r.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  }).join('');
+  const pvRows=DB.config.puntos_venta.map(p=>{
+    const bg=DB.bodegas.find(b=>b.id===p.bodega_id);
+    return `<tr><td><b>${p.codigo}</b></td><td>${p.nombre}</td><td>${bg?bg.n+' ('+p.bodega_id+')':'—'}</td><td><span class="badge ${p.activo?'bg':'bs'}">${p.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarPV('${p.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarPV('${p.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  }).join('');
+  return '<h3><i class="ri-store-2-line" style="color:var(--rojo)"></i> Puntos de Venta</h3><div class="sub">Puntos de venta y sus resoluciones de facturación asociadas.</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevoPV()"><i class="ri-add-line"></i> Nuevo Punto de Venta</button><button class="btn btn-o btn-sm" onclick="modalNuevaRes()"><i class="ri-add-line"></i> Nueva Resolución</button></div>'+
+    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Puntos de Venta</h4><table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Bodega</th><th>Estado</th><th></th></tr></thead><tbody>'+pvRows+'</tbody></table>'+
+    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Resoluciones de Facturación</h4><table class="cfg-table"><thead><tr><th>N° Resolución</th><th>Prefijo</th><th>Consecutivo</th><th>Vigencia</th><th>Punto de Venta</th><th></th></tr></thead><tbody>'+(resRows||'<tr><td colspan="6"><div class="empty-sm">Sin resoluciones registradas</div></td></tr>')+'</tbody></table>';
+}
+function modalNuevoPV(){
+  const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'">'+b.n+' ('+b.id+')</option>').join('');
+  openMod('<i class="ri-store-2-line"></i> Nuevo Punto de Venta',
+    '<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgPvCod" placeholder="001"></div><div class="ff"><label>Nombre *</label><input id="cfgPvNom" placeholder="Punto de Venta Principal"></div></div><div class="ff"><label>Bodega Asignada *</label><select id="cfgPvBg">'+bgOpts+'</select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPV()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearPV(){
+  const cod=$('cfgPvCod').value.trim();
+  const nom=$('cfgPvNom').value.trim();
+  const bg=$('cfgPvBg').value;
+  if(!cod||!nom){toast('Completa código y nombre','warn');return}
+  if(DB.config.puntos_venta.find(p=>p.codigo===cod)){toast('Ya existe un punto de venta con ese código','warn');return}
+  const id='PV-'+String(DB.config.puntos_venta.length+1).padStart(3,'0');
+  DB.config.puntos_venta.push({id,codigo:cod,nombre:nom,bodega_id:bg,activo:true});
+  closeMod();saveDB();renderCfg();toast('Punto de venta creado','ok');
+}
+function modalEditarPV(id){
+  const p=DB.config.puntos_venta.find(x=>x.id===id);
+  if(!p)return;
+  const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'" '+(b.id===p.bodega_id?'selected':'')+'>'+b.n+' ('+b.id+')</option>').join('');
+  openMod('<i class="ri-store-2-line"></i> Editar Punto de Venta',
+    '<div class="ff2"><div class="ff"><label>Código</label><input id="cfgPvCodE" value="'+p.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgPvNomE" value="'+p.nombre+'"></div></div><div class="ff"><label>Bodega</label><select id="cfgPvBgE">'+bgOpts+'</select></div><div class="ff"><label>Activo</label><select id="cfgPvActE"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPV(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarPV(id){
+  const p=DB.config.puntos_venta.find(x=>x.id===id);
+  if(!p)return;
+  p.codigo=$('cfgPvCodE').value.trim()||p.codigo;
+  p.nombre=$('cfgPvNomE').value.trim()||p.nombre;
+  p.bodega_id=$('cfgPvBgE').value||p.bodega_id;
+  p.activo=$('cfgPvActE').value==='true';
+  closeMod();saveDB();renderCfg();toast('Punto de venta actualizado','ok');
+}
+function eliminarPV(id){
+  if(!confirm('¿Eliminar punto de venta?'))return;
+  DB.config.puntos_venta=DB.config.puntos_venta.filter(x=>x.id!==id);
+  DB.config.resoluciones=DB.config.resoluciones.filter(r=>r.punto_venta_id!==id);
+  saveDB();renderCfg();toast('Punto de venta eliminado','ok');
+}
+function modalNuevaRes(){
+  const pvOpts=DB.config.puntos_venta.filter(p=>p.activo).map(p=>'<option value="'+p.id+'">'+p.codigo+' — '+p.nombre+'</option>').join('');
+  openMod('<i class="ri-file-list-3-line"></i> Nueva Resolución',
+    '<div class="ff2"><div class="ff"><label>N° Resolución *</label><input id="cfgResNum" placeholder="187600000001"></div><div class="ff"><label>Prefijo *</label><input id="cfgResPf" placeholder="FE"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Inicial *</label><input type="number" id="cfgResCi" value="1"></div><div class="ff"><label>Consecutivo Final *</label><input type="number" id="cfgResCf" value="9999"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio *</label><input id="cfgResFi" value="01/01/2026"></div><div class="ff"><label>Fecha Fin *</label><input id="cfgResFf" value="31/12/2026"></div></div><div class="ff"><label>Punto de Venta *</label><select id="cfgResPv">'+pvOpts+'</select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearRes()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearRes(){
+  const num=$('cfgResNum').value.trim();
+  const pf=$('cfgResPf').value.trim().toUpperCase();
+  const ci=parseInt($('cfgResCi').value);
+  const cf=parseInt($('cfgResCf').value);
+  const fi=$('cfgResFi').value;
+  const ff=$('cfgResFf').value;
+  const pv=$('cfgResPv').value;
+  if(!num||!pf||!ci||!cf||!fi||!ff||!pv){toast('Completa todos los campos obligatorios','warn');return}
+  const solapamiento=DB.config.resoluciones.some(r=>r.punto_venta_id===pv&&((ci>=r.consecutivo_inicial&&ci<=r.consecutivo_final)||(cf>=r.consecutivo_inicial&&cf<=r.consecutivo_final)));
+  if(solapamiento){toast('El rango de consecutivos se solapa con otra resolución activa del mismo punto de venta','err');return}
+  const id='RES-'+String(DB.config.resoluciones.length+1).padStart(3,'0');
+  DB.config.resoluciones.push({id,numero:num,prefijo:pf,fecha_inicio:fi,fecha_fin:ff,consecutivo_inicial:ci,consecutivo_final:cf,punto_venta_id:pv});
+  closeMod();saveDB();renderCfg();toast('Resolución creada','ok');
+}
+function modalEditarRes(id){
+  const r=DB.config.resoluciones.find(x=>x.id===id);
+  if(!r)return;
+  const pvOpts=DB.config.puntos_venta.map(p=>'<option value="'+p.id+'" '+(p.id===r.punto_venta_id?'selected':'')+'>'+p.codigo+' — '+p.nombre+'</option>').join('');
+  openMod('<i class="ri-file-list-3-line"></i> Editar Resolución',
+    '<div class="ff2"><div class="ff"><label>N° Resolución</label><input id="cfgResNumE" value="'+r.numero+'"></div><div class="ff"><label>Prefijo</label><input id="cfgResPfE" value="'+r.prefijo+'"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Inicial</label><input type="number" id="cfgResCiE" value="'+r.consecutivo_inicial+'"></div><div class="ff"><label>Consecutivo Final</label><input type="number" id="cfgResCfE" value="'+r.consecutivo_final+'"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio</label><input id="cfgResFiE" value="'+r.fecha_inicio+'"></div><div class="ff"><label>Fecha Fin</label><input id="cfgResFfE" value="'+r.fecha_fin+'"></div></div><div class="ff"><label>Punto de Venta</label><select id="cfgResPvE">'+pvOpts+'</select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarRes(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarRes(id){
+  const r=DB.config.resoluciones.find(x=>x.id===id);
+  if(!r)return;
+  r.numero=$('cfgResNumE').value.trim()||r.numero;
+  r.prefijo=$('cfgResPfE').value.trim().toUpperCase()||r.prefijo;
+  r.consecutivo_inicial=parseInt($('cfgResCiE').value)||r.consecutivo_inicial;
+  r.consecutivo_final=parseInt($('cfgResCfE').value)||r.consecutivo_final;
+  r.fecha_inicio=$('cfgResFiE').value||r.fecha_inicio;
+  r.fecha_fin=$('cfgResFfE').value||r.fecha_fin;
+  r.punto_venta_id=$('cfgResPvE').value||r.punto_venta_id;
+  closeMod();saveDB();renderCfg();toast('Resolución actualizada','ok');
+}
+function eliminarRes(id){
+  if(!confirm('¿Eliminar resolución?'))return;
+  DB.config.resoluciones=DB.config.resoluciones.filter(x=>x.id!==id);
+  saveDB();renderCfg();toast('Resolución eliminada','ok');
+}
+
+/* ==================== 4. UNIDADES ==================== */
+function renderUnidades(){
+  const rows=DB.config.unidades.map(u=>`<tr><td><b>${u.codigo}</b></td><td>${u.nombre}</td><td>${u.tipo}</td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarUnidad('${u.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarUnidad('${u.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`).join('');
+  return '<h3><i class="ri-ruler-line" style="color:var(--rojo)"></i> Unidades de Medida</h3><div class="sub">Unidades base para productos. También puedes definir conversiones por producto desde el módulo de inventario.</div>'+
+    '<button class="btn btn-blue btn-sm" onclick="modalNuevaUnidad()" style="margin-bottom:10px"><i class="ri-add-line"></i> Nueva Unidad</button>'+
+    '<table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function modalNuevaUnidad(){
+  openMod('<i class="ri-ruler-line"></i> Nueva Unidad',
+    '<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgUndCod" placeholder="CAJ"></div><div class="ff"><label>Nombre *</label><input id="cfgUndNom" placeholder="Caja"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipo"><option value="unidad">Unidad</option><option value="peso">Peso</option><option value="volumen">Volumen</option><option value="longitud">Longitud</option></select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearUnidad()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearUnidad(){
+  const cod=$('cfgUndCod').value.trim().toUpperCase();
+  const nom=$('cfgUndNom').value.trim();
+  const tipo=$('cfgUndTipo').value;
+  if(!cod||!nom){toast('Completa código y nombre','warn');return}
+  if(DB.config.unidades.find(u=>u.codigo===cod)){toast('Ya existe una unidad con ese código','warn');return}
+  const id='und-'+(DB.config.unidades.length+1);
+  DB.config.unidades.push({id,codigo:cod,nombre:nom,tipo});
+  closeMod();saveDB();renderCfg();toast('Unidad creada','ok');
+}
+function modalEditarUnidad(id){
+  const u=DB.config.unidades.find(x=>x.id===id);
+  if(!u)return;
+  openMod('<i class="ri-ruler-line"></i> Editar Unidad',
+    '<div class="ff2"><div class="ff"><label>Código</label><input id="cfgUndCodE" value="'+u.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgUndNomE" value="'+u.nombre+'"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipoE"><option value="unidad" '+(u.tipo==='unidad'?'selected':'')+'>Unidad</option><option value="peso" '+(u.tipo==='peso'?'selected':'')+'>Peso</option><option value="volumen" '+(u.tipo==='volumen'?'selected':'')+'>Volumen</option><option value="longitud" '+(u.tipo==='longitud'?'selected':'')+'>Longitud</option></select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarUnidad(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarUnidad(id){
+  const u=DB.config.unidades.find(x=>x.id===id);
+  if(!u)return;
+  u.codigo=$('cfgUndCodE').value.trim().toUpperCase()||u.codigo;
+  u.nombre=$('cfgUndNomE').value.trim()||u.nombre;
+  u.tipo=$('cfgUndTipoE').value||u.tipo;
+  closeMod();saveDB();renderCfg();toast('Unidad actualizada','ok');
+}
+function eliminarUnidad(id){
+  if(!confirm('¿Eliminar unidad? Verifica que no esté en uso en productos.'))return;
+  DB.config.unidades=DB.config.unidades.filter(x=>x.id!==id);
+  saveDB();renderCfg();toast('Unidad eliminada','ok');
+}
+
+/* ==================== 5. CATEGORÍAS ==================== */
+function renderCategorias(){
+  const catRows=DB.config.categorias.map(c=>{
+    const sc=DB.config.subcategorias.filter(s=>s.categoria_id===c.id);
+    return `<tr><td><b>${c.nombre}</b></td><td>${c.descripcion||'—'}</td><td>${sc.length}</td><td><span class="badge ${c.activo?'bg':'bs'}">${c.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarCat('${c.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarCat('${c.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  }).join('');
+  const scRows=DB.config.subcategorias.map(s=>{
+    const cat=getCat(s.categoria_id);
+    return `<tr><td><b>${s.nombre}</b></td><td>${cat?cat.nombre:'—'}</td><td>${s.descripcion||'—'}</td><td><span class="badge ${s.activo?'bg':'bs'}">${s.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarSubcat('${s.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarSubcat('${s.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  }).join('');
+  return '<h3><i class="ri-grid-line" style="color:var(--rojo)"></i> Categorías y Subcategorías</h3><div class="sub">Clasificación de productos del inventario.</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevaCat()"><i class="ri-add-line"></i> Nueva Categoría</button><button class="btn btn-o btn-sm" onclick="modalNuevaSubcat()"><i class="ri-add-line"></i> Nueva Subcategoría</button></div>'+
+    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Categorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Descripción</th><th>Subcats</th><th>Estado</th><th></th></tr></thead><tbody>'+(catRows||'<tr><td colspan="5"><div class="empty-sm">Sin categorías</div></td></tr>')+'</tbody></table>'+
+    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Subcategorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Categoría</th><th>Descripción</th><th>Estado</th><th></th></tr></thead><tbody>'+(scRows||'<tr><td colspan="5"><div class="empty-sm">Sin subcategorías</div></td></tr>')+'</tbody></table>';
+}
+function modalNuevaCat(){
+  openMod('<i class="ri-grid-line"></i> Nueva Categoría',
+    '<div class="ff"><label>Nombre *</label><input id="cfgCatNom" placeholder="Ej: Pisos"></div><div class="ff"><label>Descripción</label><input id="cfgCatDesc" placeholder="Pisos cerámicos y porcelanatos"></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearCat()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearCat(){
+  const nom=$('cfgCatNom').value.trim();
+  if(!nom){toast('Ingresa el nombre de la categoría','warn');return}
+  if(DB.config.categorias.find(c=>c.nombre.toLowerCase()===nom.toLowerCase())){toast('Ya existe una categoría con ese nombre','warn');return}
+  const id='cat-'+(DB.config.categorias.length+1);
+  DB.config.categorias.push({id,nombre:nom,descripcion:$('cfgCatDesc').value.trim(),activo:true});
+  closeMod();saveDB();renderCfg();toast('Categoría creada','ok');
+}
+function modalEditarCat(id){
+  const c=DB.config.categorias.find(x=>x.id===id);
+  if(!c)return;
+  openMod('<i class="ri-grid-line"></i> Editar Categoría',
+    '<div class="ff"><label>Nombre</label><input id="cfgCatNomE" value="'+c.nombre+'"></div><div class="ff"><label>Descripción</label><input id="cfgCatDescE" value="'+(c.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgCatActE"><option value="true" '+(c.activo?'selected':'')+'>Sí</option><option value="false" '+(!c.activo?'selected':'')+'>No</option></select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarCat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarCat(id){
+  const c=DB.config.categorias.find(x=>x.id===id);
+  if(!c)return;
+  c.nombre=$('cfgCatNomE').value.trim()||c.nombre;
+  c.descripcion=$('cfgCatDescE').value.trim();
+  c.activo=$('cfgCatActE').value==='true';
+  closeMod();saveDB();renderCfg();toast('Categoría actualizada','ok');
+}
+function eliminarCat(id){
+  if(DB.config.subcategorias.some(s=>s.categoria_id===id)){toast('No se puede eliminar: tiene subcategorías asociadas','err');return}
+  if(!confirm('¿Eliminar categoría?'))return;
+  DB.config.categorias=DB.config.categorias.filter(x=>x.id!==id);
+  saveDB();renderCfg();toast('Categoría eliminada','ok');
+}
+function modalNuevaSubcat(){
+  const catOpts=DB.config.categorias.filter(c=>c.activo).map(c=>'<option value="'+c.id+'">'+c.nombre+'</option>').join('');
+  openMod('<i class="ri-grid-line"></i> Nueva Subcategoría',
+    '<div class="ff"><label>Nombre *</label><input id="cfgScNom" placeholder="Ej: Piso Cerámico"></div><div class="ff"><label>Categoría Padre *</label><select id="cfgScCat">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDesc" placeholder="Pisos en cerámica esmaltada"></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearSubcat()"><i class="ri-check-line"></i> Crear</button>'
+  );
+}
+function crearSubcat(){
+  const nom=$('cfgScNom').value.trim();
+  const cat=$('cfgScCat').value;
+  if(!nom||!cat){toast('Completa nombre y categoría','warn');return}
+  const id='scat-'+(DB.config.subcategorias.length+1);
+  DB.config.subcategorias.push({id,nombre:nom,categoria_id:cat,descripcion:$('cfgScDesc').value.trim(),activo:true});
+  closeMod();saveDB();renderCfg();toast('Subcategoría creada','ok');
+}
+function modalEditarSubcat(id){
+  const s=DB.config.subcategorias.find(x=>x.id===id);
+  if(!s)return;
+  const catOpts=DB.config.categorias.map(c=>'<option value="'+c.id+'" '+(c.id===s.categoria_id?'selected':'')+'>'+c.nombre+'</option>').join('');
+  openMod('<i class="ri-grid-line"></i> Editar Subcategoría',
+    '<div class="ff"><label>Nombre</label><input id="cfgScNomE" value="'+s.nombre+'"></div><div class="ff"><label>Categoría Padre</label><select id="cfgScCatE">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDescE" value="'+(s.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgScActE"><option value="true" '+(s.activo?'selected':'')+'>Sí</option><option value="false" '+(!s.activo?'selected':'')+'>No</option></select></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarSubcat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarSubcat(id){
+  const s=DB.config.subcategorias.find(x=>x.id===id);
+  if(!s)return;
+  s.nombre=$('cfgScNomE').value.trim()||s.nombre;
+  s.categoria_id=$('cfgScCatE').value||s.categoria_id;
+  s.descripcion=$('cfgScDescE').value.trim();
+  s.activo=$('cfgScActE').value==='true';
+  closeMod();saveDB();renderCfg();toast('Subcategoría actualizada','ok');
+}
+function eliminarSubcat(id){
+  if(DB.productos.some(p=>p.subcategoria_id===id)){toast('No se puede eliminar: tiene productos asociados','err');return}
+  if(!confirm('¿Eliminar subcategoría?'))return;
+  DB.config.subcategorias=DB.config.subcategorias.filter(x=>x.id!==id);
+  saveDB();renderCfg();toast('Subcategoría eliminada','ok');
+}
+
+/* ==================== 6. GENERAL ==================== */
+function renderGeneral(){
+  const g=DB.config.general;
+  return '<h3><i class="ri-settings-4-line" style="color:var(--rojo)"></i> Parametrización General</h3><div class="sub">Configuración global del sistema. Afecta encabezados de documentos, cálculos de impuestos y formato.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
+    '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Empresa</h4><div class="ff"><label>Nombre de la Empresa</label><input id="cfgGEmp" value="'+g.empresa+'"></div><div class="ff"><label>NIT</label><input id="cfgGNit" value="'+g.nit+'"></div><div class="ff2"><div class="ff"><label>Dirección</label><input id="cfgGDir" value="'+g.direccion+'"></div><div class="ff"><label>Teléfono</label><input id="cfgGTel" value="'+g.telefono+'"></div></div></div>'+
+    '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Parámetros</h4><div class="ff"><label>Moneda por defecto</label><select id="cfgGMon"><option value="COP" selected>COP (Peso Colombiano)</option><option value="USD">USD (Dólar)</option></select></div><div class="ff"><label>IVA (%)</label><input type="number" id="cfgGIva" value="'+g.iva+'" min="0" max="100"></div><div class="ff2"><div class="ff"><label>Decimales en cantidades</label><select id="cfgGDec"><option value="0" '+(g.decimales===0?'selected':'')+'>0</option><option value="1" '+(g.decimales===1?'selected':'')+'>1</option><option value="2" '+(g.decimales===2?'selected':'')+'>2</option></select></div><div class="ff"><label>Formato de fecha</label><select id="cfgGFec"><option value="DD/MM/AAAA" '+(g.fecha==='DD/MM/AAAA'?'selected':'')+'>DD/MM/AAAA</option><option value="MM/DD/AAAA" '+(g.fecha==='MM/DD/AAAA'?'selected':'')+'>MM/DD/AAAA</option><option value="AAAA-MM-DD" '+(g.fecha==='AAAA-MM-DD'?'selected':'')+'>AAAA-MM-DD</option></select></div></div></div>'+
+    '</div>'+
+    '<button class="btn btn-blue btn-sm" onclick="guardarGeneral()" style="margin-top:14px"><i class="ri-check-line"></i> Guardar Configuración General</button>';
+}
+function guardarGeneral(){
+  const g=DB.config.general;
+  g.empresa=$('cfgGEmp').value.trim()||g.empresa;
+  g.nit=$('cfgGNit').value.trim()||g.nit;
+  g.direccion=$('cfgGDir').value.trim()||g.direccion;
+  g.telefono=$('cfgGTel').value.trim()||g.telefono;
+  g.iva=parseFloat($('cfgGIva').value)||g.iva;
+  g.decimales=parseInt($('cfgGDec').value)||g.decimales;
+  g.fecha=$('cfgGFec').value||g.fecha;
+  saveDB();renderCfg();toast('Configuración general guardada','ok');
+}
+
+renderCfg();
+</script>
+</body>
+</html>

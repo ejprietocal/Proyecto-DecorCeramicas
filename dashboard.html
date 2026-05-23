@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=6">
 </head>
 <body>
 <div id="screen-app" class="screen active">
@@ -255,6 +255,58 @@ $('pg').innerHTML=function(){
             </div>
           </div>
 
+        </div>
+
+        <!-- Facturación modules -->
+        <div class="grid" style="margin-bottom:20px">
+          <div class="card c12">
+            <div class="ch">
+              <div class="ct"><i class="ri-file-list-3-line" style="color:var(--rojo)"></i> Módulos de Facturación</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+              <a href="facturas.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--link);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-file-list-3-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Facturación</div>
+                <div class="stat-l">Facturas Venta/Compra</div>
+              </a>
+              <a href="notas.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--warn-txt);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-swap-2-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Notas</div>
+                <div class="stat-l">Crédito / Débito</div>
+              </a>
+              <a href="cotizaciones.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--success-txt);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-file-text-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Cotizaciones</div>
+                <div class="stat-l">Proformas y presupuestos</div>
+              </a>
+              <a href="remisiones.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--info-txt);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-truck-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Remisiones</div>
+                <div class="stat-l">Albaranes y traslados</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuración module -->
+        <div class="grid" style="margin-bottom:20px">
+          <div class="card c12">
+            <div class="ch">
+              <div class="ct"><i class="ri-settings-3-line" style="color:var(--rojo)"></i> Configuración del Sistema</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+              <a href="configuracion.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--link);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-settings-3-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Configuración</div>
+                <div class="stat-l">Parámetros del sistema</div>
+              </a>
+              <a href="usuarios.html" class="stat" style="text-decoration:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="stat-ic" style="background:var(--success-txt);width:32px;height:32px;font-size:14px;margin-bottom:6px"><i class="ri-shield-user-line"></i></div>
+                <div class="stat-n" style="font-size:16px">Usuarios</div>
+                <div class="stat-l">Roles y permisos</div>
+              </a>
+            </div>
+          </div>
         </div>
 
         <!-- Lower Grid (Latest movements & Critical stock alerts) -->

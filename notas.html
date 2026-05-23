@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Notas Crédito/Débito</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=6">
+<style>
+.n-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.n-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
+.n-card:hover{box-shadow:0 2px 14px rgba(0,0,0,.06)}
+.n-card-h.t-credito{background:var(--success-bg)}
+.n-card-h.t-debito{background:var(--danger-bg)}
+.n-card-h{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--neutral-bg)}
+.n-card-id{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px}
+.n-card-id small{font-size:10px;font-weight:500;color:var(--mut)}
+.n-card-b{padding:10px 16px}
+.n-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px dashed var(--line)}
+.n-row:last-child{border-bottom:none}
+.n-card-f{padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.n-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.n-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.n-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.n-bar-n{font-size:18px;font-weight:800;color:var(--ink);line-height:1.1}
+.n-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.n-tipos{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.n-tipo{padding:5px 11px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:11px;font-weight:600;color:var(--mut);transition:.12s;white-space:nowrap}
+.n-tipo:hover{border-color:var(--line-m);background:var(--bg)}
+.n-tipo.sel{background:var(--rojo-l);border-color:var(--rojo);color:var(--rojo)}
+@media(max-width:860px){.n-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('notas');
+
+let nFiltro='todas',nBusq='';
+
+function renderNotas(){
+  const notas=DB.notas_credito_debito;
+  const q=nBusq.toLowerCase();
+  let items=notas;
+  if(nFiltro!=='todas')items=items.filter(n=>n.tipo===nFiltro);
+  if(q)items=items.filter(n=>n.numero.toLowerCase().includes(q)||n.facturaOrigen.toLowerCase().includes(q)||(n.motivo||'').toLowerCase().includes(q));
+
+  const counts={credito:0,debito:0};
+  notas.forEach(n=>{if(counts[n.tipo]!==undefined)counts[n.tipo]++});
+  const totalCred=notas.filter(n=>n.tipo==='credito'&&n.tipoAfectacion==='resta').reduce((s,n)=>s+n.valor,0);
+  const totalDeb=notas.filter(n=>n.tipo==='debito'&&n.tipoAfectacion==='suma').reduce((s,n)=>s+n.valor,0);
+
+  const bar='<div class="n-bar">'+[
+    {ic:'ri-add-circle-line',cl:'#16A34A',l:'Créditos',v:counts.credito},
+    {ic:'ri-subtract-line',cl:'#EF4444',l:'Débitos',v:counts.debito},
+    {ic:'ri-arrow-up-circle-line',cl:'#16A34A',l:'Total Créditos $',v:money(totalCred)},
+    {ic:'ri-arrow-down-circle-line',cl:'#EF4444',l:'Total Débitos $',v:money(totalDeb)}
+  ].map(b=>'<div class="n-bar-item"><div class="n-bar-ic" style="background:'+b.cl+'"><i class="'+b.ic+'"></i></div><div><div class="n-bar-n">'+(typeof b.v==='number'?b.v:b.v)+'</div><div class="n-bar-l">'+b.l+'</div></div></div>').join('')+'</div>';
+
+  const tipos=['todas','credito','debito'].map(e=>'<span class="n-tipo '+(nFiltro===e?'sel t-'+e:'')+'" onclick="nFiltro=\''+e+'\';renderNotas()">'+({todas:'Todas',credito:'Crédito',debito:'Débito'})[e]+' <span style="font-size:10px;opacity:.7">'+(e==='todas'?notas.length:counts[e]||0)+'</span></span>').join('');
+
+  const cards=items.map(n=>{
+    const tipoIc=n.tipo==='credito'?'ri-add-circle-line':'ri-subtract-line';
+    const afectLabel=n.tipoAfectacion==='suma'?'Suma':'Resta';
+    return '<div class="n-card"><div class="n-card-h t-'+n.tipo+'"><div><div class="n-card-id"><i class="'+tipoIc+'" style="color:'+(n.tipo==='credito'?'var(--success-txt)':'var(--danger-txt)')+'"></i>'+n.numero+' <small>'+n.fecha+'</small></div></div><span class="badge '+(n.tipo==='credito'?'bg':'br')+'">'+ndTipoLabel(n.tipo)+'</span></div><div class="n-card-b"><div class="n-row"><span>Factura origen</span><b>'+n.facturaOrigen+'</b></div><div class="n-row"><span>Motivo</span><b>'+n.motivo+'</b></div><div class="n-row"><span>Afectación</span><b>'+afectLabel+'</b></div><div class="n-row" style="font-size:15px;font-weight:700;color:'+(n.tipoAfectacion==='suma'?'var(--danger-txt)':'var(--success-txt)')+'"><span>Valor</span><b>'+money(n.valor)+'</b></div></div></div>';
+  }).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ri-swap-2-line"></i><h3>Sin notas crédito/débito</h3><p>Crea la primera nota vinculada a una factura.</p></div>';
+
+  const body='<div class="page th-notas"><div class="hero"><div class="hero-ic"><i class="ri-swap-2-line"></i></div><h1>Notas Crédito / Débito</h1><p>Ajustes financieros vinculados a facturas de venta o compra.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaNota()"><i class="ri-add-line"></i> Nueva Nota</button></div></div><div class="body">'+bar+'<div class="c-top">'+tipos+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar número, factura o motivo..." value="'+nBusq+'" oninput="nBusq=this.value;renderNotas()">'+(nBusq?'<button class="btn btn-o btn-sm" onclick="nBusq=\'\';renderNotas()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="n-grid">'+cards+'</div></div></div>';
+  $('pg').innerHTML=body;
+}
+
+function modalNuevaNota(){
+  const fvOpts=DB.facturas_venta.map(f=>'<option value="'+f.numero+'">'+f.numero+' — '+getCliente(f.clienteId).n+' ('+money(f.total)+')</option>').join('');
+  const fcOpts=DB.facturas_compra.map(f=>'<option value="'+f.numero+'">'+f.numero+' — '+getProv(f.proveedorId).n+' ('+money(f.total)+')</option>').join('');
+  const allFacts=fvOpts+fcOpts;
+  openMod('<i class="ri-swap-2-line"></i> Nueva Nota',
+    '<div class="ff"><label>Tipo</label><select id="ndTipo"><option value="credito">Crédito (descuento/devolución)</option><option value="debito">Débito (cargo adicional)</option></select></div><div class="ff"><label>Factura origen</label><select id="ndFactura"><option value="">— Selecciona —</option>'+allFacts+'</select></div><div class="ff"><label>Tipo de afectación</label><select id="ndAfect"><option value="resta">Resta (disminuye saldo)</option><option value="suma">Suma (aumenta saldo)</option></select></div><div class="ff"><label>Motivo</label><input id="ndMotivo" placeholder="Ej: Devolución de mercancía, descuento comercial..."></div><div class="ff"><label>Valor ($)</label><input type="number" id="ndValor" min="1" placeholder="0"></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearNota()"><i class="ri-check-line"></i> Emitir Nota</button>'
+  );
+}
+
+function crearNota(){
+  const tipo=$('ndTipo').value;
+  const factura=$('ndFactura').value;
+  const afect=$('ndAfect').value;
+  const motivo=$('ndMotivo').value.trim();
+  const valor=parseInt($('ndValor').value);
+  if(!factura){toast('Selecciona una factura origen','warn');return}
+  if(!motivo){toast('Ingresa un motivo','warn');return}
+  if(isNaN(valor)||valor<=0){toast('Ingresa un valor válido','warn');return}
+  const num='ND-'+ND_SEQ++;
+  DB.notas_credito_debito.unshift({
+    numero:num,fecha:now().split(' ')[0],tipo,facturaOrigen:factura,
+    motivo,valor,tipoAfectacion:afect
+  });
+  closeMod();saveDB();renderNotas();toast('Nota '+num+' emitida.','ok');
+}
+
+renderNotas();
+</script>
+</body>
+</html>

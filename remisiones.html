@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Remisiones / Albaranes</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=6">
+<style>
+.rm-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.rm-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.rm-bar-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.rm-bar-n{font-size:18px;font-weight:800;color:var(--ink);line-height:1.1}
+.rm-bar-l{font-size:10px;color:var(--mut);font-weight:500}
+.rm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.rm-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s;border-left:4px solid}
+.rm-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.rm-card.st-pendiente{border-left-color:var(--warn-txt)}
+.rm-card.st-en_proceso{border-left-color:var(--info-txt)}
+.rm-card.st-despachada{border-left-color:var(--success-txt)}
+.rm-card.st-entregada{border-left-color:var(--slate)}
+.rm-card-h{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--neutral-bg)}
+.rm-card-id{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px}
+.rm-card-id small{font-size:10px;font-weight:500;color:var(--mut)}
+.rm-card-info{font-size:10.5px;color:var(--mut);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rm-card-info i{font-size:12px}
+.rm-card-b{padding:10px 16px}
+.rm-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:var(--bg);margin-bottom:3px;font-size:12px}
+.rm-item:last-child{margin-bottom:0}
+.rm-item-info{flex:1;min-width:0}
+.rm-item-n{font-weight:600;color:var(--ink)}
+.rm-item-sku{font-size:10px;color:var(--mut);font-family:monospace}
+.rm-item-q{font-weight:700;color:var(--ink);white-space:nowrap}
+.rm-card-f{padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rm-card-f .btn{padding:5px 10px;font-size:10.5px}
+.rm-stepper{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.rm-step{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--ph);white-space:nowrap}
+.rm-step.done{color:var(--success-txt)}
+.rm-step.active{color:var(--link)}
+.rm-step i{font-size:14px}
+.rm-step-line{width:20px;height:2px;background:var(--line);flex-shrink:0}
+.rm-step.done+.rm-step-line{background:var(--success-txt)}
+@media(max-width:860px){.rm-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('remisiones');
+
+let rmFiltro='todas',rmBusq='';
+
+function renderRms(){
+  const rms=DB.remisiones;
+  const q=rmBusq.toLowerCase();
+  let items=rms;
+  if(rmFiltro!=='todas')items=items.filter(r=>r.estado===rmFiltro);
+  if(q)items=items.filter(r=>r.numero.toLowerCase().includes(q)||r.occRef.toLowerCase().includes(q)||r.transportador.toLowerCase().includes(q)||r.bodega.toLowerCase().includes(q));
+
+  const counts={pendiente:0,en_proceso:0,despachada:0,entregada:0};
+  rms.forEach(r=>{if(counts[r.estado]!==undefined)counts[r.estado]++});
+
+  const bar='<div class="rm-bar">'+[
+    {ic:'ri-time-line',cl:'#D97706',l:'Pendientes',v:counts.pendiente},
+    {ic:'ri-refresh-line',cl:'#0284C7',l:'En Proceso',v:counts.en_proceso},
+    {ic:'ri-truck-line',cl:'#16A34A',l:'Despachadas',v:counts.despachada},
+    {ic:'ri-checkbox-circle-line',cl:'#64748B',l:'Entregadas',v:counts.entregada}
+  ].map(b=>'<div class="rm-bar-item"><div class="rm-bar-ic" style="background:'+b.cl+'"><i class="'+b.ic+'"></i></div><div><div class="rm-bar-n">'+b.v+'</div><div class="rm-bar-l">'+b.l+'</div></div></div>').join('')+'</div>';
+
+  const pills=['todas','pendiente','en_proceso','despachada','entregada'].map(e=>'<span class="p-pill '+(rmFiltro===e?'sel':'')+'" onclick="rmFiltro=\''+e+'\';renderRms()">'+({todas:'Todas',pendiente:'Pendientes',en_proceso:'En Proceso',despachada:'Despachadas',entregada:'Entregadas'})[e]+' <span style="font-size:10px;opacity:.7">'+(e==='todas'?rms.length:counts[e]||0)+'</span></span>').join('');
+
+  const stepsMap={pendiente:[1,0,0,0],en_proceso:[1,1,0,0],despachada:[1,1,1,0],entregada:[1,1,1,1]};
+  const stepLabels=['Creada','En Proceso','Despachada','Entregada'];
+
+  const cards=items.map(r=>{
+    const itemsHtml=r.items.map(it=>'<div class="rm-item"><div class="rm-item-info"><div class="rm-item-n">'+it.n+'</div><div class="rm-item-sku">'+it.sku+'</div></div><div class="rm-item-q">'+fmt(it.cant)+' '+it.u+'</div></div>').join('');
+    const st=stepsMap[r.estado]||[0,0,0,0];
+    const stepperHtml='<div class="rm-stepper">'+stepLabels.map((l,i)=>'<span class="rm-step '+(st[i]===1&&r.estado!==['pendiente','en_proceso','despachada','entregada'][i]?'done':r.estado===['pendiente','en_proceso','despachada','entregada'][i]?'active':'')+'"><i class="ri-'+['file-list-3-line','refresh-line','truck-line','checkbox-circle-line'][i]+'"></i>'+l+'</span>'+(i<3?'<span class="rm-step-line"></span>':'')).join('')+'</div>';
+    let acc='';
+    if(r.estado==='pendiente'){
+      acc='<button class="btn btn-blue btn-sm" onclick="iniciarProceso(\''+r.numero+'\')"><i class="ri-refresh-line"></i> Enviar a Bodega</button>';
+    }else if(r.estado==='en_proceso'){
+      const pdRef=r.pedidoId?'<a href="pedidos.html" class="btn btn-o btn-sm" title="Ver en Pedidos"><i class="ri-send-plane-line"></i> '+r.pedidoId+'</a>':'';
+      acc=pdRef+'<button class="btn btn-orange btn-sm" onclick="despacharRem(\''+r.numero+'\')"><i class="ri-truck-line"></i> Despachar</button>';
+    }else if(r.estado==='despachada'){
+      acc='<button class="btn btn-green btn-sm" onclick="entregarRem(\''+r.numero+'\')"><i class="ri-check-line"></i> Marcar Entregada</button>';
+    }else{
+      const fv=DB.facturas_venta.find(f=>f.remisionOrigen===r.numero);
+      acc=fv?'<span class="badge bg" style="font-size:10px"><i class="ri-file-list-3-line"></i> Factura: '+fv.numero+'</span>':'<span class="badge bg" style="font-size:10px"><i class="ri-checkbox-circle-line"></i> Entregada</span>';
+    }
+    return '<div class="rm-card st-'+r.estado+'"><div class="rm-card-h"><div><div class="rm-card-id">'+r.numero+' <small>'+r.fechaOrigen+'</small></div><div class="rm-card-info"><i class="ri-file-list-3-line"></i> OC: '+r.occRef+' <i class="ri-user-line"></i> '+r.transportador+' <i class="ri-calendar-line"></i> Est.: '+r.fechaEntregaEst+'</div></div><span class="badge '+rmEstBadge(r.estado)+'">'+rmEstLabel(r.estado)+'</span></div>'+stepperHtml+'<div class="rm-card-b"><div class="rm-card-info" style="margin-bottom:6px;font-size:11px"><i class="ri-store-2-line"></i> Bodega: <b>'+r.bodega+'</b> | <i class="ri-user-line"></i> '+r.cliente+'</div>'+itemsHtml+'</div><div class="rm-card-f">'+acc+'</div></div>';
+  }).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ri-truck-line"></i><h3>Sin remisiones</h3><p>Crea una remisión desde una Orden de Compra de Cliente.</p></div>';
+
+  const body='<div class="page th-remisiones"><div class="hero"><div class="hero-ic"><i class="ri-truck-line"></i></div><h1>Remisiones / Albaranes</h1><p>Documento de traslado físico — Flujo: Pendiente → En Proceso → Despachada → Entregada. Al entregar, se genera la factura automáticamente.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaRem()"><i class="ri-add-line"></i> Nueva Remisión</button></div></div><div class="body">'+bar+'<div class="c-top">'+pills+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar remisión, OC, transportador..." value="'+rmBusq+'" oninput="rmBusq=this.value;renderRms()">'+(rmBusq?'<button class="btn btn-o btn-sm" onclick="rmBusq=\'\';renderRms()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="rm-grid">'+cards+'</div></div></div>';
+  $('pg').innerHTML=body;
+}
+
+function modalNuevaRem(){
+  const occs=DB.ordenes_compra_cliente.filter(o=>o.estado==='pendiente'||o.estado==='aprobada');
+  if(!occs.length){toast('No hay OC de Cliente pendientes para remitir','warn');return}
+  const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'">'+b.n+' ('+b.id+')</option>').join('');
+  const occOpts=occs.map(o=>'<option value="'+o.id+'">'+o.id+' — '+o.cliente+' ('+money(o.total)+')</option>').join('');
+  openMod('<i class="ri-truck-line"></i> Nueva Remisión',
+    '<div class="note warn"><i class="ri-alert-line"></i> Al crear la remisión, el stock se <b>congela</b> automáticamente en la bodega seleccionada para garantizar la disponibilidad.</div><div class="ff"><label>OC de Cliente</label><select id="rmOCC" onchange="cargarItemsOCC()"><option value="">— Selecciona —</option>'+occOpts+'</select></div><div class="ff"><label>Bodega de Despacho</label><select id="rmBg">'+bgOpts+'</select></div><div class="ff2"><div><label>Fecha Origen</label><input id="rmFecO" value="'+now().split(' ')[0]+'"></div><div><label>Fecha Entrega Est.</label><input id="rmFecE" value="'+now().split(' ')[0]+'"></div></div><div class="ff"><label>Transportador</label><input id="rmTransp" placeholder="Nombre del transportador"></div><div class="ff"><label>Items a remitir</label><div id="rmItemsPreview" style="font-size:12px;color:var(--mut);padding:10px;background:var(--bg);border-radius:8px">Selecciona una OC para ver los items</div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearRem()"><i class="ri-check-line"></i> Generar Remisión</button>'
+  );
+}
+
+function cargarItemsOCC(){
+  const oid=$('rmOCC').value;
+  const el=$('rmItemsPreview');
+  if(!oid){el.innerHTML='Selecciona una OC para ver los items';return}
+  const occ=DB.ordenes_compra_cliente.find(o=>o.id===oid);
+  if(!occ){el.innerHTML='OC no encontrada';return}
+  el.innerHTML='<div style="font-weight:600;color:var(--ink);margin-bottom:6px">'+occ.cliente+' — '+occ.id+'</div>'+
+    occ.items.map(it=>{
+      const bg=$('rmBg').value;
+      const stockDisp=bg?stockBodega(bg,it.sku):0;
+      return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line)"><span>'+it.n+' <small>('+it.sku+')</small></span><span>'+fmt(it.cant)+' '+it.u+' <small style="color:'+(stockDisp>=it.cant?'var(--success-txt)':'var(--danger-txt)')+'">Stock: '+fmt(stockDisp)+'</small></span></div>';
+    }).join('')+
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;color:var(--ink);margin-top:4px"><span>Total</span><span>'+money(occ.total)+'</span></div>';
+}
+
+function crearRem(){
+  const oid=$('rmOCC').value;
+  const bg=$('rmBg').value;
+  const fecO=$('rmFecO').value;
+  const fecE=$('rmFecE').value;
+  const transp=$('rmTransp').value.trim();
+  if(!oid){toast('Selecciona una OC de Cliente','warn');return}
+  if(!transp){toast('Ingresa el transportador','warn');return}
+  if(!bg){toast('Selecciona la bodega de despacho','warn');return}
+  const occ=DB.ordenes_compra_cliente.find(o=>o.id===oid);
+  if(!occ)return;
+  const num='RM-'+RM_SEQ++;
+  const items=occ.items.map(i=>({sku:i.sku,n:i.n,cant:i.cant,u:i.u,precioUnit:i.precioUnit}));
+  DB.remisiones.unshift({
+    numero:num,occRef:oid,cliente:occ.cliente,
+    fechaOrigen:fecO,fechaEntregaEst:fecE,
+    bodega:bg,
+    items,transportador:transp,estado:'pendiente'
+  });
+  occ.estado='remisionada';
+  closeMod();saveDB();renderRms();
+  simularEnvioEmail('remision',{
+    destinatario:occ.cliente,
+    numero:num,
+    total:occ.total,
+    items:occ.items,
+    origen:'OC '+oid,
+    transportador:transp,
+    bodega:bg
+  });
+  toast('Remisión '+num+' generada desde '+oid+'.','ok');
+}
+
+function iniciarProceso(num){
+  if(!confirm('¿Enviar remisión '+num+' a la bodega para despacho? Se creará una orden de venta en el módulo de Pedidos.'))return
+  const r=DB.remisiones.find(x=>x.numero===num);
+  if(!r)return;
+  r.estado='en_proceso';
+  r.pedidoId='PD-'+PD_SEQ++;
+  const items=r.items.map(i=>({sku:i.sku,cant:i.cant,bodega:r.bodega,asig:i.cant,falt:0,entregado:0}));
+  DB.pedidos.unshift({
+    id:r.pedidoId,cliente:r.cliente+' (OC: '+r.occRef+')',fecha:r.fechaOrigen,
+    estado:'pendiente',despPor:null,items,remisionOrigen:r.numero
+  });
+  saveDB();renderRms();toast('Remisión '+num+' enviada a bodega. Pedido '+r.pedidoId+' creado en Pedidos.','ok');
+}
+
+function despacharRem(num){
+  if(!confirm('¿Despachar remisión '+num+'?'))return
+  const r=DB.remisiones.find(x=>x.numero===num);
+  if(!r)return;
+  r.estado='despachada';
+  saveDB();renderRms();toast('Remisión '+num+' despachada. Stock ya congelado previamente.','ok');
+}
+
+function entregarRem(num){
+  if(!confirm('¿Marcar remisión '+num+' como entregada? Se generará la factura automáticamente.'))return
+  const r=DB.remisiones.find(x=>x.numero===num);
+  if(!r)return;
+  r.estado='entregada';
+  const subtotal=r.items.reduce((s,i)=>s+i.cant*(i.precioUnit||0),0);
+  const iva=Math.round(subtotal*0.19);
+  const total=subtotal+iva;
+  const fvNum='FV-'+FV_SEQ++;
+  DB.facturas_venta.unshift({
+    numero:fvNum,fecha:now().split(' ')[0],
+    clienteId:null,clienteNombre:r.cliente,
+    remisionOrigen:num,occRef:r.occRef,
+    subtotal,iva,total,estado:'emitida',archivoPdf:'facturas/'+fvNum+'.pdf'
+  });
+  saveDB();renderRms();
+  simularEnvioEmail('factura',{
+    destinatario:r.cliente,
+    numero:fvNum,
+    total:total,
+    items:r.items,
+    origen:'Remisión '+num,
+    subtotal:subtotal,
+    iva:iva
+  });
+  toast('Remisión '+num+' entregada. Factura '+fvNum+' generada y enviada al cliente.','ok');
+}
+
+renderRms();
+</script>
+</body>
+</html>

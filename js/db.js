@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=5;
+const DB_VER=8;
 
 const DB={
   bodegas:[
@@ -72,6 +72,16 @@ const DB={
     {id:'PR-01',n:'Cerámica Nariño',   cat:'Pisos y revestimientos',ciudad:'Ipiales',contacto:'Luis Erazo',  tel:'315 442 1180',calif:4.6,estado:'Activo'},
     {id:'PR-02',n:'Pegantes del Sur',  cat:'Adhesivos y morteros',  ciudad:'Pasto',  contacto:'Marta Ruiz',  tel:'320 778 0094',calif:4.2,estado:'Activo'},
     {id:'PR-03',n:'Hidro Import',      cat:'Grifería',              ciudad:'Cali',   contacto:'Andrés Polo', tel:'301 556 7723',calif:3.8,estado:'Observado'}
+  ],
+  clientes:[
+    {id:'CL-01',n:'Ferretería Central',        ciudad:'Pasto',     tel:'300 111 2233',contacto:'Pedro Martínez'},
+    {id:'CL-02',n:'Pisos Ipiales Ltda',        ciudad:'Ipiales',   tel:'301 222 3344',contacto:'Ana Benavides'},
+    {id:'CL-03',n:'Consorcio Vial Nariño',     ciudad:'Tumaco',    tel:'302 333 4455',contacto:'Carlos Pinto'},
+    {id:'CL-04',n:'Cerámicas del Norte',       ciudad:'Bogotá',    tel:'310 444 5566',contacto:'Lucía Ramírez'},
+    {id:'CL-05',n:'Constructora Ipiales',      ciudad:'Ipiales',   tel:'315 555 6677',contacto:'Jorge Narváez'},
+    {id:'CL-06',n:'Remodelaciones Sur',        ciudad:'Pasto',     tel:'320 666 7788',contacto:'Sofía Torres'},
+    {id:'CL-07',n:'Hogar & Diseño',            ciudad:'Cali',      tel:'322 777 8899',contacto:'Mariana López'},
+    {id:'CL-08',n:'Distribuidora Cerámica SAS',ciudad:'Bogotá',    tel:'311 888 9900',contacto:'Fernando Vega'}
   ],
   compras:function(){
     const provs=['PR-01','PR-02','PR-03'];
@@ -174,9 +184,64 @@ const DB={
     {lote:'L-PE-0019',prod:'Pintura Epóxica Piso',        sku:'',          cant:'6 galones',bodega:'BGC',vence:'01/08/2026',dias:73},
     {lote:'L-AD-0118',prod:'Adhesivo Flexiblanco 20kg',   sku:'',          cant:'25 sacos', bodega:'BGA',vence:'10/09/2026',dias:113},
     {lote:'L-MO-0067',prod:'Mortero Pegacor 25kg',        sku:'MO-PEG-25', cant:'55 sacos', bodega:'BGB',vence:'05/10/2026',dias:138}
-  ]
+  ],
+  facturas_venta:[],
+  facturas_compra:[],
+  notas_credito_debito:[],
+  cotizaciones:[],
+  ordenes_compra_cliente:[],
+  remisiones:[],
+  config:{
+    general:{moneda:'COP',iva:19,decimales:2,fecha:'DD/MM/AAAA',empresa:'Decorcerámica SAS',nit:'900.123.456-7',direccion:'Cra 50 #15-20, Ipiales, Nariño',telefono:'+57 318 123 4567'},
+    prefijos:[
+      {id:'pf-nc',tipo:'nota_credito',prefijo:'NC-',consecutivo_inicial:1,consecutivo_actual:1,activo:true},
+      {id:'pf-nd',tipo:'nota_debito',prefijo:'ND-',consecutivo_inicial:1,consecutivo_actual:1,activo:true},
+      {id:'pf-fe',tipo:'factura_electronica',prefijo:'FE-',consecutivo_inicial:1,consecutivo_actual:1,vigencia_desde:'01/01/2026',vigencia_hasta:'31/12/2026',rango_desde:1,rango_hasta:9999,activo:true},
+      {id:'pf-ds',tipo:'documento_soporte',prefijo:'DS-',consecutivo_inicial:1,consecutivo_actual:1,activo:true}
+    ],
+    puntos_venta:[
+      {id:'PV-001',codigo:'001',nombre:'Punto de Venta Principal',bodega_id:'BGA',activo:true},
+      {id:'PV-002',codigo:'002',nombre:'Punto de Venta Secundario',bodega_id:'BGB',activo:true}
+    ],
+    resoluciones:[
+      {id:'RES-001',numero:'187600000001',fecha_inicio:'01/01/2026',fecha_fin:'31/12/2026',prefijo:'FE',consecutivo_inicial:1,consecutivo_final:9999,punto_venta_id:'PV-001'}
+    ],
+    unidades:[
+      {id:'und-1',codigo:'UN',nombre:'Unidad',tipo:'unidad'},
+      {id:'und-2',codigo:'CAJ',nombre:'Caja',tipo:'unidad'},
+      {id:'und-3',codigo:'M',nombre:'Metro',tipo:'longitud'},
+      {id:'und-4',codigo:'KG',nombre:'Kilo',tipo:'peso'},
+      {id:'und-5',codigo:'L',nombre:'Litro',tipo:'volumen'},
+      {id:'und-6',codigo:'G',nombre:'Gramo',tipo:'peso'},
+      {id:'und-7',codigo:'ML',nombre:'Mililitro',tipo:'volumen'},
+      {id:'und-8',codigo:'M2',nombre:'Metro Cuadrado',tipo:'longitud'},
+      {id:'und-9',codigo:'SAC',nombre:'Saco',tipo:'unidad'},
+      {id:'und-10',codigo:'GL',nombre:'Galón',tipo:'volumen'}
+    ],
+    categorias:[
+      {id:'cat-1',nombre:'Pisos',descripcion:'Pisos cerámicos y porcelanatos',activo:true},
+      {id:'cat-2',nombre:'Azulejos',descripcion:'Azulejos para baño y cocina',activo:true},
+      {id:'cat-3',nombre:'Revestimientos',descripcion:'Revestimientos para pared',activo:true},
+      {id:'cat-4',nombre:'Grifería',descripcion:'Grifos y accesorios de baño',activo:true},
+      {id:'cat-5',nombre:'Adhesivos',descripcion:'Adhesivos y pegantes',activo:true},
+      {id:'cat-6',nombre:'Morteros',descripcion:'Morteros y niveladores',activo:true},
+      {id:'cat-7',nombre:'Herrería',descripcion:'Perfiles y herrajes',activo:true},
+      {id:'cat-8',nombre:'Eléctricos',descripcion:'Material eléctrico',activo:true},
+      {id:'cat-9',nombre:'Pinturas',descripcion:'Pinturas y esmaltes',activo:true},
+      {id:'cat-10',nombre:'Sanitarios',descripcion:'Aparatos sanitarios',activo:true},
+      {id:'cat-11',nombre:'Herramientas',descripcion:'Herramientas manuales',activo:true}
+    ],
+    subcategorias:[
+      {id:'scat-1',nombre:'Piso Cerámico',categoria_id:'cat-1',descripcion:'Pisos en cerámica esmaltada',activo:true},
+      {id:'scat-2',nombre:'Porcelanato',categoria_id:'cat-1',descripcion:'Pisos porcelanato pulido',activo:true},
+      {id:'scat-3',nombre:'Azulejo Baño',categoria_id:'cat-2',descripcion:'Azulejos para baño',activo:true},
+      {id:'scat-4',nombre:'Azulejo Cocina',categoria_id:'cat-2',descripcion:'Azulejos para cocina',activo:true},
+      {id:'scat-5',nombre:'Grifo Lavamanos',categoria_id:'cat-4',descripcion:'Grifos para lavamanos',activo:true},
+      {id:'scat-6',nombre:'Adhesivo Cerámico',categoria_id:'cat-5',descripcion:'Adhesivos para porcelanato',activo:true}
+    ]
+  }
 };
-let OC_SEQ=2471,PD_SEQ=3406,TR_SEQ=2;
+let OC_SEQ=2471,PD_SEQ=3406,TR_SEQ=2,FV_SEQ=1001,FC_SEQ=2001,ND_SEQ=3001,CT_SEQ=4001,OC_CLI_SEQ=5001,RM_SEQ=6001;
 let currentUser=null,selBodega='BGA';
 
 /* ---- persistencia localStorage ---- */
@@ -192,6 +257,12 @@ let currentUser=null,selBodega='BGA';
         OC_SEQ=meta.OC_SEQ||OC_SEQ;
         PD_SEQ=meta.PD_SEQ||PD_SEQ;
         TR_SEQ=meta.TR_SEQ||TR_SEQ;
+        FV_SEQ=meta.FV_SEQ||FV_SEQ;
+        FC_SEQ=meta.FC_SEQ||FC_SEQ;
+        ND_SEQ=meta.ND_SEQ||ND_SEQ;
+        CT_SEQ=meta.CT_SEQ||CT_SEQ;
+        OC_CLI_SEQ=meta.OC_CLI_SEQ||OC_CLI_SEQ;
+        RM_SEQ=meta.RM_SEQ||RM_SEQ;
       }else{
         localStorage.removeItem(DB_KEY);
       }
@@ -201,7 +272,7 @@ let currentUser=null,selBodega='BGA';
 
 function saveDB(){
   try{
-    localStorage.setItem(DB_KEY,JSON.stringify({...DB,_meta:{ver:DB_VER,OC_SEQ,PD_SEQ,TR_SEQ}}));
+    localStorage.setItem(DB_KEY,JSON.stringify({...DB,_meta:{ver:DB_VER,OC_SEQ,PD_SEQ,TR_SEQ,FV_SEQ,FC_SEQ,ND_SEQ,CT_SEQ,OC_CLI_SEQ,RM_SEQ}}));
   }catch(e){}
 }
 window.addEventListener('beforeunload',saveDB);

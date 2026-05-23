@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Pedidos de Venta</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=6">
 <style>
 .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .p-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
@@ -337,9 +337,15 @@ function modalDespacharPedido(pdId){
     `;
   }).join('');
 
+  const tieneRemision = pd && pd.remisionOrigen ? true : false;
+  const checkHtml = tieneRemision ? `
+    <div style="margin-top:10px;padding:10px 14px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:8px;display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="chkFacturarCompleto" style="width:16px;height:16px;accent-color:var(--rojo);flex-shrink:0">
+      <label for="chkFacturarCompleto" style="font-size:11.5px;font-weight:600;cursor:pointer;color:var(--ink)">Facturar completo (generar factura por el total del pedido aunque el despacho sea parcial)</label>
+    </div>` : '';
   openMod(`<i class="ri-send-plane-line"></i> Gestionar Despacho — ${pdId}`,
     `<div class="note"><i class="ri-information-line"></i> Confirma las cantidades que saldrán físicamente de bodega en este despacho. Se restarán del stock de la bodega asignada.</div>
-     <div style="max-height:260px; overflow-y:auto; padding-right:4px">${rows}</div>`,
+     <div style="max-height:260px; overflow-y:auto; padding-right:4px">${rows}</div>${checkHtml}`,
     `<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button>
      <button class="btn btn-green btn-sm" onclick="confirmarDespachoPedidoParcial('${pdId}')"><i class="ri-check-line"></i> Confirmar Despacho</button>`
   );
@@ -405,8 +411,30 @@ function confirmarDespachoPedidoParcial(pdId){
   }
   
   closeMod();
+  // Determinar si se debe generar factura (una sola vez)
+  const facturaExistente = DB.facturas_venta.find(f=>f.remisionOrigen===pd.remisionOrigen);
+  if(!facturaExistente && pd.remisionOrigen){
+    const facturarCompleto = document.getElementById('chkFacturarCompleto')?.checked || false;
+    const entregaTotal = pd.items.every(it => (it.entregado||0) >= it.cant);
+    if(entregaTotal || facturarCompleto){
+      const rm=DB.remisiones.find(r=>r.numero===pd.remisionOrigen);
+      if(rm){
+        rm.estado='despachada';
+        const subtotal=rm.items.reduce((s,i)=>s+i.cant*(i.precioUnit||0),0);
+        const iva=Math.round(subtotal*0.19);
+        const total=subtotal+iva;
+        const fvNum='FV-'+FV_SEQ++;
+        DB.facturas_venta.unshift({
+          numero:fvNum,fecha:now().split(' ')[0],
+          clienteId:null,clienteNombre:rm.cliente,
+          remisionOrigen:pd.remisionOrigen,occRef:rm.occRef,
+          subtotal,iva,total,estado:'emitida',archivoPdf:'facturas/'+fvNum+'.pdf'
+        });
+        toast('Factura '+fvNum+' generada desde remisión '+pd.remisionOrigen+'.','ok');
+      }
+    }
+  }
   saveDB();
-  toast('Despacho confirmado e inventario actualizado', 'ok');
   setTimeout(function(){window.location.reload()},800);
 }
 
