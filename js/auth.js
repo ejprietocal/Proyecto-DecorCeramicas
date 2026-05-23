@@ -4,7 +4,7 @@ const PAGE_MAP={
   sobrantes:'sobrantes.html',movimientos:'movimientos.html',transferencias:'transferencias.html',
   proveedores:'proveedores.html',compras:'compras.html',reclamar:'reclamar.html',
   vencimientos:'vencimientos.html',facturas:'facturas.html',notas:'notas.html',
-  cotizaciones:'cotizaciones.html',remisiones:'remisiones.html',usuarios:'usuarios.html',
+  cotizaciones:'cotizaciones.html',remisiones:'remisiones.html',
   configuracion:'configuracion.html'
 };
 

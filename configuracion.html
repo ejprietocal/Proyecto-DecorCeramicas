@@ -20,17 +20,40 @@
 .cfg-table th{text-align:left;padding:8px 10px;font-size:9.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line);background:var(--neutral-bg)}
 .cfg-table td{padding:7px 10px;border-bottom:1px solid var(--line);color:var(--ink)}
 .cfg-table tr:hover td{background:var(--bg)}
-.cfg-table .acts{display:flex;gap:4px}
-.cfg-table .acts button{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s}
+.cfg-acts{display:flex;gap:4px}
+.cfg-acts button{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s}
 .cfg-edit{background:var(--rojo-l);color:var(--rojo)}.cfg-edit:hover{background:var(--rojo);color:#fff}
 .cfg-del{background:var(--danger-bg);color:var(--danger-txt)}.cfg-del:hover{background:var(--danger-txt);color:#fff}
-.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px}
-.cfg-card{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface);cursor:pointer;transition:.12s}
-.cfg-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--line-m)}
-.cfg-card .cfg-card-n{font-size:14px;font-weight:700;color:var(--ink)}
-.cfg-card .cfg-card-d{font-size:10.5px;color:var(--mut);margin-top:2px}
 .empty-sm{text-align:center;padding:30px 10px;color:var(--mut);font-size:12px}
 .empty-sm i{font-size:28px;display:block;margin-bottom:6px;opacity:.4}
+.sw{position:relative;display:inline-flex;align-items:center;width:36px;height:20px;cursor:pointer}
+.sw input{opacity:0;width:0;height:0}
+.sw .swsl{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--mut);border-radius:10px;transition:.2s}
+.sw .swsl::before{content:'';position:absolute;width:16px;height:16px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+.swsl{background:var(--success-txt)}
+.sw input:checked+.swsl::before{transform:translateX(16px)}
+.sw.locked .swsl{opacity:.4;cursor:not-allowed}
+.u-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.u-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
+.u-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.u-card-h{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.u-av{width:40px;height:40px;border-radius:11px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.u-info{flex:1;min-width:0}
+.u-n{font-size:14px;font-weight:700;color:var(--ink)}
+.u-r{font-size:11px;color:var(--mut);margin-top:1px}
+.u-login{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--info-bg);color:var(--info-txt);white-space:nowrap}
+.u-card-b{padding:10px 16px 14px}
+.u-perms{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.u-perm{font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:5px;display:flex;align-items:center;gap:4px}
+.u-perm.on{background:var(--success-bg);color:var(--success-txt)}
+.u-perm.off{background:var(--neutral-bg);color:var(--neutral-txt)}
+.u-card-f{display:flex;gap:6px;justify-content:flex-end;border-top:1px solid var(--line);padding:8px 16px}
+.u-card-f .btn{padding:5px 10px;font-size:10.5px}
+.col2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.col-box{border:1px solid var(--line);border-radius:10px;padding:10px;max-height:250px;overflow-y:auto}
+.col-box h5{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.col-row{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:var(--bg);font-size:12px}
+.col-row .btn{padding:2px 7px;font-size:10px}
 @media(max-width:860px){.cfg-wrap{grid-template-columns:1fr}.cfg-side{display:flex;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line);padding:4px}.cfg-item{white-space:nowrap;border-left:none;border-bottom:3px solid transparent;padding:8px 12px}.cfg-item.sel{border-left:none;border-bottom-color:var(--rojo)}}
 </style>
 </head>
@@ -63,350 +86,253 @@
 <script>
 renderShell('configuracion');
 let cfgSec='usuarios';
-
 const CFG_SECS=[
   {id:'usuarios',ic:'ri-shield-user-line',n:'Usuarios y Roles'},
-  {id:'prefijos',ic:'ri-file-list-3-line',n:'Prefijos de Documentos'},
-  {id:'pos',ic:'ri-store-2-line',n:'Puntos de Venta'},
+  {id:'grupos',ic:'ri-exchange-line',n:'Grupos de Conversión'},
   {id:'unidades',ic:'ri-ruler-line',n:'Unidades de Medida'},
   {id:'categorias',ic:'ri-grid-line',n:'Categorías'},
-  {id:'general',ic:'ri-settings-4-line',n:'Parametrización General'}
+  {id:'prefijos',ic:'ri-file-list-3-line',n:'Prefijos'},
+  {id:'pos',ic:'ri-store-2-line',n:'Puntos de Venta'},
+  {id:'general',ic:'ri-settings-4-line',n:'General'}
 ];
-
 function renderCfg(){
   const side=CFG_SECS.map(s=>'<div class="cfg-item '+(cfgSec===s.id?'sel':'')+'" onclick="cfgSec=\''+s.id+'\';renderCfg()"><i class="'+s.ic+'"></i>'+s.n+'</div>').join('');
   let body='';
   switch(cfgSec){
     case'usuarios':body=renderUsuarios();break;
-    case'prefijos':body=renderPrefijos();break;
-    case'pos':body=renderPOS();break;
+    case'grupos':body=renderGrupos();break;
     case'unidades':body=renderUnidades();break;
     case'categorias':body=renderCategorias();break;
+    case'prefijos':body=renderPrefijos();break;
+    case'pos':body=renderPOS();break;
     case'general':body=renderGeneral();break;
   }
   $('pg').innerHTML='<div class="page th-usr"><div class="body"><div class="cfg-wrap"><div class="cfg-side">'+side+'</div><div class="cfg-body">'+body+'</div></div></div></div>';
 }
 
-/* ==================== 1. USUARIOS ==================== */
+/* ==================== 1. USUARIOS Y ROLES ==================== */
+function togglePerm(uid,mod){
+  if(!PERMS[uid])PERMS[uid]=['dashboard'];
+  const idx=PERMS[uid].indexOf(mod);
+  if(idx>-1)PERMS[uid].splice(idx,1);else PERMS[uid].push(mod);
+  saveDB();
+}
 function renderUsuarios(){
-  const rows=USERS.map(u=>`<tr><td><b>${u.n}</b></td><td>${u.r}</td><td>${u.in}</td><td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${u.c};vertical-align:middle"></span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarUsuario('${u.id}')" title="Editar"><i class="ri-pencil-line"></i></button></div></td></tr>`).join('');
-  return '<h3><i class="ri-shield-user-line" style="color:var(--rojo)"></i> Usuarios y Roles</h3><div class="sub">Gestión de usuarios del sistema. Los permisos se asignan por módulo en config.js.</div><table class="cfg-table"><thead><tr><th>Nombre</th><th>Rol</th><th>Iniciales</th><th>Color</th><th>Acción</th></tr></thead><tbody>'+rows+'</tbody></table><div style="margin-top:12px"><a href="usuarios.html" class="btn btn-blue btn-sm"><i class="ri-external-link-line"></i> Ir al módulo completo de Usuarios</a></div>';
+  const total=USERS.length,conPermisos=Object.keys(PERMS).length,totalMods=Object.keys(MODS).length;
+  const usrCards=USERS.map((u,i)=>{
+    const mods=PERMS[u.id]||['dashboard'];
+    const permPills=Object.keys(MODS).map(k=>{
+      const on=mods.includes(k);
+      return '<span class="u-perm '+(on?'on':'off')+'"><i class="'+MODS[k].ic+'"></i>'+MODS[k].n+'</span>';
+    }).join('');
+    return '<div class="u-card"><div class="u-card-h"><div class="u-av" style="background:'+u.c+'">'+u.in+'</div><div class="u-info"><div class="u-n">'+u.n+'</div><div class="u-r">'+u.r+'</div></div><span class="u-login">Login: '+(i+1)+'</span></div><div class="u-card-b"><div class="u-perms">'+permPills+'</div></div><div class="u-card-f"><button class="btn btn-o btn-sm" onclick="modalEditarPermisos(\''+u.id+'\')"><i class="ri-edit-line"></i> Editar permisos</button></div></div>';
+  }).join('');
+  return '<h3><i class="ri-shield-user-line" style="color:var(--rojo)"></i> Usuarios y Roles</h3><div class="sub">Gestión de accesos al sistema. Dashboard es obligatorio. Edita permisos desde cada tarjeta.</div>'+
+  '<button class="btn btn-blue btn-sm" onclick="modalNuevoUsuario()" style="margin-bottom:16px"><i class="ri-user-add-line"></i> Nuevo Usuario</button>'+
+  '<div style="background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-txt);font-size:12px;padding:10px 14px;border-radius:10px;margin-bottom:16px;display:flex;gap:8px"><i class="ri-lightbulb-flash-line"></i><span>Los cambios de permisos son en vivo. Login con los números 1–'+total+'.</span></div><div class="u-grid">'+usrCards+'</div>';
 }
-function modalEditarUsuario(id){
-  const u=USERS.find(x=>x.id===id);
-  if(!u)return;
-  openMod('<i class="ri-shield-user-line"></i> Editar Usuario: '+u.n,
-    '<div class="ff"><label>Nombre</label><input id="cfgUsrN" value="'+u.n+'"></div><div class="ff"><label>Rol</label><input id="cfgUsrR" value="'+u.r+'"></div><div class="ff2"><div class="ff"><label>Iniciales</label><input id="cfgUsrI" value="'+u.in+'" maxlength="2"></div><div class="ff"><label>Color</label><input type="color" id="cfgUsrC" value="'+u.c+'"></div></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarUsuario(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
+function modalEditarPermisos(uid){
+  const u=USERS.find(x=>x.id===uid);if(!u)return;
+  const mods=PERMS[uid]||['dashboard'];
+  const toggles=Object.keys(MODS).map(k=>{
+    const on=mods.includes(k),lk=k==='dashboard';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;background:var(--bg);margin-bottom:3px"><span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink)"><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px"></i>'+MODS[k].n+'</span><label class="sw '+(lk?'locked':'')+'"><input type="checkbox" '+(on?'checked':'')+' '+(lk?'disabled':'')+' onchange="togglePerm(\''+uid+'\',\''+k+'\')"><span class="swsl"></span></label></div>';
+  }).join('');
+  openMod('<i class="ri-shield-user-line"></i> Permisos: '+u.n,'<div style="max-height:380px;overflow-y:auto;padding-right:4px">'+toggles+'</div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cerrar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="closeMod();renderCfg()"><i class="ri-check-line"></i> Guardar</button>');
 }
-function guardarUsuario(id){
-  const u=USERS.find(x=>x.id===id);
-  if(!u)return;
-  u.n=$('cfgUsrN').value.trim()||u.n;
-  u.r=$('cfgUsrR').value.trim()||u.r;
-  u.in=$('cfgUsrI').value.trim().toUpperCase()||u.in;
-  u.c=$('cfgUsrC').value||u.c;
-  closeMod();saveDB();renderCfg();toast('Usuario actualizado','ok');
+function modalNuevoUsuario(){
+  const mOpts=Object.keys(MODS).filter(k=>k!=='dashboard').map(k=>'<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;background:var(--bg);margin-bottom:3px"><input type="checkbox" class="nuMod" value="'+k+'" style="accent-color:var(--rojo)"><span style="font-size:12.5px;color:var(--ink)"><i class="'+MODS[k].ic+'" style="color:var(--mut);width:14px;margin-right:4px"></i>'+MODS[k].n+'</span></div>').join('');
+  openMod('<i class="ri-user-add-line"></i> Crear Usuario','<div class="ff"><label>Nombre completo</label><input id="nuN" placeholder="Ej: Andrés Felipe Bravo"></div><div class="ff"><label>Cargo / Rol</label><input id="nuR" placeholder="Ej: Auxiliar de Bodega"></div><div class="ff"><label>Módulos con acceso (Dashboard incluido siempre)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">'+mOpts+'</div></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="crearUsuario()"><i class="ri-check-line"></i> Crear usuario</button>');
+}
+function crearUsuario(){
+  const nm=$('nuN').value.trim(),rl=$('nuR').value.trim();
+  if(!nm||!rl){toast('Completa nombre y cargo','warn');return}
+  const pts=nm.split(' ');const init=((pts[0]||'')[0]+((pts[1]||pts[0]||'')[0])).toUpperCase();
+  const id='u'+Date.now();
+  const mods=['dashboard',...[...document.querySelectorAll('.nuMod:checked')].map(c=>c.value)];
+  const colors=['#D9383A','#0369A1','#15803D','#B45309','#2D3748','#3B82F6','#1E293B','#64748B'];
+  USERS.push({id,n:nm,r:rl,in:init,c:colors[USERS.length%colors.length]});
+  PERMS[id]=mods;
+  closeMod();saveDB();renderCfg();toast('Usuario creado. Login #'+USERS.length,'ok');
 }
 
-/* ==================== 2. PREFIJOS ==================== */
-function renderPrefijos(){
-  const rows=DB.config.prefijos.map(p=>{
-    const extra=p.tipo==='factura_electronica'?'<br><small>Vig: '+p.vigencia_desde+' → '+p.vigencia_hasta+' | Rango: '+p.rango_desde+'–'+p.rango_final+'</small>':'';
-    return `<tr><td><b>${p.prefijo}</b></td><td>${p.tipo.replace(/_/g,' ')}</td><td>${p.consecutivo_inicial}</td><td><b>${p.consecutivo_actual}</b></td><td>${extra}</td><td><span class="badge ${p.activo?'bg':'bs'}">${p.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarPrefijo('${p.id}')"><i class="ri-pencil-line"></i></button></div></td></tr>`;
+/* ==================== 2. GRUPOS DE CONVERSIÓN ==================== */
+function renderGrupos(){
+  const rows=DB.config.grupos_conversion.map(g=>{
+    const base=g.unidades.find(u=>u.factor===1);
+    return '<tr><td><b>'+g.nombre+'</b></td><td>'+(g.descripcion||'—')+'</td><td>'+(base?base.codigo:'—')+'</td><td>'+g.unidades.map(u=>'<span class="badge bs" style="margin:1px;font-size:9px">'+u.codigo+' ×'+u.factor+'</span>').join(' ')+'</td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarGrupo(\''+g.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarGrupo(\''+g.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
   }).join('');
-  return '<h3><i class="ri-file-list-3-line" style="color:var(--rojo)"></i> Prefijos de Documentos</h3><div class="sub">Configuración de prefijos y consecutivos para cada tipo de documento. Se auto-incrementan al crear documentos.</div><table class="cfg-table"><thead><tr><th>Prefijo</th><th>Tipo</th><th>Inicial</th><th>Actual</th><th>Extra</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  return '<h3><i class="ri-exchange-line" style="color:var(--rojo)"></i> Grupos de Conversión</h3><div class="sub">Catálogo global de grupos de unidades (estilo Siigo). Los productos se asocian a un grupo y heredan sus unidades y factores de conversión.</div>'+
+  '<button class="btn btn-blue btn-sm" onclick="modalNuevoGrupo()" style="margin-bottom:10px"><i class="ri-add-line"></i> Nuevo Grupo</button>'+
+  '<table class="cfg-table"><thead><tr><th>Nombre</th><th>Descripción</th><th>Base</th><th>Unidades</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="5"><div class="empty-sm">Sin grupos definidos</div></td></tr>')+'</tbody></table>';
 }
-function modalEditarPrefijo(id){
-  const p=DB.config.prefijos.find(x=>x.id===id);
-  if(!p)return;
-  openMod('<i class="ri-file-list-3-line"></i> Editar Prefijo: '+p.prefijo,
-    '<div class="ff2"><div class="ff"><label>Prefijo</label><input id="cfgPfPf" value="'+p.prefijo+'"></div><div class="ff"><label>Consecutivo Inicial</label><input type="number" id="cfgPfCi" value="'+p.consecutivo_inicial+'"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Actual</label><input type="number" id="cfgPfCa" value="'+p.consecutivo_actual+'"></div><div class="ff"><label>Activo</label><select id="cfgPfAct"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div></div>'+
-    (p.tipo==='factura_electronica'?'<div class="ff2"><div class="ff"><label>Vigencia Desde</label><input id="cfgPfVd" value="'+(p.vigencia_desde||'')+'"></div><div class="ff"><label>Vigencia Hasta</label><input id="cfgPfVh" value="'+(p.vigencia_hasta||'')+'"></div></div><div class="ff2"><div class="ff"><label>Rango Desde</label><input type="number" id="cfgPfRd" value="'+(p.rango_desde||'')+'"></div><div class="ff"><label>Rango Hasta</label><input type="number" id="cfgPfRf" value="'+(p.rango_hasta||'')+'"></div></div>':'')+
-    '<div class="ff"><label>Nota:</label><span style="font-size:11px;color:var(--mut)">El consecutivo actual se incrementa automáticamente al crear documentos del tipo correspondiente.</span></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPrefijo(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+function modalNuevoGrupo(){
+  const unidadOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'">'+u.codigo+' — '+u.nombre+'</option>').join('');
+  openMod('<i class="ri-exchange-line"></i> Nuevo Grupo de Conversión','<div class="ff"><label>Nombre *</label><input id="gcNom" placeholder="Ej: Cerámicas por Caja"></div><div class="ff"><label>Descripción</label><input id="gcDesc" placeholder="Unidades y cajas para cerámicas"></div><div class="ff"><label>Unidad Base *</label><select id="gcBase">'+unidadOpts+'</select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearGrupo()"><i class="ri-check-line"></i> Crear</button>');
+}
+function crearGrupo(){
+  const nom=$('gcNom').value.trim(),base=$('gcBase').value;
+  if(!nom||!base){toast('Completa nombre y unidad base','warn');return}
+  if(DB.config.grupos_conversion.find(g=>g.nombre.toLowerCase()===nom.toLowerCase())){toast('Ya existe un grupo con ese nombre','warn');return}
+  const u=DB.config.unidades.find(x=>x.id===base);
+  const id='gc-'+String(DB.config.grupos_conversion.length+1).padStart(3,'0');
+  DB.config.grupos_conversion.push({id,nombre:nom,descripcion:$('gcDesc').value.trim(),unidad_base_id:base,unidades:[{unidad_id:base,factor:1,codigo:u?u.codigo:'UND'}]});
+  closeMod();saveDB();renderCfg();toast('Grupo de conversión creado','ok');
+}
+function modalEditarGrupo(id){
+  const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
+  const unidadOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'" '+(u.id===g.unidad_base_id?'selected':'')+'>'+u.codigo+' — '+u.nombre+'</option>').join('');
+  const unidadRows=g.unidades.map((ug,i)=>{
+    const uOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'" '+(u.id===ug.unidad_id?'selected':'')+'>'+u.codigo+' — '+u.nombre+'</option>').join('');
+    const disabled=ug.factor===1?'disabled':'';
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><select style="flex:1" onchange="g.unidades['+i+'].unidad_id=this.value">'+uOpts+'</select><input type="number" style="width:70px" value="'+ug.factor+'" min="1" step="0.001" onchange="g.unidades['+i+'].factor=parseFloat(this.value)||1"><button class="btn btn-o btn-sm" style="color:var(--danger-txt)" '+disabled+' onclick="g.unidades.splice('+i+',1);refreshGcUnits()">×</button></div>';
+  }).join('');
+  const prodAsig=DB.productos.filter(p=>p.grupo_conversion_id===g.id);
+  const prodDisp=DB.productos.filter(p=>!p.grupo_conversion_id);
+  const buildList=(prods,asig)=>{
+    return prods.map(p=>'<div class="col-row"><span>'+p.n+' <small style="color:var(--mut)">('+p.sku+')</small></span>'+(asig?'<button class="btn btn-o btn-sm" onclick="desasignarProductoDeGrupo(\''+g.id+'\',\''+p.sku+'\')"><i class="ri-arrow-go-back-line"></i></button>':'<button class="btn btn-blue btn-sm" onclick="asignarProductoAGrupo(\''+g.id+'\',\''+p.sku+'\')"><i class="ri-link"></i></button>')+'</div>').join('')||'<div class="empty-sm">Sin productos</div>';
+  };
+  openMod('<i class="ri-exchange-line"></i> Editar Grupo: '+g.nombre,
+    '<div class="ff"><label>Nombre</label><input id="gcNomE" value="'+g.nombre+'"></div><div class="ff"><label>Descripción</label><input id="gcDescE" value="'+(g.descripcion||'')+'"></div><div class="ff"><label>Unidad Base</label><select id="gcBaseE">'+unidadOpts+'</select></div>'+
+    '<div style="margin:12px 0"><h5 style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Unidades del Grupo</h5><div id="gcUnitList">'+unidadRows+'</div><button class="btn btn-blue btn-sm" onclick="agregarUnidadAGrupo(\''+g.id+'\')"><i class="ri-add-line"></i> Agregar unidad</button></div>'+
+    '<div style="margin-top:12px"><h5 style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Productos Asignados ('+prodAsig.length+')</h5><div class="col2"><div class="col-box"><h5>Asignados ('+prodAsig.length+')</h5>'+buildList(prodAsig,true)+'</div><div class="col-box" style="border:1px dashed var(--line)"><h5>Disponibles ('+prodDisp.length+')</h5>'+buildList(prodDisp,false)+'</div></div></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarGrupo(\''+g.id+'\')"><i class="ri-check-line"></i> Guardar</button>'
   );
+  window.gcEdit=id;
 }
-function guardarPrefijo(id){
-  const p=DB.config.prefijos.find(x=>x.id===id);
-  if(!p)return;
-  p.prefijo=$('cfgPfPf').value.trim()||p.prefijo;
-  p.consecutivo_inicial=parseInt($('cfgPfCi').value)||p.consecutivo_inicial;
-  p.consecutivo_actual=parseInt($('cfgPfCa').value)||p.consecutivo_actual;
-  p.activo=$('cfgPfAct').value==='true';
-  if(p.tipo==='factura_electronica'){
-    p.vigencia_desde=$('cfgPfVd').value||p.vigencia_desde;
-    p.vigencia_hasta=$('cfgPfVh').value||p.vigencia_hasta;
-    p.rango_desde=parseInt($('cfgPfRd').value)||p.rango_desde;
-    p.rango_hasta=parseInt($('cfgPfRf').value)||p.rango_hasta;
-  }
-  closeMod();saveDB();renderCfg();toast('Prefijo actualizado','ok');
+function refreshGcUnits(){
+  modalEditarGrupo(window.gcEdit);
+}
+function agregarUnidadAGrupo(id){
+  const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
+  const uId=DB.config.unidades[0]?.id||'und-1';
+  if(g.unidades.find(x=>x.unidad_id===uId)){toast('Esa unidad ya está en el grupo','warn');return}
+  const u=DB.config.unidades[0];
+  g.unidades.push({unidad_id:uId,factor:1,codigo:u?u.codigo:'UND'});
+  modalEditarGrupo(id);
+}
+function guardarGrupo(id){
+  const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
+  g.nombre=$('gcNomE').value.trim()||g.nombre;
+  g.descripcion=$('gcDescE').value.trim();
+  g.unidad_base_id=$('gcBaseE').value||g.unidad_base_id;
+  closeMod();saveDB();renderCfg();toast('Grupo de conversión actualizado','ok');
+}
+function eliminarGrupo(id){
+  if(DB.productos.some(p=>p.grupo_conversion_id===id)){toast('No se puede eliminar: tiene productos asignados','err');return}
+  if(!confirm('¿Eliminar grupo?'))return;
+  DB.config.grupos_conversion=DB.config.grupos_conversion.filter(x=>x.id!==id);
+  saveDB();renderCfg();toast('Grupo eliminado','ok');
+}
+function asignarProductoAGrupo(gid,sku){
+  const p=DB.productos.find(x=>x.sku===sku);if(!p)return;
+  p.grupo_conversion_id=gid;
+  saveDB();modalEditarGrupo(gid);
+}
+function desasignarProductoDeGrupo(gid,sku){
+  const p=DB.productos.find(x=>x.sku===sku);if(!p)return;
+  if(DB.movimientos.some(m=>m.sku===sku)){toast('No se puede cambiar: el producto tiene movimientos de stock','warn');return}
+  p.grupo_conversion_id=null;
+  saveDB();modalEditarGrupo(gid);
 }
 
-/* ==================== 3. PUNTOS DE VENTA ==================== */
-function renderPOS(){
-  const resRows=DB.config.resoluciones.map(r=>{
-    const pv=getPuntoVenta(r.punto_venta_id);
-    const pct=r.consecutivo_final?Math.round((r.consecutivo_final/r.consecutivo_final)*100):0;
-    return `<tr><td>${r.numero}</td><td>${r.prefijo}</td><td>${r.consecutivo_inicial}–${r.consecutivo_final}</td><td>${r.fecha_inicio} → ${r.fecha_fin}</td><td>${pv?pv.nombre:'—'}</td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarRes('${r.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarRes('${r.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
-  }).join('');
-  const pvRows=DB.config.puntos_venta.map(p=>{
-    const bg=DB.bodegas.find(b=>b.id===p.bodega_id);
-    return `<tr><td><b>${p.codigo}</b></td><td>${p.nombre}</td><td>${bg?bg.n+' ('+p.bodega_id+')':'—'}</td><td><span class="badge ${p.activo?'bg':'bs'}">${p.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarPV('${p.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarPV('${p.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
-  }).join('');
-  return '<h3><i class="ri-store-2-line" style="color:var(--rojo)"></i> Puntos de Venta</h3><div class="sub">Puntos de venta y sus resoluciones de facturación asociadas.</div>'+
-    '<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevoPV()"><i class="ri-add-line"></i> Nuevo Punto de Venta</button><button class="btn btn-o btn-sm" onclick="modalNuevaRes()"><i class="ri-add-line"></i> Nueva Resolución</button></div>'+
-    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Puntos de Venta</h4><table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Bodega</th><th>Estado</th><th></th></tr></thead><tbody>'+pvRows+'</tbody></table>'+
-    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Resoluciones de Facturación</h4><table class="cfg-table"><thead><tr><th>N° Resolución</th><th>Prefijo</th><th>Consecutivo</th><th>Vigencia</th><th>Punto de Venta</th><th></th></tr></thead><tbody>'+(resRows||'<tr><td colspan="6"><div class="empty-sm">Sin resoluciones registradas</div></td></tr>')+'</tbody></table>';
-}
-function modalNuevoPV(){
-  const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'">'+b.n+' ('+b.id+')</option>').join('');
-  openMod('<i class="ri-store-2-line"></i> Nuevo Punto de Venta',
-    '<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgPvCod" placeholder="001"></div><div class="ff"><label>Nombre *</label><input id="cfgPvNom" placeholder="Punto de Venta Principal"></div></div><div class="ff"><label>Bodega Asignada *</label><select id="cfgPvBg">'+bgOpts+'</select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPV()"><i class="ri-check-line"></i> Crear</button>'
-  );
-}
-function crearPV(){
-  const cod=$('cfgPvCod').value.trim();
-  const nom=$('cfgPvNom').value.trim();
-  const bg=$('cfgPvBg').value;
-  if(!cod||!nom){toast('Completa código y nombre','warn');return}
-  if(DB.config.puntos_venta.find(p=>p.codigo===cod)){toast('Ya existe un punto de venta con ese código','warn');return}
-  const id='PV-'+String(DB.config.puntos_venta.length+1).padStart(3,'0');
-  DB.config.puntos_venta.push({id,codigo:cod,nombre:nom,bodega_id:bg,activo:true});
-  closeMod();saveDB();renderCfg();toast('Punto de venta creado','ok');
-}
-function modalEditarPV(id){
-  const p=DB.config.puntos_venta.find(x=>x.id===id);
-  if(!p)return;
-  const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'" '+(b.id===p.bodega_id?'selected':'')+'>'+b.n+' ('+b.id+')</option>').join('');
-  openMod('<i class="ri-store-2-line"></i> Editar Punto de Venta',
-    '<div class="ff2"><div class="ff"><label>Código</label><input id="cfgPvCodE" value="'+p.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgPvNomE" value="'+p.nombre+'"></div></div><div class="ff"><label>Bodega</label><select id="cfgPvBgE">'+bgOpts+'</select></div><div class="ff"><label>Activo</label><select id="cfgPvActE"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPV(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
-}
-function guardarPV(id){
-  const p=DB.config.puntos_venta.find(x=>x.id===id);
-  if(!p)return;
-  p.codigo=$('cfgPvCodE').value.trim()||p.codigo;
-  p.nombre=$('cfgPvNomE').value.trim()||p.nombre;
-  p.bodega_id=$('cfgPvBgE').value||p.bodega_id;
-  p.activo=$('cfgPvActE').value==='true';
-  closeMod();saveDB();renderCfg();toast('Punto de venta actualizado','ok');
-}
-function eliminarPV(id){
-  if(!confirm('¿Eliminar punto de venta?'))return;
-  DB.config.puntos_venta=DB.config.puntos_venta.filter(x=>x.id!==id);
-  DB.config.resoluciones=DB.config.resoluciones.filter(r=>r.punto_venta_id!==id);
-  saveDB();renderCfg();toast('Punto de venta eliminado','ok');
-}
-function modalNuevaRes(){
-  const pvOpts=DB.config.puntos_venta.filter(p=>p.activo).map(p=>'<option value="'+p.id+'">'+p.codigo+' — '+p.nombre+'</option>').join('');
-  openMod('<i class="ri-file-list-3-line"></i> Nueva Resolución',
-    '<div class="ff2"><div class="ff"><label>N° Resolución *</label><input id="cfgResNum" placeholder="187600000001"></div><div class="ff"><label>Prefijo *</label><input id="cfgResPf" placeholder="FE"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Inicial *</label><input type="number" id="cfgResCi" value="1"></div><div class="ff"><label>Consecutivo Final *</label><input type="number" id="cfgResCf" value="9999"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio *</label><input id="cfgResFi" value="01/01/2026"></div><div class="ff"><label>Fecha Fin *</label><input id="cfgResFf" value="31/12/2026"></div></div><div class="ff"><label>Punto de Venta *</label><select id="cfgResPv">'+pvOpts+'</select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearRes()"><i class="ri-check-line"></i> Crear</button>'
-  );
-}
-function crearRes(){
-  const num=$('cfgResNum').value.trim();
-  const pf=$('cfgResPf').value.trim().toUpperCase();
-  const ci=parseInt($('cfgResCi').value);
-  const cf=parseInt($('cfgResCf').value);
-  const fi=$('cfgResFi').value;
-  const ff=$('cfgResFf').value;
-  const pv=$('cfgResPv').value;
-  if(!num||!pf||!ci||!cf||!fi||!ff||!pv){toast('Completa todos los campos obligatorios','warn');return}
-  const solapamiento=DB.config.resoluciones.some(r=>r.punto_venta_id===pv&&((ci>=r.consecutivo_inicial&&ci<=r.consecutivo_final)||(cf>=r.consecutivo_inicial&&cf<=r.consecutivo_final)));
-  if(solapamiento){toast('El rango de consecutivos se solapa con otra resolución activa del mismo punto de venta','err');return}
-  const id='RES-'+String(DB.config.resoluciones.length+1).padStart(3,'0');
-  DB.config.resoluciones.push({id,numero:num,prefijo:pf,fecha_inicio:fi,fecha_fin:ff,consecutivo_inicial:ci,consecutivo_final:cf,punto_venta_id:pv});
-  closeMod();saveDB();renderCfg();toast('Resolución creada','ok');
-}
-function modalEditarRes(id){
-  const r=DB.config.resoluciones.find(x=>x.id===id);
-  if(!r)return;
-  const pvOpts=DB.config.puntos_venta.map(p=>'<option value="'+p.id+'" '+(p.id===r.punto_venta_id?'selected':'')+'>'+p.codigo+' — '+p.nombre+'</option>').join('');
-  openMod('<i class="ri-file-list-3-line"></i> Editar Resolución',
-    '<div class="ff2"><div class="ff"><label>N° Resolución</label><input id="cfgResNumE" value="'+r.numero+'"></div><div class="ff"><label>Prefijo</label><input id="cfgResPfE" value="'+r.prefijo+'"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Inicial</label><input type="number" id="cfgResCiE" value="'+r.consecutivo_inicial+'"></div><div class="ff"><label>Consecutivo Final</label><input type="number" id="cfgResCfE" value="'+r.consecutivo_final+'"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio</label><input id="cfgResFiE" value="'+r.fecha_inicio+'"></div><div class="ff"><label>Fecha Fin</label><input id="cfgResFfE" value="'+r.fecha_fin+'"></div></div><div class="ff"><label>Punto de Venta</label><select id="cfgResPvE">'+pvOpts+'</select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarRes(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
-}
-function guardarRes(id){
-  const r=DB.config.resoluciones.find(x=>x.id===id);
-  if(!r)return;
-  r.numero=$('cfgResNumE').value.trim()||r.numero;
-  r.prefijo=$('cfgResPfE').value.trim().toUpperCase()||r.prefijo;
-  r.consecutivo_inicial=parseInt($('cfgResCiE').value)||r.consecutivo_inicial;
-  r.consecutivo_final=parseInt($('cfgResCfE').value)||r.consecutivo_final;
-  r.fecha_inicio=$('cfgResFiE').value||r.fecha_inicio;
-  r.fecha_fin=$('cfgResFfE').value||r.fecha_fin;
-  r.punto_venta_id=$('cfgResPvE').value||r.punto_venta_id;
-  closeMod();saveDB();renderCfg();toast('Resolución actualizada','ok');
-}
-function eliminarRes(id){
-  if(!confirm('¿Eliminar resolución?'))return;
-  DB.config.resoluciones=DB.config.resoluciones.filter(x=>x.id!==id);
-  saveDB();renderCfg();toast('Resolución eliminada','ok');
-}
-
-/* ==================== 4. UNIDADES ==================== */
+/* ==================== 3. UNIDADES DE MEDIDA ==================== */
 function renderUnidades(){
-  const rows=DB.config.unidades.map(u=>`<tr><td><b>${u.codigo}</b></td><td>${u.nombre}</td><td>${u.tipo}</td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarUnidad('${u.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarUnidad('${u.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`).join('');
-  return '<h3><i class="ri-ruler-line" style="color:var(--rojo)"></i> Unidades de Medida</h3><div class="sub">Unidades base para productos. También puedes definir conversiones por producto desde el módulo de inventario.</div>'+
-    '<button class="btn btn-blue btn-sm" onclick="modalNuevaUnidad()" style="margin-bottom:10px"><i class="ri-add-line"></i> Nueva Unidad</button>'+
-    '<table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  const rows=DB.config.unidades.map(u=>'<tr><td><b>'+u.codigo+'</b></td><td>'+u.nombre+'</td><td>'+u.tipo+'</td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarUnidad(\''+u.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarUnidad(\''+u.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>').join('');
+  return '<h3><i class="ri-ruler-line" style="color:var(--rojo)"></i> Unidades de Medida</h3><div class="sub">Catálogo maestro de unidades usadas en los grupos de conversión.</div><button class="btn btn-blue btn-sm" onclick="modalNuevaUnidad()" style="margin-bottom:10px"><i class="ri-add-line"></i> Nueva Unidad</button><table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
 function modalNuevaUnidad(){
-  openMod('<i class="ri-ruler-line"></i> Nueva Unidad',
-    '<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgUndCod" placeholder="CAJ"></div><div class="ff"><label>Nombre *</label><input id="cfgUndNom" placeholder="Caja"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipo"><option value="unidad">Unidad</option><option value="peso">Peso</option><option value="volumen">Volumen</option><option value="longitud">Longitud</option></select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearUnidad()"><i class="ri-check-line"></i> Crear</button>'
-  );
+  openMod('<i class="ri-ruler-line"></i> Nueva Unidad','<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgUndCod" placeholder="CAJ"></div><div class="ff"><label>Nombre *</label><input id="cfgUndNom" placeholder="Caja"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipo"><option value="unidad">Unidad</option><option value="peso">Peso</option><option value="volumen">Volumen</option><option value="longitud">Longitud</option><option value="area">Área</option></select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearUnidad()"><i class="ri-check-line"></i> Crear</button>');
 }
 function crearUnidad(){
-  const cod=$('cfgUndCod').value.trim().toUpperCase();
-  const nom=$('cfgUndNom').value.trim();
-  const tipo=$('cfgUndTipo').value;
+  const cod=$('cfgUndCod').value.trim().toUpperCase(),nom=$('cfgUndNom').value.trim();
   if(!cod||!nom){toast('Completa código y nombre','warn');return}
   if(DB.config.unidades.find(u=>u.codigo===cod)){toast('Ya existe una unidad con ese código','warn');return}
-  const id='und-'+(DB.config.unidades.length+1);
-  DB.config.unidades.push({id,codigo:cod,nombre:nom,tipo});
+  DB.config.unidades.push({id:'und-'+(DB.config.unidades.length+1),codigo:cod,nombre:nom,tipo:$('cfgUndTipo').value});
   closeMod();saveDB();renderCfg();toast('Unidad creada','ok');
 }
-function modalEditarUnidad(id){
-  const u=DB.config.unidades.find(x=>x.id===id);
-  if(!u)return;
-  openMod('<i class="ri-ruler-line"></i> Editar Unidad',
-    '<div class="ff2"><div class="ff"><label>Código</label><input id="cfgUndCodE" value="'+u.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgUndNomE" value="'+u.nombre+'"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipoE"><option value="unidad" '+(u.tipo==='unidad'?'selected':'')+'>Unidad</option><option value="peso" '+(u.tipo==='peso'?'selected':'')+'>Peso</option><option value="volumen" '+(u.tipo==='volumen'?'selected':'')+'>Volumen</option><option value="longitud" '+(u.tipo==='longitud'?'selected':'')+'>Longitud</option></select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarUnidad(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
+function modalEditarUnidad(id){const u=DB.config.unidades.find(x=>x.id===id);if(!u)return;
+  openMod('<i class="ri-ruler-line"></i> Editar Unidad','<div class="ff2"><div class="ff"><label>Código</label><input id="cfgUndCodE" value="'+u.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgUndNomE" value="'+u.nombre+'"></div></div><div class="ff"><label>Tipo</label><select id="cfgUndTipoE"><option value="unidad" '+(u.tipo==='unidad'?'selected':'')+'>Unidad</option><option value="peso" '+(u.tipo==='peso'?'selected':'')+'>Peso</option><option value="volumen" '+(u.tipo==='volumen'?'selected':'')+'>Volumen</option><option value="longitud" '+(u.tipo==='longitud'?'selected':'')+'>Longitud</option><option value="area" '+(u.tipo==='area'?'selected':'')+'>Área</option></select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarUnidad(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>');
 }
-function guardarUnidad(id){
-  const u=DB.config.unidades.find(x=>x.id===id);
-  if(!u)return;
-  u.codigo=$('cfgUndCodE').value.trim().toUpperCase()||u.codigo;
-  u.nombre=$('cfgUndNomE').value.trim()||u.nombre;
-  u.tipo=$('cfgUndTipoE').value||u.tipo;
+function guardarUnidad(id){const u=DB.config.unidades.find(x=>x.id===id);if(!u)return;
+  u.codigo=$('cfgUndCodE').value.trim().toUpperCase()||u.codigo;u.nombre=$('cfgUndNomE').value.trim()||u.nombre;u.tipo=$('cfgUndTipoE').value||u.tipo;
   closeMod();saveDB();renderCfg();toast('Unidad actualizada','ok');
 }
 function eliminarUnidad(id){
-  if(!confirm('¿Eliminar unidad? Verifica que no esté en uso en productos.'))return;
-  DB.config.unidades=DB.config.unidades.filter(x=>x.id!==id);
-  saveDB();renderCfg();toast('Unidad eliminada','ok');
+  if(DB.config.grupos_conversion.some(g=>g.unidades.some(u=>u.unidad_id===id))){toast('No se puede eliminar: está en uso en un grupo de conversión','err');return}
+  if(!confirm('¿Eliminar unidad?'))return;
+  DB.config.unidades=DB.config.unidades.filter(x=>x.id!==id);saveDB();renderCfg();toast('Unidad eliminada','ok');
 }
 
-/* ==================== 5. CATEGORÍAS ==================== */
+/* ==================== 4. CATEGORÍAS Y SUBCATEGORÍAS ==================== */
 function renderCategorias(){
-  const catRows=DB.config.categorias.map(c=>{
-    const sc=DB.config.subcategorias.filter(s=>s.categoria_id===c.id);
-    return `<tr><td><b>${c.nombre}</b></td><td>${c.descripcion||'—'}</td><td>${sc.length}</td><td><span class="badge ${c.activo?'bg':'bs'}">${c.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarCat('${c.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarCat('${c.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  const catRows=DB.config.categorias.map(c=>{const sc=DB.config.subcategorias.filter(s=>s.categoria_id===c.id);
+    return '<tr><td><b>'+c.nombre+'</b></td><td>'+(c.descripcion||'—')+'</td><td>'+sc.length+'</td><td><span class="badge '+(c.activo?'bg':'bs')+'">'+(c.activo?'Activo':'Inactivo')+'</span></td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarCat(\''+c.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarCat(\''+c.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
   }).join('');
-  const scRows=DB.config.subcategorias.map(s=>{
-    const cat=getCat(s.categoria_id);
-    return `<tr><td><b>${s.nombre}</b></td><td>${cat?cat.nombre:'—'}</td><td>${s.descripcion||'—'}</td><td><span class="badge ${s.activo?'bg':'bs'}">${s.activo?'Activo':'Inactivo'}</span></td><td><div class="acts"><button class="cfg-edit" onclick="modalEditarSubcat('${s.id}')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarSubcat('${s.id}')"><i class="ri-delete-bin-line"></i></button></div></td></tr>`;
+  const scRows=DB.config.subcategorias.map(s=>{const cat=getCat(s.categoria_id);
+    return '<tr><td><b>'+s.nombre+'</b></td><td>'+(cat?cat.nombre:'—')+'</td><td>'+(s.descripcion||'—')+'</td><td><span class="badge '+(s.activo?'bg':'bs')+'">'+(s.activo?'Activo':'Inactivo')+'</span></td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarSubcat(\''+s.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarSubcat(\''+s.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
   }).join('');
-  return '<h3><i class="ri-grid-line" style="color:var(--rojo)"></i> Categorías y Subcategorías</h3><div class="sub">Clasificación de productos del inventario.</div>'+
-    '<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevaCat()"><i class="ri-add-line"></i> Nueva Categoría</button><button class="btn btn-o btn-sm" onclick="modalNuevaSubcat()"><i class="ri-add-line"></i> Nueva Subcategoría</button></div>'+
-    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Categorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Descripción</th><th>Subcats</th><th>Estado</th><th></th></tr></thead><tbody>'+(catRows||'<tr><td colspan="5"><div class="empty-sm">Sin categorías</div></td></tr>')+'</tbody></table>'+
-    '<h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Subcategorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Categoría</th><th>Descripción</th><th>Estado</th><th></th></tr></thead><tbody>'+(scRows||'<tr><td colspan="5"><div class="empty-sm">Sin subcategorías</div></td></tr>')+'</tbody></table>';
+  return '<h3><i class="ri-grid-line" style="color:var(--rojo)"></i> Categorías y Subcategorías</h3><div class="sub">Clasificación de productos del inventario.</div><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevaCat()"><i class="ri-add-line"></i> Nueva Categoría</button><button class="btn btn-o btn-sm" onclick="modalNuevaSubcat()"><i class="ri-add-line"></i> Nueva Subcategoría</button></div><h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Categorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Descripción</th><th>Subcats</th><th>Estado</th><th></th></tr></thead><tbody>'+(catRows||'<tr><td colspan="5"><div class="empty-sm">Sin categorías</div></td></tr>')+'</tbody></table><h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Subcategorías</h4><table class="cfg-table"><thead><tr><th>Nombre</th><th>Categoría</th><th>Descripción</th><th>Estado</th><th></th></tr></thead><tbody>'+(scRows||'<tr><td colspan="5"><div class="empty-sm">Sin subcategorías</div></td></tr>')+'</tbody></table>';
 }
-function modalNuevaCat(){
-  openMod('<i class="ri-grid-line"></i> Nueva Categoría',
-    '<div class="ff"><label>Nombre *</label><input id="cfgCatNom" placeholder="Ej: Pisos"></div><div class="ff"><label>Descripción</label><input id="cfgCatDesc" placeholder="Pisos cerámicos y porcelanatos"></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearCat()"><i class="ri-check-line"></i> Crear</button>'
-  );
-}
-function crearCat(){
-  const nom=$('cfgCatNom').value.trim();
-  if(!nom){toast('Ingresa el nombre de la categoría','warn');return}
-  if(DB.config.categorias.find(c=>c.nombre.toLowerCase()===nom.toLowerCase())){toast('Ya existe una categoría con ese nombre','warn');return}
-  const id='cat-'+(DB.config.categorias.length+1);
-  DB.config.categorias.push({id,nombre:nom,descripcion:$('cfgCatDesc').value.trim(),activo:true});
-  closeMod();saveDB();renderCfg();toast('Categoría creada','ok');
-}
-function modalEditarCat(id){
-  const c=DB.config.categorias.find(x=>x.id===id);
-  if(!c)return;
-  openMod('<i class="ri-grid-line"></i> Editar Categoría',
-    '<div class="ff"><label>Nombre</label><input id="cfgCatNomE" value="'+c.nombre+'"></div><div class="ff"><label>Descripción</label><input id="cfgCatDescE" value="'+(c.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgCatActE"><option value="true" '+(c.activo?'selected':'')+'>Sí</option><option value="false" '+(!c.activo?'selected':'')+'>No</option></select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarCat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
-}
-function guardarCat(id){
-  const c=DB.config.categorias.find(x=>x.id===id);
-  if(!c)return;
-  c.nombre=$('cfgCatNomE').value.trim()||c.nombre;
-  c.descripcion=$('cfgCatDescE').value.trim();
-  c.activo=$('cfgCatActE').value==='true';
-  closeMod();saveDB();renderCfg();toast('Categoría actualizada','ok');
-}
-function eliminarCat(id){
-  if(DB.config.subcategorias.some(s=>s.categoria_id===id)){toast('No se puede eliminar: tiene subcategorías asociadas','err');return}
-  if(!confirm('¿Eliminar categoría?'))return;
-  DB.config.categorias=DB.config.categorias.filter(x=>x.id!==id);
-  saveDB();renderCfg();toast('Categoría eliminada','ok');
-}
-function modalNuevaSubcat(){
-  const catOpts=DB.config.categorias.filter(c=>c.activo).map(c=>'<option value="'+c.id+'">'+c.nombre+'</option>').join('');
-  openMod('<i class="ri-grid-line"></i> Nueva Subcategoría',
-    '<div class="ff"><label>Nombre *</label><input id="cfgScNom" placeholder="Ej: Piso Cerámico"></div><div class="ff"><label>Categoría Padre *</label><select id="cfgScCat">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDesc" placeholder="Pisos en cerámica esmaltada"></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearSubcat()"><i class="ri-check-line"></i> Crear</button>'
-  );
-}
-function crearSubcat(){
-  const nom=$('cfgScNom').value.trim();
-  const cat=$('cfgScCat').value;
-  if(!nom||!cat){toast('Completa nombre y categoría','warn');return}
-  const id='scat-'+(DB.config.subcategorias.length+1);
-  DB.config.subcategorias.push({id,nombre:nom,categoria_id:cat,descripcion:$('cfgScDesc').value.trim(),activo:true});
-  closeMod();saveDB();renderCfg();toast('Subcategoría creada','ok');
-}
-function modalEditarSubcat(id){
-  const s=DB.config.subcategorias.find(x=>x.id===id);
-  if(!s)return;
-  const catOpts=DB.config.categorias.map(c=>'<option value="'+c.id+'" '+(c.id===s.categoria_id?'selected':'')+'>'+c.nombre+'</option>').join('');
-  openMod('<i class="ri-grid-line"></i> Editar Subcategoría',
-    '<div class="ff"><label>Nombre</label><input id="cfgScNomE" value="'+s.nombre+'"></div><div class="ff"><label>Categoría Padre</label><select id="cfgScCatE">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDescE" value="'+(s.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgScActE"><option value="true" '+(s.activo?'selected':'')+'>Sí</option><option value="false" '+(!s.activo?'selected':'')+'>No</option></select></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarSubcat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
-  );
-}
-function guardarSubcat(id){
-  const s=DB.config.subcategorias.find(x=>x.id===id);
-  if(!s)return;
-  s.nombre=$('cfgScNomE').value.trim()||s.nombre;
-  s.categoria_id=$('cfgScCatE').value||s.categoria_id;
-  s.descripcion=$('cfgScDescE').value.trim();
-  s.activo=$('cfgScActE').value==='true';
-  closeMod();saveDB();renderCfg();toast('Subcategoría actualizada','ok');
-}
-function eliminarSubcat(id){
-  if(DB.productos.some(p=>p.subcategoria_id===id)){toast('No se puede eliminar: tiene productos asociados','err');return}
-  if(!confirm('¿Eliminar subcategoría?'))return;
-  DB.config.subcategorias=DB.config.subcategorias.filter(x=>x.id!==id);
-  saveDB();renderCfg();toast('Subcategoría eliminada','ok');
-}
+function modalNuevaCat(){openMod('<i class="ri-grid-line"></i> Nueva Categoría','<div class="ff"><label>Nombre *</label><input id="cfgCatNom" placeholder="Ej: Pisos"></div><div class="ff"><label>Descripción</label><input id="cfgCatDesc"></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearCat()"><i class="ri-check-line"></i> Crear</button>');}
+function crearCat(){const nom=$('cfgCatNom').value.trim();if(!nom){toast('Nombre requerido','warn');return}if(DB.config.categorias.find(c=>c.nombre.toLowerCase()===nom.toLowerCase())){toast('Ya existe','warn');return}DB.config.categorias.push({id:'cat-'+(DB.config.categorias.length+1),nombre:nom,descripcion:$('cfgCatDesc').value.trim(),activo:true});closeMod();saveDB();renderCfg();toast('Categoría creada','ok');}
+function modalEditarCat(id){const c=DB.config.categorias.find(x=>x.id===id);if(!c)return;openMod('<i class="ri-grid-line"></i> Editar Categoría','<div class="ff"><label>Nombre</label><input id="cfgCatNomE" value="'+c.nombre+'"></div><div class="ff"><label>Descripción</label><input id="cfgCatDescE" value="'+(c.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgCatActE"><option value="true" '+(c.activo?'selected':'')+'>Sí</option><option value="false" '+(!c.activo?'selected':'')+'>No</option></select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarCat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>');}
+function guardarCat(id){const c=DB.config.categorias.find(x=>x.id===id);if(!c)return;c.nombre=$('cfgCatNomE').value.trim()||c.nombre;c.descripcion=$('cfgCatDescE').value.trim();c.activo=$('cfgCatActE').value==='true';closeMod();saveDB();renderCfg();toast('Actualizada','ok');}
+function eliminarCat(id){if(DB.config.subcategorias.some(s=>s.categoria_id===id)){toast('No se puede: tiene subcategorías','err');return}if(!confirm('¿Eliminar?'))return;DB.config.categorias=DB.config.categorias.filter(x=>x.id!==id);saveDB();renderCfg();toast('Eliminada','ok');}
+function modalNuevaSubcat(){const catOpts=DB.config.categorias.filter(c=>c.activo).map(c=>'<option value="'+c.id+'">'+c.nombre+'</option>').join('');openMod('<i class="ri-grid-line"></i> Nueva Subcategoría','<div class="ff"><label>Nombre *</label><input id="cfgScNom" placeholder="Ej: Piso Cerámico"></div><div class="ff"><label>Categoría *</label><select id="cfgScCat">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDesc"></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearSubcat()"><i class="ri-check-line"></i> Crear</button>');}
+function crearSubcat(){const nom=$('cfgScNom').value.trim(),cat=$('cfgScCat').value;if(!nom||!cat){toast('Completa','warn');return}DB.config.subcategorias.push({id:'scat-'+(DB.config.subcategorias.length+1),nombre:nom,categoria_id:cat,descripcion:$('cfgScDesc').value.trim(),activo:true});closeMod();saveDB();renderCfg();toast('Subcategoría creada','ok');}
+function modalEditarSubcat(id){const s=DB.config.subcategorias.find(x=>x.id===id);if(!s)return;const catOpts=DB.config.categorias.map(c=>'<option value="'+c.id+'" '+(c.id===s.categoria_id?'selected':'')+'>'+c.nombre+'</option>').join('');openMod('<i class="ri-grid-line"></i> Editar Subcategoría','<div class="ff"><label>Nombre</label><input id="cfgScNomE" value="'+s.nombre+'"></div><div class="ff"><label>Categoría</label><select id="cfgScCatE">'+catOpts+'</select></div><div class="ff"><label>Descripción</label><input id="cfgScDescE" value="'+(s.descripcion||'')+'"></div><div class="ff"><label>Activo</label><select id="cfgScActE"><option value="true" '+(s.activo?'selected':'')+'>Sí</option><option value="false" '+(!s.activo?'selected':'')+'>No</option></select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarSubcat(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>');}
+function guardarSubcat(id){const s=DB.config.subcategorias.find(x=>x.id===id);if(!s)return;s.nombre=$('cfgScNomE').value.trim()||s.nombre;s.categoria_id=$('cfgScCatE').value||s.categoria_id;s.descripcion=$('cfgScDescE').value.trim();s.activo=$('cfgScActE').value==='true';closeMod();saveDB();renderCfg();toast('Actualizada','ok');}
+function eliminarSubcat(id){if(DB.productos.some(p=>p.subcategoria_id===id)){toast('No se puede: tiene productos','err');return}if(!confirm('¿Eliminar?'))return;DB.config.subcategorias=DB.config.subcategorias.filter(x=>x.id!==id);saveDB();renderCfg();toast('Eliminada','ok');}
 
-/* ==================== 6. GENERAL ==================== */
+/* ==================== 5. PREFIJOS DE DOCUMENTOS ==================== */
+function renderPrefijos(){
+  const rows=DB.config.prefijos.map(p=>{
+    const extra=p.tipo==='factura_electronica'?'<br><small>Vig: '+p.vigencia_desde+' → '+p.vigencia_hasta+' | Rango: '+p.rango_desde+'–'+p.rango_final+'</small>':'';
+    return '<tr><td><b>'+p.prefijo+'</b></td><td>'+p.tipo.replace(/_/g,' ')+'</td><td>'+p.consecutivo_inicial+'</td><td><b>'+p.consecutivo_actual+'</b></td><td>'+extra+'</td><td><span class="badge '+(p.activo?'bg':'bs')+'">'+(p.activo?'Activo':'Inactivo')+'</span></td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarPrefijo(\''+p.id+'\')"><i class="ri-pencil-line"></i></button></div></td></tr>';
+  }).join('');
+  return '<h3><i class="ri-file-list-3-line" style="color:var(--rojo)"></i> Prefijos de Documentos</h3><div class="sub">Consecutivos automáticos para cada tipo. Usa <code>nextConsecutivo(tipo)</code> en facturación.</div><table class="cfg-table"><thead><tr><th>Prefijo</th><th>Tipo</th><th>Inicial</th><th>Actual</th><th>Extra</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function modalEditarPrefijo(id){const p=DB.config.prefijos.find(x=>x.id===id);if(!p)return;
+  openMod('<i class="ri-file-list-3-line"></i> Editar Prefijo: '+p.prefijo,
+    '<div class="ff2"><div class="ff"><label>Prefijo</label><input id="cfgPfPf" value="'+p.prefijo+'"></div><div class="ff"><label>Consecutivo Inicial</label><input type="number" id="cfgPfCi" value="'+p.consecutivo_inicial+'"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Actual</label><input type="number" id="cfgPfCa" value="'+p.consecutivo_actual+'"></div><div class="ff"><label>Activo</label><select id="cfgPfAct"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div></div>'+
+    (p.tipo==='factura_electronica'?'<div class="ff2"><div class="ff"><label>Vigencia Desde</label><input id="cfgPfVd" value="'+(p.vigencia_desde||'')+'"></div><div class="ff"><label>Vigencia Hasta</label><input id="cfgPfVh" value="'+(p.vigencia_hasta||'')+'"></div></div><div class="ff2"><div class="ff"><label>Rango Desde</label><input type="number" id="cfgPfRd" value="'+(p.rango_desde||'')+'"></div><div class="ff"><label>Rango Hasta</label><input type="number" id="cfgPfRf" value="'+(p.rango_hasta||'')+'"></div></div>':'')+
+    '<div class="ff"><span style="font-size:11px;color:var(--mut)">El consecutivo se auto-incrementa al crear documentos.</span></div>',
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPrefijo(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+  );
+}
+function guardarPrefijo(id){const p=DB.config.prefijos.find(x=>x.id===id);if(!p)return;p.prefijo=$('cfgPfPf').value.trim()||p.prefijo;p.consecutivo_inicial=parseInt($('cfgPfCi').value)||p.consecutivo_inicial;p.consecutivo_actual=parseInt($('cfgPfCa').value)||p.consecutivo_actual;p.activo=$('cfgPfAct').value==='true';if(p.tipo==='factura_electronica'){p.vigencia_desde=$('cfgPfVd').value||p.vigencia_desde;p.vigencia_hasta=$('cfgPfVh').value||p.vigencia_hasta;p.rango_desde=parseInt($('cfgPfRd').value)||p.rango_desde;p.rango_hasta=parseInt($('cfgPfRf').value)||p.rango_hasta;}closeMod();saveDB();renderCfg();toast('Prefijo actualizado','ok');}
+
+/* ==================== 6. PUNTOS DE VENTA Y RESOLUCIONES ==================== */
+function renderPOS(){
+  const pvRows=DB.config.puntos_venta.map(p=>{const bg=DB.bodegas.find(b=>b.id===p.bodega_id);
+    return '<tr><td><b>'+p.codigo+'</b></td><td>'+p.nombre+'</td><td>'+(bg?bg.n+' ('+p.bodega_id+')':'—')+'</td><td><span class="badge '+(p.activo?'bg':'bs')+'">'+(p.activo?'Activo':'Inactivo')+'</span></td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarPV(\''+p.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarPV(\''+p.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
+  }).join('');
+  const resRows=DB.config.resoluciones.map(r=>{const pv=getPuntoVenta(r.punto_venta_id);
+    return '<tr><td>'+r.numero+'</td><td>'+r.prefijo+'</td><td>'+r.consecutivo_inicial+'–'+r.consecutivo_final+'</td><td>'+r.fecha_inicio+' → '+r.fecha_fin+'</td><td>'+(pv?pv.nombre:'—')+'</td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarRes(\''+r.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarRes(\''+r.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
+  }).join('');
+  return '<h3><i class="ri-store-2-line" style="color:var(--rojo)"></i> Puntos de Venta</h3><div class="sub">Puntos de venta y resoluciones de facturación. Se valida no solapamiento de rangos.</div><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-blue btn-sm" onclick="modalNuevoPV()"><i class="ri-add-line"></i> Nuevo PV</button><button class="btn btn-o btn-sm" onclick="modalNuevaRes()"><i class="ri-add-line"></i> Nueva Resolución</button></div><h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Puntos de Venta</h4><table class="cfg-table"><thead><tr><th>Código</th><th>Nombre</th><th>Bodega</th><th>Estado</th><th></th></tr></thead><tbody>'+pvRows+'</tbody></table><h4 style="font-size:12px;font-weight:700;color:var(--ink);margin:12px 0 6px">Resoluciones</h4><table class="cfg-table"><thead><tr><th>N°</th><th>Prefijo</th><th>Consecutivo</th><th>Vigencia</th><th>PV</th><th></th></tr></thead><tbody>'+(resRows||'<tr><td colspan="6"><div class="empty-sm">Sin resoluciones</div></td></tr>')+'</tbody></table>';
+}
+function modalNuevoPV(){const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'">'+b.n+' ('+b.id+')</option>').join('');openMod('<i class="ri-store-2-line"></i> Nuevo PV','<div class="ff2"><div class="ff"><label>Código *</label><input id="cfgPvCod" placeholder="001"></div><div class="ff"><label>Nombre *</label><input id="cfgPvNom" placeholder="Principal"></div></div><div class="ff"><label>Bodega *</label><select id="cfgPvBg">'+bgOpts+'</select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPV()"><i class="ri-check-line"></i> Crear</button>');}
+function crearPV(){const cod=$('cfgPvCod').value.trim(),nom=$('cfgPvNom').value.trim(),bg=$('cfgPvBg').value;if(!cod||!nom){toast('Campos obligatorios','warn');return}if(DB.config.puntos_venta.find(p=>p.codigo===cod)){toast('Código duplicado','warn');return}const id='PV-'+String(DB.config.puntos_venta.length+1).padStart(3,'0');DB.config.puntos_venta.push({id,codigo:cod,nombre:nom,bodega_id:bg,activo:true});closeMod();saveDB();renderCfg();toast('PV creado','ok');}
+function modalEditarPV(id){const p=DB.config.puntos_venta.find(x=>x.id===id);if(!p)return;const bgOpts=DB.bodegas.map(b=>'<option value="'+b.id+'" '+(b.id===p.bodega_id?'selected':'')+'>'+b.n+' ('+b.id+')</option>').join('');openMod('<i class="ri-store-2-line"></i> Editar PV','<div class="ff2"><div class="ff"><label>Código</label><input id="cfgPvCodE" value="'+p.codigo+'"></div><div class="ff"><label>Nombre</label><input id="cfgPvNomE" value="'+p.nombre+'"></div></div><div class="ff"><label>Bodega</label><select id="cfgPvBgE">'+bgOpts+'</select></div><div class="ff"><label>Activo</label><select id="cfgPvActE"><option value="true" '+(p.activo?'selected':'')+'>Sí</option><option value="false" '+(!p.activo?'selected':'')+'>No</option></select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarPV(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>');}
+function guardarPV(id){const p=DB.config.puntos_venta.find(x=>x.id===id);if(!p)return;p.codigo=$('cfgPvCodE').value.trim()||p.codigo;p.nombre=$('cfgPvNomE').value.trim()||p.nombre;p.bodega_id=$('cfgPvBgE').value||p.bodega_id;p.activo=$('cfgPvActE').value==='true';closeMod();saveDB();renderCfg();toast('PV actualizado','ok');}
+function eliminarPV(id){if(!confirm('¿Eliminar PV?'))return;DB.config.puntos_venta=DB.config.puntos_venta.filter(x=>x.id!==id);DB.config.resoluciones=DB.config.resoluciones.filter(r=>r.punto_venta_id!==id);saveDB();renderCfg();toast('PV eliminado','ok');}
+function modalNuevaRes(){const pvOpts=DB.config.puntos_venta.filter(p=>p.activo).map(p=>'<option value="'+p.id+'">'+p.codigo+' — '+p.nombre+'</option>').join('');openMod('<i class="ri-file-list-3-line"></i> Nueva Resolución','<div class="ff2"><div class="ff"><label>N° Resolución *</label><input id="cfgResNum" placeholder="187600000001"></div><div class="ff"><label>Prefijo *</label><input id="cfgResPf" placeholder="FE"></div></div><div class="ff2"><div class="ff"><label>Consecutivo Inicial *</label><input type="number" id="cfgResCi" value="1"></div><div class="ff"><label>Consecutivo Final *</label><input type="number" id="cfgResCf" value="9999"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio *</label><input id="cfgResFi" value="01/01/2026"></div><div class="ff"><label>Fecha Fin *</label><input id="cfgResFf" value="31/12/2026"></div></div><div class="ff"><label>Punto de Venta *</label><select id="cfgResPv">'+pvOpts+'</select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearRes()"><i class="ri-check-line"></i> Crear</button>');}
+function crearRes(){const num=$('cfgResNum').value.trim(),pf=$('cfgResPf').value.trim().toUpperCase(),ci=parseInt($('cfgResCi').value),cf=parseInt($('cfgResCf').value),fi=$('cfgResFi').value,ff=$('cfgResFf').value,pv=$('cfgResPv').value;if(!num||!pf||!ci||!cf||!fi||!ff||!pv){toast('Campos obligatorios','warn');return}const sol=DB.config.resoluciones.some(r=>r.punto_venta_id===pv&&((ci>=r.consecutivo_inicial&&ci<=r.consecutivo_final)||(cf>=r.consecutivo_inicial&&cf<=r.consecutivo_final)));if(sol){toast('Rango se solapa con otra resolución del mismo PV','err');return}const id='RES-'+String(DB.config.resoluciones.length+1).padStart(3,'0');DB.config.resoluciones.push({id,numero:num,prefijo:pf,fecha_inicio:fi,fecha_fin:ff,consecutivo_inicial:ci,consecutivo_final:cf,punto_venta_id:pv});closeMod();saveDB();renderCfg();toast('Resolución creada','ok');}
+function modalEditarRes(id){const r=DB.config.resoluciones.find(x=>x.id===id);if(!r)return;const pvOpts=DB.config.puntos_venta.map(p=>'<option value="'+p.id+'" '+(p.id===r.punto_venta_id?'selected':'')+'>'+p.codigo+' — '+p.nombre+'</option>').join('');openMod('<i class="ri-file-list-3-line"></i> Editar Resolución','<div class="ff2"><div class="ff"><label>N°</label><input id="cfgResNumE" value="'+r.numero+'"></div><div class="ff"><label>Prefijo</label><input id="cfgResPfE" value="'+r.prefijo+'"></div></div><div class="ff2"><div class="ff"><label>C. Inicial</label><input type="number" id="cfgResCiE" value="'+r.consecutivo_inicial+'"></div><div class="ff"><label>C. Final</label><input type="number" id="cfgResCfE" value="'+r.consecutivo_final+'"></div></div><div class="ff2"><div class="ff"><label>Fecha Inicio</label><input id="cfgResFiE" value="'+r.fecha_inicio+'"></div><div class="ff"><label>Fecha Fin</label><input id="cfgResFfE" value="'+r.fecha_fin+'"></div></div><div class="ff"><label>PV</label><select id="cfgResPvE">'+pvOpts+'</select></div>','<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarRes(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>');}
+function guardarRes(id){const r=DB.config.resoluciones.find(x=>x.id===id);if(!r)return;r.numero=$('cfgResNumE').value.trim()||r.numero;r.prefijo=$('cfgResPfE').value.trim().toUpperCase()||r.prefijo;r.consecutivo_inicial=parseInt($('cfgResCiE').value)||r.consecutivo_inicial;r.consecutivo_final=parseInt($('cfgResCfE').value)||r.consecutivo_final;r.fecha_inicio=$('cfgResFiE').value||r.fecha_inicio;r.fecha_fin=$('cfgResFfE').value||r.fecha_fin;r.punto_venta_id=$('cfgResPvE').value||r.punto_venta_id;closeMod();saveDB();renderCfg();toast('Resolución actualizada','ok');}
+function eliminarRes(id){if(!confirm('¿Eliminar resolución?'))return;DB.config.resoluciones=DB.config.resoluciones.filter(x=>x.id!==id);saveDB();renderCfg();toast('Resolución eliminada','ok');}
+
+/* ==================== 7. PARAMETRIZACIÓN GENERAL ==================== */
 function renderGeneral(){
   const g=DB.config.general;
-  return '<h3><i class="ri-settings-4-line" style="color:var(--rojo)"></i> Parametrización General</h3><div class="sub">Configuración global del sistema. Afecta encabezados de documentos, cálculos de impuestos y formato.</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
-    '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Empresa</h4><div class="ff"><label>Nombre de la Empresa</label><input id="cfgGEmp" value="'+g.empresa+'"></div><div class="ff"><label>NIT</label><input id="cfgGNit" value="'+g.nit+'"></div><div class="ff2"><div class="ff"><label>Dirección</label><input id="cfgGDir" value="'+g.direccion+'"></div><div class="ff"><label>Teléfono</label><input id="cfgGTel" value="'+g.telefono+'"></div></div></div>'+
-    '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Parámetros</h4><div class="ff"><label>Moneda por defecto</label><select id="cfgGMon"><option value="COP" selected>COP (Peso Colombiano)</option><option value="USD">USD (Dólar)</option></select></div><div class="ff"><label>IVA (%)</label><input type="number" id="cfgGIva" value="'+g.iva+'" min="0" max="100"></div><div class="ff2"><div class="ff"><label>Decimales en cantidades</label><select id="cfgGDec"><option value="0" '+(g.decimales===0?'selected':'')+'>0</option><option value="1" '+(g.decimales===1?'selected':'')+'>1</option><option value="2" '+(g.decimales===2?'selected':'')+'>2</option></select></div><div class="ff"><label>Formato de fecha</label><select id="cfgGFec"><option value="DD/MM/AAAA" '+(g.fecha==='DD/MM/AAAA'?'selected':'')+'>DD/MM/AAAA</option><option value="MM/DD/AAAA" '+(g.fecha==='MM/DD/AAAA'?'selected':'')+'>MM/DD/AAAA</option><option value="AAAA-MM-DD" '+(g.fecha==='AAAA-MM-DD'?'selected':'')+'>AAAA-MM-DD</option></select></div></div></div>'+
-    '</div>'+
-    '<button class="btn btn-blue btn-sm" onclick="guardarGeneral()" style="margin-top:14px"><i class="ri-check-line"></i> Guardar Configuración General</button>';
+  return '<h3><i class="ri-settings-4-line" style="color:var(--rojo)"></i> Parametrización General</h3><div class="sub">Configuración global del sistema.</div>'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
+  '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Empresa</h4><div class="ff"><label>Nombre</label><input id="cfgGEmp" value="'+g.empresa+'"></div><div class="ff"><label>NIT</label><input id="cfgGNit" value="'+g.nit+'"></div><div class="ff2"><div class="ff"><label>Dirección</label><input id="cfgGDir" value="'+g.direccion+'"></div><div class="ff"><label>Teléfono</label><input id="cfgGTel" value="'+g.telefono+'"></div></div></div>'+
+  '<div style="border:1px solid var(--line);border-radius:10px;padding:16px"><h4 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">Parámetros</h4><div class="ff"><label>Moneda</label><select id="cfgGMon"><option value="COP" selected>COP</option><option value="USD">USD</option></select></div><div class="ff"><label>IVA (%)</label><input type="number" id="cfgGIva" value="'+g.iva+'" min="0" max="100"></div><div class="ff2"><div class="ff"><label>Decimales</label><select id="cfgGDec"><option value="0" '+(g.decimales===0?'selected':'')+'>0</option><option value="1" '+(g.decimales===1?'selected':'')+'>1</option><option value="2" '+(g.decimales===2?'selected':'')+'>2</option></select></div><div class="ff"><label>Formato fecha</label><select id="cfgGFec"><option value="DD/MM/AAAA" '+(g.fecha==='DD/MM/AAAA'?'selected':'')+'>DD/MM/AAAA</option><option value="AAAA-MM-DD" '+(g.fecha==='AAAA-MM-DD'?'selected':'')+'>AAAA-MM-DD</option></select></div></div></div></div><button class="btn btn-blue btn-sm" onclick="guardarGeneral()" style="margin-top:14px"><i class="ri-check-line"></i> Guardar</button>';
 }
-function guardarGeneral(){
-  const g=DB.config.general;
-  g.empresa=$('cfgGEmp').value.trim()||g.empresa;
-  g.nit=$('cfgGNit').value.trim()||g.nit;
-  g.direccion=$('cfgGDir').value.trim()||g.direccion;
-  g.telefono=$('cfgGTel').value.trim()||g.telefono;
-  g.iva=parseFloat($('cfgGIva').value)||g.iva;
-  g.decimales=parseInt($('cfgGDec').value)||g.decimales;
-  g.fecha=$('cfgGFec').value||g.fecha;
-  saveDB();renderCfg();toast('Configuración general guardada','ok');
-}
+function guardarGeneral(){const g=DB.config.general;g.empresa=$('cfgGEmp').value.trim()||g.empresa;g.nit=$('cfgGNit').value.trim()||g.nit;g.direccion=$('cfgGDir').value.trim()||g.direccion;g.telefono=$('cfgGTel').value.trim()||g.telefono;g.iva=parseFloat($('cfgGIva').value)||g.iva;g.decimales=parseInt($('cfgGDec').value)||g.decimales;g.fecha=$('cfgGFec').value||g.fecha;saveDB();renderCfg();toast('Configuración general guardada','ok');}
 
 renderCfg();
 </script>

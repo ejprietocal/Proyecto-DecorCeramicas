@@ -244,6 +244,7 @@ function modalEditarProducto(sku){
     '<div class="ff2"><div class="ff"><label>SKU</label><input id="npSku" value="'+(p?p.sku:'')+'" placeholder="Ej: PC-4545-BE"></div><div class="ff"><label>Categoría</label><select id="npCat">'+catOpts+'</select></div></div>'+
     '<div class="ff2"><div class="ff"><label>Precio unitario ($)</label><input id="npPrecio" type="number" min="0" value="'+(p?p.precio:'')+'" placeholder="28500"></div><div class="ff"><label>Costo unitario ($)</label><input id="npCosto" type="number" min="0" value="'+(p?p.costo:'')+'" placeholder="18000"></div></div>'+
     '<div class="ff2"><div class="ff"><label>% Descuento máximo</label><input id="npDesc" type="number" min="0" max="100" value="'+(p?p.descuento_max:'')+'" placeholder="15"></div><div class="ff"><label>Unidad base</label><select id="npU">'+uOpts+'</select></div></div>'+
+    '<div class="ff"><label>Grupo de Conversión</label><select id="npGrupo"><option value="">— Sin grupo —</option>'+DB.config.grupos_conversion.map(g=>'<option value="'+g.id+'" '+(p&&p.grupo_conversion_id===g.id?'selected':'')+'>'+g.nombre+' ('+g.unidades.map(u=>u.codigo).join(', ')+')</option>').join('')+'</select></div>'+
     '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--rojo);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ri-exchange-line"></i> Factor de conversión</div><p style="font-size:11.5px;color:var(--mut);margin-bottom:10px;line-height:1.5">Define la equivalencia entre la <b>unidad base</b> del inventario (m² o lb) y la <b>unidad secundaria</b> de despacho. Ej: si 1 caja = 1.44 m², ingresa <b>1.44</b> en el factor y selecciona <b>caja</b>.</p><div class="ff2"><div class="ff"><label>Factor (1 unidad secundaria = X base)</label><input id="npCaja" type="number" step="0.01" min="0" value="'+(p?p.caja:'')+'" placeholder="1.44"></div><div class="ff"><label>Unidad secundaria</label><select id="npCajaN"><option value="">— Sin conversión —</option>'+cajaNOpts+'</select></div></div></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="'+fn+'"><i class="ri-check-line"></i> '+btnT+'</button>'
   );
@@ -259,11 +260,13 @@ function crearProducto(){
   const u=$('npU').value;
   const caja=parseFloat($('npCaja').value);
   const cajaN=$('npCajaN').value;
+  const grupo=$('npGrupo').value;
   const colList=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
   const icList=['ri-grid-line','ri-layout-grid-line','ri-stack-line','ri-drop-line','ri-paint-fill','ri-building-line','ri-flashlight-line','ri-palette-line'];
   const icIdx=DB.productos.length%icList.length;
   const prod={sku,n,ic:icList[icIdx],cat,precio,costo,descuento_max:desc,u,grad:'linear-gradient(135deg,'+colList[icIdx]+',#0A1929)'};
   if(caja>0&&cajaN)prod.caja=caja;prod.cajaN=cajaN||'caja';prod.cajaN=cajaN;
+  if(grupo)prod.grupo_conversion_id=grupo;
   DB.productos.push(prod);
   Object.keys(DB.stock).forEach(bg=>{DB.stock[bg][sku]=0});
   closeMod();saveDB();renderInv();toast('Producto '+n+' creado con SKU '+sku,'ok');
@@ -278,6 +281,8 @@ function actualizarProducto(){
   p.descuento_max=parseInt($('npDesc').value)||0;p.u=$('npU').value;
   const caja=parseFloat($('npCaja').value);const cajaN=$('npCajaN').value;
   if(caja>0&&cajaN){p.caja=caja;p.cajaN=cajaN}else{delete p.caja;delete p.cajaN}
+  const grupo=$('npGrupo').value;
+  if(grupo)p.grupo_conversion_id=grupo;else delete p.grupo_conversion_id;
   if(sku!==oldSku){Object.keys(DB.stock).forEach(bg=>{const v=DB.stock[bg][oldSku];delete DB.stock[bg][oldSku];DB.stock[bg][sku]=v||0})}
   closeMod();saveDB();editSku=null;renderInv();toast('Producto '+n+' actualizado','ok');
 }

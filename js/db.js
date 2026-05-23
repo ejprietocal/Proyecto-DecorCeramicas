@@ -238,6 +238,13 @@ const DB={
       {id:'scat-4',nombre:'Azulejo Cocina',categoria_id:'cat-2',descripcion:'Azulejos para cocina',activo:true},
       {id:'scat-5',nombre:'Grifo Lavamanos',categoria_id:'cat-4',descripcion:'Grifos para lavamanos',activo:true},
       {id:'scat-6',nombre:'Adhesivo Cerámico',categoria_id:'cat-5',descripcion:'Adhesivos para porcelanato',activo:true}
+    ],
+    grupos_conversion:[
+      {id:'gc-001',nombre:'Cerámicas por Caja',descripcion:'Unidades y cajas para cerámicas',unidad_base_id:'und-1',unidades:[{unidad_id:'und-1',factor:1,codigo:'UND'},{unidad_id:'und-2',factor:12,codigo:'CAJ'}]},
+      {id:'gc-002',nombre:'Pisos m² a Caja',descripcion:'Conversión metros cuadrados a cajas',unidad_base_id:'und-8',unidades:[{unidad_id:'und-8',factor:1,codigo:'M2'},{unidad_id:'und-2',factor:1.44,codigo:'CAJ'}]},
+      {id:'gc-003',nombre:'Pinturas por Galón',descripcion:'Galones y litros',unidad_base_id:'und-5',unidades:[{unidad_id:'und-5',factor:1,codigo:'L'},{unidad_id:'und-10',factor:3.785,codigo:'GL'},{unidad_id:'und-7',factor:1000,codigo:'ML'}]},
+      {id:'gc-004',nombre:'Sacos a Pale',descripcion:'Sacos agrupados en pales',unidad_base_id:'und-9',unidades:[{unidad_id:'und-9',factor:1,codigo:'SAC'},{unidad_id:'und-2',factor:40,codigo:'CAJ'}]},
+      {id:'gc-005',nombre:'Peso (Kg a g)',descripcion:'Kilogramos y gramos',unidad_base_id:'und-4',unidades:[{unidad_id:'und-4',factor:1,codigo:'KG'},{unidad_id:'und-6',factor:1000,codigo:'G'}]}
     ]
   }
 };

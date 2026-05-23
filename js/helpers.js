@@ -36,3 +36,11 @@ const getUnidad=id=>DB.config.unidades.find(u=>u.id===id);
 const getPuntoVenta=id=>DB.config.puntos_venta.find(p=>p.id===id);
 const getCategoriasActivas=()=>DB.config.categorias.filter(c=>c.activo);
 const getSubcatsByCat=catId=>DB.config.subcategorias.filter(s=>s.categoria_id===catId&&s.activo);
+const getGrupoConversion=id=>DB.config.grupos_conversion.find(g=>g.id===id);
+const getProductoGrupo=prod=>prod.grupo_conversion_id?getGrupoConversion(prod.grupo_conversion_id):null;
+const convertirAUnidadBase=(grupoId,unidadId,cantidad)=>{
+  const g=getGrupoConversion(grupoId);
+  if(!g)return cantidad;
+  const u=g.unidades.find(x=>x.unidad_id===unidadId);
+  return u?cantidad/u.factor:cantidad;
+};

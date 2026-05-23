@@ -14,8 +14,7 @@ const MODS={
   notas:        {n:'Notas Crédito/Débito', ic:'ri-swap-2-line',             g:'Facturación',     cr:'Facturación · Notas',        desc:'Notas crédito y débito vinculadas a facturas'},
   cotizaciones: {n:'Cotizaciones',         ic:'ri-file-text-line',          g:'Facturación',     cr:'Facturación · Cotizaciones', desc:'Cotizaciones / proformas convertibles en pedidos'},
   remisiones:   {n:'Remisiones / Albaranes',ic:'ri-truck-line',            g:'Facturación',     cr:'Facturación · Remisiones',   desc:'Documentos de traslado físico de mercancía'},
-  usuarios:     {n:'Usuarios y Roles',     ic:'ri-shield-user-line',        g:'Configuración',   cr:'Configuración · Usuarios',   desc:'Gestión de usuarios del sistema y permisos por rol'},
-  configuracion:{n:'Configuración',       ic:'ri-settings-3-line',         g:'Configuración',   cr:'Configuración',              desc:'Parámetros del sistema, prefijos, unidades y más'}
+  configuracion:{n:'Configuración',       ic:'ri-settings-3-line',         g:'Configuración',   cr:'Configuración',              desc:'Usuarios, prefijos, unidades, categorías, grupos de conversión y más'}
 };
 const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Facturación','Configuración'];
 const USERS=[
@@ -27,7 +26,7 @@ const USERS=[
   {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#DB2777'}
 ];
 let PERMS={
-  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','usuarios','configuracion'],
+  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','configuracion'],
   maria:  ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','configuracion'],
   diego:  ['dashboard','inventario','reclamar','movimientos','remisiones'],
   sandra: ['dashboard','proveedores','compras','reclamar','pedidos','facturas','notas','cotizaciones'],
