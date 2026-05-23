@@ -78,7 +78,7 @@ function renderInv(){
   '</div>':'';
 
   const totalStk=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku),0);
-  const convCount=filtered.filter(p=>p.caja).length;
+  const convCount=filtered.filter(p=>p.grupo_conversion_id||p.caja).length;
   const totalVal=filtered.reduce((s,p)=>s+stockBodega(selBodega,p.sku)*(p.costo||0),0);
   const bgStocks=DB.bodegas.map(b=>{return{id:b.id,st:filtered.reduce((a,p)=>a+stockBodega(b.id,p.sku),0)}});
   const bgTotal=bgStocks.reduce((s,b)=>s+b.st,0);
@@ -194,11 +194,17 @@ function renderInv(){
   const rows=filtered.map(p=>{
     const stk=stockBodega(selBodega,p.sku);const tot=stockTotal(p.sku);
     const pct=tot>0?Math.round(stk/tot*100):0;
-    const conv=p.caja?'<span style="display:block">~'+fmt(Math.round(stk/p.caja))+' '+p.cajaN+'</span><span style="color:var(--ph)">1 '+p.cajaN+' = '+p.caja+' '+p.u+'</span>':'<span style="color:var(--ph)">Sin conversión</span>';
+    const gp=getProductoGrupo(p);
+    const conv=gp
+      ? gp.unidades.filter(u=>u.factor!==1).map(u=>'<span style="color:var(--ph);display:block">1 '+u.codigo+' = '+u.factor+' '+gp.unidades.find(x=>x.factor===1).codigo+'</span>').join('')
+      : (p.caja?'<span style="display:block">~'+fmt(Math.round(stk/p.caja))+' '+p.cajaN+'</span><span style="color:var(--ph)">1 '+p.cajaN+' = '+p.caja+' '+p.u+'</span>':'<span style="color:var(--ph)">Sin conversión</span>');
     const barCol=stk===0?'var(--danger-txt)':stk<100?'var(--warn-txt)':'var(--success-txt)';
     const bar='<div class="inv-bar"><span style="width:'+pct+'%;background:'+barCol+'"></span></div>';
     const imgSrc='https://picsum.photos/seed/'+p.sku+'/44/44';
-    const expItems='<div class="inv-exp"><span><i class="ri-price-tag-3-line"></i>'+money(p.costo||0)+'</span><span><i class="ri-exchange-line"></i>'+(p.caja?'1 '+p.cajaN+' = '+p.caja+' '+p.u:'Sin conv.')+'</span><span><i class="ri-stack-line"></i>'+p.cat+'</span><span><i class="ri-box-3-line"></i>'+fmt(Math.round(stk/(p.caja||1)))+' '+(p.cajaN||'—')+'</span></div>';
+    const convText=gp
+      ? gp.unidades.map(u=>u.factor===1?'1 '+u.codigo+' (base)':'1 '+u.codigo+' = '+u.factor+' '+gp.unidades.find(x=>x.factor===1).codigo).join(' | ')
+      : (p.caja?'1 '+p.cajaN+' = '+p.caja+' '+p.u:'Sin conv.');
+    const expItems='<div class="inv-exp"><span><i class="ri-price-tag-3-line"></i>'+money(p.costo||0)+'</span><span><i class="ri-exchange-line"></i>'+convText+'</span><span><i class="ri-stack-line"></i>'+p.cat+'</span><span><i class="ri-box-3-line"></i>'+fmt(Math.round(stk/(p.caja||1)))+' '+(p.cajaN||'—')+'</span></div>';
     return '<div class="inv-tr" onclick="this.classList.toggle(\'open\')"><div class="td-img"><img src="'+imgSrc+'" onerror="this.style.display=\'none\';this.parentNode.style.background=\'var(--rojo)\'" style="width:44px;height:44px;object-fit:cover;border-radius:0 6px 6px 0" loading="lazy"></div><div class="td-sku">'+p.sku+'</div><div style="flex-direction:column;align-items:flex-start;gap:1px"><span class="td-n">'+p.n+'</span>'+bar+'</div><div class="td-cat"><span class="inv-tag">'+p.cat+'</span></div><div class="td-det" style="flex-direction:column;align-items:flex-start;gap:1px">'+conv+'</div><div style="flex-direction:column;align-items:flex-start;gap:0"><span class="td-q">'+fmt(stk)+'</span><span style="font-size:9px;color:var(--mut)">'+p.u+'</span></div><div class="td-q2">'+fmt(Math.round(stk/(p.caja||1)))+' <span style="font-size:9px;color:var(--mut)">'+(p.cajaN||'—')+'</span></div><div class="td-cost" style="flex-direction:column;align-items:flex-start;gap:0"><span>'+money(p.costo||0)+'</span><span style="font-size:9px;color:var(--ph)">'+((p.precio&&p.costo)?' margen '+Math.round((1-p.costo/p.precio)*100)+'%':'')+'</span></div><div class="td-acts"><button class="td-edit" onclick="event.stopPropagation();modalEditarProducto(\''+p.sku+'\')" title="Editar"><i class="ri-pencil-line"></i></button><button class="td-detail" onclick="event.stopPropagation();verDetalleProducto(\''+p.sku+'\')" title="Detalle"><i class="ri-eye-line"></i></button></div><div class="td-chev" style="display:none"><i class="ri-arrow-down-s-line"></i></div><div class="td-expand" style="display:none">'+expItems+'</div></div>';
   }).join('');
   const remPend=DB.remisiones.filter(r=>r.estado==='en_proceso'||r.estado==='pendiente');
@@ -315,7 +321,10 @@ function verDetalleProducto(sku){
     const s=stockBodega(b.id,sku);const bar=s>0?(100*s/stockTotal(sku)):0;
     return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div class="dot '+b.estado+'"></div><span style="flex:1;font-size:12px;font-weight:600">'+b.id+'</span><span style="font-size:13px;font-weight:800;width:60px;text-align:right">'+fmt(s)+'</span><span style="font-size:10px;color:var(--mut);width:30px">'+p.u+'</span><div class="inv-bar" style="flex:1"><span style="width:'+bar+'%;background:'+(s===0?'var(--danger-txt)':'var(--success-txt)')+'"></span></div></div>';
   }).join('');
-  const convHtml=p.caja?'<div style="padding:8px 0;font-size:12px;color:var(--txt)"><span style="font-weight:600">Factor de conversión:</span> 1 '+p.cajaN+' = '+p.caja+' '+p.u+'</div>':'';
+  const gp=getProductoGrupo(p);
+  const convHtml=gp
+    ? '<div style="padding:8px 0;font-size:12px;color:var(--txt)"><span style="font-weight:600">Grupo:</span> '+gp.nombre+'<br><small>'+gp.unidades.map(u=>u.factor===1?'1 '+u.codigo+' (base)':'1 '+u.codigo+' = '+u.factor+' '+gp.unidades.find(x=>x.factor===1).codigo).join(' | ')+'</small></div>'
+    : (p.caja?'<div style="padding:8px 0;font-size:12px;color:var(--txt)"><span style="font-weight:600">Factor de conversión:</span> 1 '+p.cajaN+' = '+p.caja+' '+p.u+'</div>':'');
   const margen=(p.precio&&p.costo)?Math.round((1-p.costo/p.precio)*100):0;
   openMod('<i class="ri-eye-line"></i> '+p.n,
     '<div style="background:var(--neutral-bg);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px"><div><span style="color:var(--mut)">SKU</span><br><b>'+p.sku+'</b></div><div><span style="color:var(--mut)">Categoría</span><br><b>'+p.cat+'</b></div><div><span style="color:var(--mut)">Precio unitario</span><br><b>'+money(p.precio)+'</b></div><div><span style="color:var(--mut)">Costo unitario</span><br><b>'+money(p.costo)+'</b></div><div><span style="color:var(--mut)">Margen</span><br><b style="color:'+(margen>=20?'var(--success-txt)':'var(--warn-txt)')+'">'+margen+'%</b></div><div><span style="color:var(--mut)">Dto. máx.</span><br><b>'+p.descuento_max+'%</b></div></div>'+
