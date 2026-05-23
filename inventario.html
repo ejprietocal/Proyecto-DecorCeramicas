@@ -240,7 +240,6 @@ function modalEditarProducto(sku){
   const t=p?'<i class="ri-pencil-line"></i> Editar Producto':'<i class="ri-add-box-line"></i> Nuevo Producto';
   const cats=['Pisos','Azulejos','Revestimientos','Grifería','Adhesivos','Morteros','Herrería','Eléctricos','Pinturas','Sanitarios','Herramientas','Seguridad','Iluminación','Ventilación','Ferretería','General'];
   const catOpts=cats.map(c=>'<option value="'+c+'"'+(p&&p.cat===c?' selected':'')+'>'+c+'</option>').join('');
-  const uOpts='<option value="m²"'+(p&&p.u==='m²'?' selected':'')+'>m² (metros cuadrados)</option><option value="lb"'+(p&&p.u==='lb'?' selected':'')+'>lb (libras)</option>';
   const cajaNOpts=['caja','pale','paquete','bulto','rollo','galón'].map(c=>'<option value="'+c+'"'+(p&&p.cajaN===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>').join('');
   const btnT=p?'Actualizar':'Crear producto';
   const fn=p?'actualizarProducto()':'crearProducto()';
@@ -249,7 +248,7 @@ function modalEditarProducto(sku){
     '<div class="ff"><label>Nombre del producto</label><input id="npNombre" value="'+(p?p.n:'')+'" placeholder="Ej: Piso Cerámico 45×45"></div>'+
     '<div class="ff2"><div class="ff"><label>SKU</label><input id="npSku" value="'+(p?p.sku:'')+'" placeholder="Ej: PC-4545-BE"></div><div class="ff"><label>Categoría</label><select id="npCat">'+catOpts+'</select></div></div>'+
     '<div class="ff2"><div class="ff"><label>Precio unitario ($)</label><input id="npPrecio" type="number" min="0" value="'+(p?p.precio:'')+'" placeholder="28500"></div><div class="ff"><label>Costo unitario ($)</label><input id="npCosto" type="number" min="0" value="'+(p?p.costo:'')+'" placeholder="18000"></div></div>'+
-    '<div class="ff2"><div class="ff"><label>% Descuento máximo</label><input id="npDesc" type="number" min="0" max="100" value="'+(p?p.descuento_max:'')+'" placeholder="15"></div><div class="ff"><label>Unidad base</label><select id="npU">'+uOpts+'</select></div></div>'+
+    '<div class="ff2"><div class="ff"><label>% Descuento máximo</label><input id="npDesc" type="number" min="0" max="100" value="'+(p?p.descuento_max:'')+'" placeholder="15"></div><div class="ff"><label>Precio ($)</label><input id="npPrecioR" value="'+(p?p.precio:'')+'" style="background:var(--neutral-bg)"></div></div>'+
     '<div class="ff"><label>Grupo de Conversión</label><select id="npGrupo" onchange="onGrupoChange()"><option value="">— Sin grupo (usar factor manual) —</option>'+DB.config.grupos_conversion.map(g=>'<option value="'+g.id+'" '+(p&&p.grupo_conversion_id===g.id?'selected':'')+'>'+g.nombre+' ('+g.unidades.map(u=>u.codigo).join(', ')+')</option>').join('')+'</select></div>'+
 '<div id="npConvInfo" style="background:var(--info-bg);border:1px solid var(--info-bd);border-radius:10px;padding:12px;margin-bottom:14px;font-size:11.5px;color:var(--info-txt);display:'+(p&&p.grupo_conversion_id?'block':'none')+'"></div>'+
     '<div id="npConvManual" style="display:'+(p&&p.grupo_conversion_id?'none':'block')+'">'+
@@ -268,7 +267,6 @@ function onGrupoChange(){
       const base=g.unidades.find(u=>u.factor===1);
       const uMap={'M2':'m²','UND':'unid','KG':'kg','L':'l','G':'g','ML':'ml','GL':'gal','SAC':'sacos','CAJ':'caja'};
       const baseU=base?(uMap[base.codigo]||base.codigo.toLowerCase()):'';
-      if(baseU)$('npU').value=baseU;
       el.innerHTML='<b>Grupo:</b> '+g.nombre+' — <b>Unidad base:</b> '+(base?base.codigo:'—')+' = 1<br><small style="font-size:10.5px">Al vender en cualquier unidad del grupo, el sistema convierte automáticamente a la unidad base para descontar del inventario.</small>';
       el.style.display='block';
       manual.style.display='none';
@@ -286,15 +284,14 @@ function crearProducto(){
   const precio=parseFloat($('npPrecio').value)||0;
   const costo=parseFloat($('npCosto').value)||0;
   const desc=parseInt($('npDesc').value)||0;
-  const u=$('npU').value;
-  const caja=parseFloat($('npCaja').value);
-  const cajaN=$('npCajaN').value;
   const grupo=$('npGrupo').value;
+  let u='unid';
+  if(grupo){const g=getGrupoConversion(grupo);if(g){const base=g.unidades.find(x=>x.factor===1);const uMap={M2:'m²',UND:'unid',SAC:'sacos',KG:'kg',L:'l',G:'g',ML:'ml',GL:'gal',CAJ:'caja'};u=base?uMap[base.codigo]||base.codigo.toLowerCase():'unid'}}
   const colList=['#D9383A','#0369A1','#15803D','#B45309','#7C3AED','#2D3748','#0E7C66','#BE185D'];
   const icList=['ri-grid-line','ri-layout-grid-line','ri-stack-line','ri-drop-line','ri-paint-fill','ri-building-line','ri-flashlight-line','ri-palette-line'];
   const icIdx=DB.productos.length%icList.length;
   const prod={sku,n,ic:icList[icIdx],cat,precio,costo,descuento_max:desc,u,grad:'linear-gradient(135deg,'+colList[icIdx]+',#0A1929)'};
-  if(caja>0&&cajaN)prod.caja=caja;prod.cajaN=cajaN||'caja';prod.cajaN=cajaN;
+  if(!grupo){const caja=parseFloat($('npCaja').value);const cajaN=$('npCajaN').value;if(caja>0&&cajaN){prod.caja=caja;prod.cajaN=cajaN}}
   if(grupo)prod.grupo_conversion_id=grupo;
   DB.productos.push(prod);
   Object.keys(DB.stock).forEach(bg=>{DB.stock[bg][sku]=0});
@@ -307,11 +304,15 @@ function actualizarProducto(){
   if(sku!==editSku&&DB.productos.find(x=>x.sku===sku)){toast('Ya existe otro producto con ese SKU','warn');return}
   const oldSku=editSku;p.sku=sku;p.n=n;p.cat=$('npCat').value;
   p.precio=parseFloat($('npPrecio').value)||0;p.costo=parseFloat($('npCosto').value)||0;
-  p.descuento_max=parseInt($('npDesc').value)||0;p.u=$('npU').value;
+  p.descuento_max=parseInt($('npDesc').value)||0;
+  const grupo=$('npGrupo').value;
+  if(grupo){
+    const g=getGrupoConversion(grupo);
+    if(g){const base=g.unidades.find(x=>x.factor===1);const uMap={M2:'m²',UND:'unid',SAC:'sacos',KG:'kg',L:'l',G:'g',ML:'ml',GL:'gal',CAJ:'caja'};p.u=base?uMap[base.codigo]||base.codigo.toLowerCase():p.u}
+    p.grupo_conversion_id=grupo;
+  }else{delete p.grupo_conversion_id}
   const caja=parseFloat($('npCaja').value);const cajaN=$('npCajaN').value;
   if(caja>0&&cajaN){p.caja=caja;p.cajaN=cajaN}else{delete p.caja;delete p.cajaN}
-  const grupo=$('npGrupo').value;
-  if(grupo)p.grupo_conversion_id=grupo;else delete p.grupo_conversion_id;
   if(sku!==oldSku){Object.keys(DB.stock).forEach(bg=>{const v=DB.stock[bg][oldSku];delete DB.stock[bg][oldSku];DB.stock[bg][sku]=v||0})}
   closeMod();saveDB();editSku=null;renderInv();toast('Producto '+n+' actualizado','ok');
 }
