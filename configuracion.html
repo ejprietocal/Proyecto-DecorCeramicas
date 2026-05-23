@@ -181,35 +181,53 @@ function crearGrupo(){
 }
 function modalEditarGrupo(id){
   const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
+  window.gcEdit=id;
   const unidadOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'" '+(u.id===g.unidad_base_id?'selected':'')+'>'+u.codigo+' — '+u.nombre+'</option>').join('');
-  const unidadRows=g.unidades.map((ug,i)=>{
+  const renderUnits=()=>g.unidades.map((ug,i)=>{
     const uOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'" '+(u.id===ug.unidad_id?'selected':'')+'>'+u.codigo+' — '+u.nombre+'</option>').join('');
-    const disabled=ug.factor===1?'disabled':'';
-    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><select style="flex:1" onchange="g.unidades['+i+'].unidad_id=this.value">'+uOpts+'</select><input type="number" style="width:70px" value="'+ug.factor+'" min="1" step="0.001" onchange="g.unidades['+i+'].factor=parseFloat(this.value)||1"><button class="btn btn-o btn-sm" style="color:var(--danger-txt)" '+disabled+' onclick="g.unidades.splice('+i+',1);refreshGcUnits()">×</button></div>';
+    const base=ug.factor===1;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><select style="flex:1" onchange="changeGcUnidad('+i+',this.value)">'+uOpts+'</select><input type="number" style="width:70px" value="'+ug.factor+'" min="1" step="0.001" onchange="changeGcFactor('+i+',parseFloat(this.value)||1)"><button class="btn btn-o btn-sm" style="color:var(--danger-txt)" '+(base?'disabled':'')+' onclick="removeGcUnidad('+i+')">×</button></div>';
   }).join('');
-  const prodAsig=DB.productos.filter(p=>p.grupo_conversion_id===g.id);
+  const buildList=(prods,asig)=>prods.map(p=>'<div class="col-row"><span>'+p.n+' <small style="color:var(--mut)">('+p.sku+')</small></span>'+(asig?'<button class="btn btn-o btn-sm" onclick="desasignarProductoDeGrupo(\''+id+'\',\''+p.sku+'\')"><i class="ri-arrow-go-back-line"></i></button>':'<button class="btn btn-blue btn-sm" onclick="asignarProductoAGrupo(\''+id+'\',\''+p.sku+'\')"><i class="ri-link"></i></button>')+'</div>').join('')||'<div class="empty-sm">Sin productos</div>';
+  const prodAsig=DB.productos.filter(p=>p.grupo_conversion_id===id);
   const prodDisp=DB.productos.filter(p=>!p.grupo_conversion_id);
-  const buildList=(prods,asig)=>{
-    return prods.map(p=>'<div class="col-row"><span>'+p.n+' <small style="color:var(--mut)">('+p.sku+')</small></span>'+(asig?'<button class="btn btn-o btn-sm" onclick="desasignarProductoDeGrupo(\''+g.id+'\',\''+p.sku+'\')"><i class="ri-arrow-go-back-line"></i></button>':'<button class="btn btn-blue btn-sm" onclick="asignarProductoAGrupo(\''+g.id+'\',\''+p.sku+'\')"><i class="ri-link"></i></button>')+'</div>').join('')||'<div class="empty-sm">Sin productos</div>';
-  };
   openMod('<i class="ri-exchange-line"></i> Editar Grupo: '+g.nombre,
     '<div class="ff"><label>Nombre</label><input id="gcNomE" value="'+g.nombre+'"></div><div class="ff"><label>Descripción</label><input id="gcDescE" value="'+(g.descripcion||'')+'"></div><div class="ff"><label>Unidad Base</label><select id="gcBaseE">'+unidadOpts+'</select></div>'+
-    '<div style="margin:12px 0"><h5 style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Unidades del Grupo</h5><div id="gcUnitList">'+unidadRows+'</div><button class="btn btn-blue btn-sm" onclick="agregarUnidadAGrupo(\''+g.id+'\')"><i class="ri-add-line"></i> Agregar unidad</button></div>'+
+    '<div style="margin:12px 0"><h5 style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Unidades del Grupo</h5><div id="gcUnitList">'+renderUnits()+'</div><button class="btn btn-blue btn-sm" onclick="addGcUnidad()"><i class="ri-add-line"></i> Agregar unidad</button></div>'+
     '<div style="margin-top:12px"><h5 style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Productos Asignados ('+prodAsig.length+')</h5><div class="col2"><div class="col-box"><h5>Asignados ('+prodAsig.length+')</h5>'+buildList(prodAsig,true)+'</div><div class="col-box" style="border:1px dashed var(--line)"><h5>Disponibles ('+prodDisp.length+')</h5>'+buildList(prodDisp,false)+'</div></div></div>',
-    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarGrupo(\''+g.id+'\')"><i class="ri-check-line"></i> Guardar</button>'
+    '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="guardarGrupo(\''+id+'\')"><i class="ri-check-line"></i> Guardar</button>'
   );
-  window.gcEdit=id;
 }
-function refreshGcUnits(){
-  modalEditarGrupo(window.gcEdit);
+function changeGcUnidad(i,val){
+  const g=DB.config.grupos_conversion.find(x=>x.id===window.gcEdit);if(!g||!g.unidades[i])return;
+  if(g.unidades.some((u,j)=>u.unidad_id===val&&j!==i)){toast('Esa unidad ya está en el grupo','warn');return}
+  const u=DB.config.unidades.find(x=>x.id===val);
+  g.unidades[i].unidad_id=val;g.unidades[i].codigo=u?u.codigo:'';
 }
-function agregarUnidadAGrupo(id){
-  const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
-  const uId=DB.config.unidades[0]?.id||'und-1';
-  if(g.unidades.find(x=>x.unidad_id===uId)){toast('Esa unidad ya está en el grupo','warn');return}
-  const u=DB.config.unidades[0];
-  g.unidades.push({unidad_id:uId,factor:1,codigo:u?u.codigo:'UND'});
-  modalEditarGrupo(id);
+function changeGcFactor(i,val){
+  const g=DB.config.grupos_conversion.find(x=>x.id===window.gcEdit);if(!g||!g.unidades[i])return;
+  g.unidades[i].factor=val||1;
+}
+function removeGcUnidad(i){
+  const g=DB.config.grupos_conversion.find(x=>x.id===window.gcEdit);if(!g||!g.unidades[i])return;
+  if(g.unidades[i].factor===1){toast('No se puede eliminar la unidad base (factor 1)','warn');return}
+  g.unidades.splice(i,1);
+  refreshGcList();
+}
+function addGcUnidad(){
+  const g=DB.config.grupos_conversion.find(x=>x.id===window.gcEdit);if(!g)return;
+  const u=DB.config.unidades.find(x=>!g.unidades.some(gu=>gu.unidad_id===x.id))||DB.config.unidades[0];
+  g.unidades.push({unidad_id:u.id,factor:1,codigo:u.codigo});
+  refreshGcList();
+}
+function refreshGcList(){
+  const g=DB.config.grupos_conversion.find(x=>x.id===window.gcEdit);if(!g)return;
+  const el=$('gcUnitList');if(!el)return;
+  el.innerHTML=g.unidades.map((ug,i)=>{
+    const uOpts=DB.config.unidades.map(u=>'<option value="'+u.id+'" '+(u.id===ug.unidad_id?'selected':'')+'>'+u.codigo+' — '+u.nombre+'</option>').join('');
+    const base=ug.factor===1;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><select style="flex:1" onchange="changeGcUnidad('+i+',this.value)">'+uOpts+'</select><input type="number" style="width:70px" value="'+ug.factor+'" min="1" step="0.001" onchange="changeGcFactor('+i+',parseFloat(this.value)||1)"><button class="btn btn-o btn-sm" style="color:var(--danger-txt)" '+(base?'disabled':'')+' onclick="removeGcUnidad('+i+')">×</button></div>';
+  }).join('');
 }
 function guardarGrupo(id){
   const g=DB.config.grupos_conversion.find(x=>x.id===id);if(!g)return;
