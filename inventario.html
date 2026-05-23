@@ -244,10 +244,33 @@ function modalEditarProducto(sku){
     '<div class="ff2"><div class="ff"><label>SKU</label><input id="npSku" value="'+(p?p.sku:'')+'" placeholder="Ej: PC-4545-BE"></div><div class="ff"><label>Categoría</label><select id="npCat">'+catOpts+'</select></div></div>'+
     '<div class="ff2"><div class="ff"><label>Precio unitario ($)</label><input id="npPrecio" type="number" min="0" value="'+(p?p.precio:'')+'" placeholder="28500"></div><div class="ff"><label>Costo unitario ($)</label><input id="npCosto" type="number" min="0" value="'+(p?p.costo:'')+'" placeholder="18000"></div></div>'+
     '<div class="ff2"><div class="ff"><label>% Descuento máximo</label><input id="npDesc" type="number" min="0" max="100" value="'+(p?p.descuento_max:'')+'" placeholder="15"></div><div class="ff"><label>Unidad base</label><select id="npU">'+uOpts+'</select></div></div>'+
-    '<div class="ff"><label>Grupo de Conversión</label><select id="npGrupo"><option value="">— Sin grupo —</option>'+DB.config.grupos_conversion.map(g=>'<option value="'+g.id+'" '+(p&&p.grupo_conversion_id===g.id?'selected':'')+'>'+g.nombre+' ('+g.unidades.map(u=>u.codigo).join(', ')+')</option>').join('')+'</select></div>'+
-    '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--rojo);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ri-exchange-line"></i> Factor de conversión</div><p style="font-size:11.5px;color:var(--mut);margin-bottom:10px;line-height:1.5">Define la equivalencia entre la <b>unidad base</b> del inventario (m² o lb) y la <b>unidad secundaria</b> de despacho. Ej: si 1 caja = 1.44 m², ingresa <b>1.44</b> en el factor y selecciona <b>caja</b>.</p><div class="ff2"><div class="ff"><label>Factor (1 unidad secundaria = X base)</label><input id="npCaja" type="number" step="0.01" min="0" value="'+(p?p.caja:'')+'" placeholder="1.44"></div><div class="ff"><label>Unidad secundaria</label><select id="npCajaN"><option value="">— Sin conversión —</option>'+cajaNOpts+'</select></div></div></div>',
+    '<div class="ff"><label>Grupo de Conversión</label><select id="npGrupo" onchange="onGrupoChange()"><option value="">— Sin grupo (usar factor manual) —</option>'+DB.config.grupos_conversion.map(g=>'<option value="'+g.id+'" '+(p&&p.grupo_conversion_id===g.id?'selected':'')+'>'+g.nombre+' ('+g.unidades.map(u=>u.codigo).join(', ')+')</option>').join('')+'</select></div>'+
+'<div id="npConvInfo" style="background:var(--info-bg);border:1px solid var(--info-bd);border-radius:10px;padding:12px;margin-bottom:14px;font-size:11.5px;color:var(--info-txt);display:'+(p&&p.grupo_conversion_id?'block':'none')+'"></div>'+
+    '<div id="npConvManual" style="display:'+(p&&p.grupo_conversion_id?'none':'block')+'">'+
+    '<div style="background:var(--rojo-l);border:1px solid var(--rojo);border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--rojo);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ri-exchange-line"></i> Factor de conversión</div><p style="font-size:11.5px;color:var(--mut);margin-bottom:10px;line-height:1.5">Define la equivalencia entre la <b>unidad base</b> del inventario (m² o lb) y la <b>unidad secundaria</b> de despacho. Ej: si 1 caja = 1.44 m², ingresa <b>1.44</b> en el factor y selecciona <b>caja</b>.</p><div class="ff2"><div class="ff"><label>Factor (1 unidad secundaria = X base)</label><input id="npCaja" type="number" step="0.01" min="0" value="'+(p?p.caja:'')+'" placeholder="1.44"></div><div class="ff"><label>Unidad secundaria</label><select id="npCajaN"><option value="">— Sin conversión —</option>'+cajaNOpts+'</select></div></div></div></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-sm" style="background:var(--rojo);color:#fff" onclick="'+fn+'"><i class="ri-check-line"></i> '+btnT+'</button>'
   );
+  setTimeout(onGrupoChange,100);
+}
+function onGrupoChange(){
+  const gid=$('npGrupo').value;
+  const el=$('npConvInfo');
+  const manual=$('npConvManual');
+  if(gid){
+    const g=getGrupoConversion(gid);
+    if(g){
+      const base=g.unidades.find(u=>u.factor===1);
+      const uMap={'M2':'m²','UND':'unid','KG':'kg','L':'l','G':'g','ML':'ml','GL':'gal','SAC':'sacos','CAJ':'caja'};
+      const baseU=base?(uMap[base.codigo]||base.codigo.toLowerCase()):'';
+      if(baseU)$('npU').value=baseU;
+      el.innerHTML='<b>Grupo:</b> '+g.nombre+' — <b>Unidad base:</b> '+(base?base.codigo:'—')+' = 1<br><small style="font-size:10.5px">Al vender en cualquier unidad del grupo, el sistema convierte automáticamente a la unidad base para descontar del inventario.</small>';
+      el.style.display='block';
+      manual.style.display='none';
+    }
+  }else{
+    el.style.display='none';
+    manual.style.display='block';
+  }
 }
 function crearProducto(){
   const n=$('npNombre').value.trim();if(!n){toast('Ingresa el nombre del producto','warn');return}
