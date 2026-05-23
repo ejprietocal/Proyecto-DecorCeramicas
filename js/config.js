@@ -16,7 +16,7 @@ const MODS={
   remisiones:   {n:'Remisiones / Albaranes',ic:'ri-truck-line',            g:'Facturación',     cr:'Facturación · Remisiones',   desc:'Documentos de traslado físico de mercancía'},
   configuracion:{n:'Configuración',       ic:'ri-settings-3-line',         g:'Configuración',   cr:'Configuración',              desc:'Usuarios, prefijos, unidades, categorías, grupos de conversión y más'}
 };
-const GROUPS=['Principal','Ventas','Bodega','Abastecimiento','Facturación','Configuración'];
+const GROUPS=['Principal','Ventas','Facturación','Bodega','Abastecimiento','Configuración'];
 const USERS=[
   {id:'carlos',n:'Carlos Andrés Rojas',  r:'Administrador del Sistema', in:'CR',c:'#4F46E5'},
   {id:'maria',  n:'María Fernanda López', r:'Jefe de Bodega',             in:'ML',c:'#0284C7'},
