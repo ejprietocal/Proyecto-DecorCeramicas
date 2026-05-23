@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=8;
+const DB_VER=9;
 
 const DB={
   bodegas:[
