@@ -158,7 +158,8 @@ function crearUsuario(){
 
 /* ==================== 2. GRUPOS DE CONVERSIÓN ==================== */
 function renderGrupos(){
-  const rows=DB.config.grupos_conversion.map(g=>{
+  const grupos=DB.config.grupos_conversion||[];
+  const rows=grupos.map(g=>{
     const base=g.unidades.find(u=>u.factor===1);
     return '<tr><td><b>'+g.nombre+'</b></td><td>'+(g.descripcion||'—')+'</td><td>'+(base?base.codigo:'—')+'</td><td>'+g.unidades.map(u=>'<span class="badge bs" style="margin:1px;font-size:9px">'+u.codigo+' ×'+u.factor+'</span>').join(' ')+'</td><td><div class="cfg-acts"><button class="cfg-edit" onclick="modalEditarGrupo(\''+g.id+'\')"><i class="ri-pencil-line"></i></button><button class="cfg-del" onclick="eliminarGrupo(\''+g.id+'\')"><i class="ri-delete-bin-line"></i></button></div></td></tr>';
   }).join('');

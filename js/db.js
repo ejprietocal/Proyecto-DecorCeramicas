@@ -261,6 +261,14 @@ let currentUser=null,selBodega='BGA';
       if(meta.ver===DB_VER){
         delete data._meta;
         Object.keys(data).forEach(k=>{DB[k]=data[k]});
+        if(!DB.config.grupos_conversion)DB.config.grupos_conversion=[];
+        if(!DB.config.unidades)DB.config.unidades=[];
+        if(!DB.config.categorias)DB.config.categorias=[];
+        if(!DB.config.subcategorias)DB.config.subcategorias=[];
+        if(!DB.config.prefijos)DB.config.prefijos=[];
+        if(!DB.config.puntos_venta)DB.config.puntos_venta=[];
+        if(!DB.config.resoluciones)DB.config.resoluciones=[];
+        if(!DB.config.general)DB.config.general={moneda:'COP',iva:19,decimales:2,fecha:'DD/MM/AAAA',empresa:'Decorcerámica SAS',nit:'900.123.456-7',direccion:'Cra 50 #15-20, Ipiales, Nariño',telefono:'+57 318 123 4567'};
         OC_SEQ=meta.OC_SEQ||OC_SEQ;
         PD_SEQ=meta.PD_SEQ||PD_SEQ;
         TR_SEQ=meta.TR_SEQ||TR_SEQ;
