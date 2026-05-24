@@ -99,7 +99,8 @@ function renderCots(){
     }else if(c.estado==='enviada'){
       acc='<button class="btn btn-green btn-sm" onclick="aceptarCot(\''+c.id+'\')"><i class="ri-check-line"></i> Aceptar</button><button class="btn btn-o btn-sm" onclick="rechazarCot(\''+c.id+'\')"><i class="ri-close-line"></i> Rechazar</button>';
     }else if(c.estado==='aceptada'){
-      acc='<button class="btn btn-blue btn-sm" onclick="convertirAOCC(\''+c.id+'\')"><i class="ri-file-list-3-line"></i> Convertir en OC</button>';
+      acc='<button class="btn btn-blue btn-sm" onclick="convertirAOCC(\''+c.id+'\')"><i class="ri-file-list-3-line"></i> Convertir en OC</button>'+
+      '<button class="btn btn-green btn-sm" onclick="facturarDirecto(\''+c.id+'\')"><i class="ri-bill-line"></i> Facturar Directo</button>';
     }else if(c.estado==='vencida'){
       acc='<span class="badge by" style="font-size:10px"><i class="ri-time-line"></i> Vencida</span>';
     }else{
@@ -108,7 +109,7 @@ function renderCots(){
     return '<div class="ct-card st-'+c.estado+'"><div class="ct-card-h"><div><div class="ct-card-id">'+c.id+' <small>'+c.fecha+'</small></div><div class="ct-card-cl"><i class="ri-user-line"></i>'+c.cliente+'</div></div><span class="badge '+ctEstBadge(c.estado)+'">'+ctEstLabel(c.estado)+'</span></div><div class="ct-card-b">'+itemsHtml+'</div><div class="ct-card-f"><b>'+money(c.total)+'</b>'+acc+'</div></div>';
   }).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ri-file-text-line"></i><h3>Sin cotizaciones</h3><p>Crea la primera cotización o proforma para un cliente.</p></div>';
 
-  const body='<div class="page th-cotizaciones"><div class="hero"><div class="hero-ic"><i class="ri-file-text-line"></i></div><h1>Cotizaciones / Proformas</h1><p>Documentos pre-venta sin afectación de inventario. Al aceptarse, generan una Orden de Compra de Cliente.</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaCot()"><i class="ri-add-line"></i> Nueva Cotización</button></div></div><div class="body">'+bar+'<div class="c-top">'+pills+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar cotización o cliente..." value="'+ctBusq+'" oninput="ctBusq=this.value;renderCots()">'+(ctBusq?'<button class="btn btn-o btn-sm" onclick="ctBusq=\'\';renderCots()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="ct-grid">'+cards+'</div></div></div>';
+  const body='<div class="page th-cotizaciones"><div class="hero"><div class="hero-ic"><i class="ri-file-text-line"></i></div><h1>Cotizaciones / Proformas</h1><p>Documentos pre-venta sin afectación de inventario. Al aceptarse, elige: <b>Convertir en OC</b> (flujo completo) o <b>Facturar Directo</b> (pago inmediato).</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaCot()"><i class="ri-add-line"></i> Nueva Cotización</button></div></div><div class="body">'+bar+'<div class="c-top">'+pills+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar cotización o cliente..." value="'+ctBusq+'" oninput="ctBusq=this.value;renderCots()">'+(ctBusq?'<button class="btn btn-o btn-sm" onclick="ctBusq=\'\';renderCots()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="ct-grid">'+cards+'</div></div></div>';
   $('pg').innerHTML=body;
 }
 
@@ -176,6 +177,31 @@ function convertirAOCC(cid){
   });
   saveDB();
   simularEnvioEmail('oc_cliente',{destinatario:c.cliente,numero:id,total,items,origen:'cotización '+cid});
+}
+
+function facturarDirecto(cid){
+  if(!confirm('¿Generar factura directamente desde la cotización '+cid+'? Se creará la OC y la factura en un solo paso. Usa esta opción si el cliente ya pagó.'))return
+  const c=DB.cotizaciones.find(x=>x.id===cid);
+  if(!c)return;
+  const occId='OCC-'+OC_CLI_SEQ++;
+  const items=c.items.map(i=>({sku:i.sku,n:i.n,cant:i.cant,u:i.u,precioUnit:i.precioUnit}));
+  const total=items.reduce((s,i)=>s+i.cant*i.precioUnit,0);
+  DB.ordenes_compra_cliente.unshift({
+    id:occId,cliente:c.cliente,fecha:now().split(' ')[0],
+    cotizacionOrigen:c.id,estado:'remisionada',items,total,notas:''
+  });
+  const subtotal=total;
+  const iva=Math.round(subtotal*0.19);
+  const fvNum='FV-'+FV_SEQ++;
+  DB.facturas_venta.unshift({
+    numero:fvNum,fecha:now().split(' ')[0],
+    clienteId:null,clienteNombre:c.cliente,
+    remisionOrigen:null,occRef:occId,
+    subtotal,iva,total:subtotal+iva,estado:'emitida',archivoPdf:'facturas/'+fvNum+'.pdf'
+  });
+  saveDB();
+  simularEnvioEmail('factura',{destinatario:c.cliente,numero:fvNum,total:subtotal+iva,items,origen:'cotización '+cid,subtotal,iva});
+  toast('Factura '+fvNum+' generada directamente desde cotización '+cid+'.','ok');
 }
 
 function simularEnvioEmail(tipo,data){
