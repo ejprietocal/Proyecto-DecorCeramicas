@@ -31,7 +31,7 @@ function asignarStock(pdId){
   }else{
     const algunEntregado=pd.items.some(it=>(it.entregado||0)>0);
     if(algunEntregado){
-      pd.estado=allOk?'parcial_asignado':'parcial_resagado';
+      pd.estado=allOk?'parcial_despachado':'parcial_resagado';
     }else{
       pd.estado=allOk?'asignado':'resagado';
     }
@@ -42,6 +42,7 @@ function despacharPedido(pdId){
   if(!pd)return;
   if(pd.estado==='despachado'){toast('Ya fue despachado','warn');return}
   let despachadoAlgo=false;
+  let totalUnidades=0;
   pd.items.forEach(it=>{
     if(!it.bodega||!it.asig)return;
     despachadoAlgo=true;
@@ -49,6 +50,7 @@ function despacharPedido(pdId){
     if(DB.stock[it.bodega][it.sku]<0)DB.stock[it.bodega][it.sku]=0;
     if(it.entregado===undefined)it.entregado=0;
     it.entregado+=it.asig;
+    totalUnidades+=it.asig;
     const pr=getProd(it.sku);
     DB.movimientos.unshift({f:now(),sku:it.sku,n:pr?.n||it.sku,tipo:'Salida',cant:it.asig,u:pr?.u||'unid',resp:currentUser.n,ref:pd.id,bodega:it.bodega,est:'Completado'});
     it.asig=0;
@@ -59,11 +61,27 @@ function despacharPedido(pdId){
   }
   asignarStock(pd.id);
   if(pd.estado==='despachado')pd.despPor=currentUser.n;
-  refresh();toast('Pedido '+pd.id+' despachado. Inventario actualizado.','ok');
+  // Manejo de reservas para pendientes de retiro
+  const clienteId=pd.clienteId||null;
+  if(clienteId&&pd.estado==='parcial_despachado'){
+    pd.items.forEach(it=>{
+      const pendiente=(it.cant||0)-(it.entregado||0);
+      if(pendiente<=0)return;
+      const yaReservado=(DB.reservas_cliente||[]).some(r=>r.pedidoRef===pd.id&&r.sku===it.sku&&r.estado!=='completado');
+      if(yaReservado)return;
+      crearReservaCliente(clienteId,clienteNombre(pd),it.sku,pendiente,it.bodega||'BGA',pd.id);
+    });
+  }
+  if(typeof logEvent==='function'){
+    const accion=pd.estado==='despachado'?'despacho_total':'despacho_parcial';
+    logEvent('pedidos',accion,'pedido',pd.id,'Despacho '+(accion==='despacho_total'?'total':'parcial')+' de '+pd.id+' ('+totalUnidades+' unid.)');
+  }
+  refresh();toast('Pedido '+pd.id+' '+(pd.estado==='despachado'?'despachado totalmente':'despachado parcialmente')+'. Inventario actualizado.','ok');
 }
 function recibirOC(ocId){
   const oc=DB.compras.find(c=>c.id===ocId);
   oc.estado='recibida';oc.recibPor=currentUser.n;
+  if(typeof logEvent==='function')logEvent('compras','recibir','oc',ocId,'OC '+ocId+' recibida en bodega');
   refresh();toast('OC '+ocId+' recibida en bodega. Ahora debe ser reclamada.','ok');
 }
 function reclamarOC(ocId){
@@ -78,12 +96,14 @@ function reclamarOC(ocId){
   oc.estado='reclamada';oc.reclPor=currentUser.n;
   // re-assign pending/backordered pedidos that might now have stock
   DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
+  if(typeof logEvent==='function')logEvent('compras','reclamar','oc',ocId,'OC '+ocId+' reclamada. Stock ingresado a BGA');
   refresh();toast('Mercancía reclamada. Inventario Bodega A actualizado.','ok');
 }
 function autorizarTransferencia(id){
   const tr=DB.transferencias.find(t=>t.id===id);
   if(tr.estado!=='solicitada')return;
   tr.estado='autorizada';tr.autPor=currentUser.n;
+  if(typeof logEvent==='function')logEvent('transferencias','autorizar','transferencia',id,'Transferencia '+id+' autorizada ('+tr.org+'→'+tr.dst+')');
   refresh();toast('Transferencia '+id+' autorizada.','ok');
 }
 function despacharTransferencia(id){
@@ -107,6 +127,7 @@ function recibirTransferencia(id){
   });
   tr.estado='recibida';tr.recibPor=currentUser.n;
   DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
+  if(typeof logEvent==='function')logEvent('transferencias','recibir','transferencia',id,'Transferencia '+id+' recibida en '+tr.dst);
   refresh();toast('Recibido en '+tr.dst+'. Inventario actualizado.','ok');
 }
 function modalAjusteInventario(bodega,sku){
@@ -148,6 +169,7 @@ function confirmarAjuste(bodega,sku){
   const pr=getProd(sku);const nota=$('ajNota').value||'Conteo físico';
   DB.movimientos.unshift({f:now(),sku,n:pr?.n||sku,tipo:'Ajuste',cant:Math.abs(diff)||0,u:pr?.u||'unid',resp:currentUser.n,ref:'CONT-'+bodega,bodega,est:'Completado',nota});
   DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
+  if(typeof logEvent==='function')logEvent('inventario','ajustar','stock',bodega+'/'+sku,'Ajuste de '+sku+' en '+bodega+' ('+(diff>0?'+':'')+diff+')');
   closeMod();refresh();
   if(diff===0)toast('Inventario confirmed. Sin diferencias.','ok');
   else if(diff>0)toast(`Excedente registrado: +${fmt(diff)} ${pr?.u||'unid'} en ${bodega}`,'ok');
@@ -162,9 +184,11 @@ function reintegrarSobrante(sbId){
   DB.movimientos.unshift({f:now(),sku:sb.sku,n:pr?.n||sb.sku,tipo:'Ajuste',cant:sb.add,u:pr?.u||'unid',resp:currentUser.n,ref:sb.id,bodega:sb.bodega,est:'Completado'});
   sb.estado='Reintegrado';
   DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').forEach(p=>asignarStock(p.id));
+  if(typeof logEvent==='function')logEvent('sobrantes','reintegrar','sobrante',sb.id,'Sobrante '+sb.id+' reintegrado a '+sb.bodega);
   refresh();toast('Sobrante reintegrado al inventario de '+sb.bodega,'ok');
 }
 function investigarSobrante(sbId){
   const sb=DB.sobrantes.find(s=>s.id===sbId);sb.estado='En investigación';
+  if(typeof logEvent==='function')logEvent('sobrantes','investigar','sobrante',sb.id,'Caso '+sb.id+' marcado en investigación');
   refresh();toast('Caso de investigación abierto para '+sb.id,'ok');
 }

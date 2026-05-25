@@ -14,6 +14,7 @@ const MODS={
   notas:        {n:'Notas Crédito/Débito', ic:'ri-swap-2-line',             g:'Facturación',     cr:'Facturación · Notas',        desc:'Notas crédito y débito vinculadas a facturas'},
   cotizaciones: {n:'Cotizaciones',         ic:'ri-file-text-line',          g:'Facturación',     cr:'Facturación · Cotizaciones', desc:'Cotizaciones / proformas convertibles en pedidos'},
   remisiones:   {n:'Remisiones / Albaranes',ic:'ri-truck-line',            g:'Facturación',     cr:'Facturación · Remisiones',   desc:'Documentos de traslado físico de mercancía'},
+  cliente:      {n:'Vista 360° Cliente',  ic:'ri-user-star-line',          g:'Ventas',          cr:'Ventas · Cliente 360°',     desc:'Ficha consolidada por cliente: cotizaciones, pedidos, facturas y mercancía pendiente'},
   configuracion:{n:'Configuración',       ic:'ri-settings-3-line',         g:'Configuración',   cr:'Configuración',              desc:'Usuarios, prefijos, unidades, categorías, grupos de conversión y más'}
 };
 const GROUPS=['Principal','Ventas','Facturación','Bodega','Abastecimiento','Configuración'];
@@ -23,13 +24,17 @@ const USERS=[
   {id:'diego',  n:'Diego A. Muñoz',       r:'Auxiliar de Recepción',      in:'DM',c:'#16A34A'},
   {id:'sandra', n:'Sandra P. Gómez',      r:'Coordinadora de Compras',    in:'SG',c:'#D97706'},
   {id:'jhon',   n:'Jhon E. Castillo',     r:'Operario de Despacho',       in:'JC',c:'#7C3AED'},
-  {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#DB2777'}
+  {id:'luisa',  n:'Luisa M. Torres',      r:'Auditora / Control Interno', in:'LT',c:'#DB2777'},
+  {id:'andrea', n:'Andrea Z. Burbano',    r:'Asesora de Ventas (Sala)',   in:'AZ',c:'#0EA5E9'},
+  {id:'miguel', n:'Miguel P. Suárez',     r:'Cajero Principal',           in:'MS',c:'#10B981'}
 ];
 let PERMS={
-  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','configuracion'],
-  maria:  ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','configuracion'],
-  diego:  ['dashboard','inventario','reclamar','movimientos','remisiones'],
-  sandra: ['dashboard','proveedores','compras','reclamar','pedidos','facturas','notas','cotizaciones'],
-  jhon:   ['dashboard','pedidos','movimientos','remisiones'],
-  luisa:  ['dashboard','sobrantes','vencimientos','movimientos','inventario','facturas','notas','configuracion']
+  carlos: ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','cliente','configuracion'],
+  maria:  ['dashboard','pedidos','inventario','sobrantes','movimientos','transferencias','proveedores','compras','reclamar','vencimientos','facturas','notas','cotizaciones','remisiones','cliente','configuracion'],
+  diego:  ['dashboard','inventario','reclamar','movimientos','remisiones','cliente'],
+  sandra: ['dashboard','proveedores','compras','reclamar','pedidos','facturas','notas','cotizaciones','cliente'],
+  jhon:   ['dashboard','pedidos','movimientos','remisiones','sobrantes','cliente'],
+  luisa:  ['dashboard','sobrantes','vencimientos','movimientos','inventario','facturas','notas','cliente','configuracion'],
+  andrea: ['dashboard','cotizaciones','pedidos','cliente','remisiones','inventario'],
+  miguel: ['dashboard','facturas','notas','cotizaciones','pedidos','cliente','remisiones']
 };

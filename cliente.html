@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decorcerámica ERP — Vista 360° Cliente</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=7">
+<style>
+.cli-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.cli-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:8px;border-left:4px solid var(--rojo)}
+.cli-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.06);transform:translateY(-1px)}
+.cli-card-h{display:flex;align-items:flex-start;gap:10px}
+.cli-card-av{width:38px;height:38px;border-radius:10px;background:var(--rojo-l);color:var(--rojo);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.cli-card-n{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.25}
+.cli-card-m{font-size:11px;color:var(--mut)}
+.cli-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.cli-card-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--neutral-bg);color:var(--mut);font-weight:600}
+.cli-card-tag.alert{background:var(--warn-bg);color:var(--warn-txt)}
+.cli360-h{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.cli360-h-av{width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--rojo),var(--rojo-d));color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0}
+.cli360-h-info{flex:1;min-width:240px}
+.cli360-h-info h1{font-size:21px;font-weight:800;color:var(--ink);margin-bottom:4px;letter-spacing:-.3px}
+.cli360-h-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:4px}
+.cli360-h-meta span{display:flex;align-items:center;gap:5px}
+.cli360-h-act{display:flex;gap:8px;flex-wrap:wrap}
+.cli360-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.cli360-kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;border-left:4px solid}
+.cli360-kpi.k-blue{border-left-color:var(--info-txt)}
+.cli360-kpi.k-green{border-left-color:var(--success-txt)}
+.cli360-kpi.k-orange{border-left-color:var(--warn-txt)}
+.cli360-kpi.k-red{border-left-color:var(--danger-txt)}
+.cli360-kpi-l{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.cli360-kpi-v{font-size:21px;font-weight:800;color:var(--ink);line-height:1.1}
+.cli360-kpi-s{font-size:11px;color:var(--mut);margin-top:3px}
+.cli360-sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+.cli360-sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.cli360-sec-t{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+.cli360-sec-t i{color:var(--rojo);font-size:17px}
+.cli360-sec-count{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--neutral-bg);color:var(--mut);font-weight:700}
+.cli360-empty{padding:14px;text-align:center;color:var(--mut);font-size:12px;background:var(--neutral-bg);border-radius:8px}
+.cli360-tl{display:flex;flex-direction:column;gap:8px}
+.cli360-tl-row{display:flex;gap:10px;align-items:flex-start;padding:10px;background:var(--bg);border-radius:9px;border-left:3px solid var(--line)}
+.cli360-tl-row.st-resagado{border-left-color:var(--danger-txt)}
+.cli360-tl-row.st-asignado{border-left-color:var(--info-txt)}
+.cli360-tl-row.st-despachado{border-left-color:var(--success-txt)}
+.cli360-tl-row.st-parcial_despachado{border-left-color:var(--warn-txt)}
+.cli360-tl-ic{width:30px;height:30px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:14px;flex-shrink:0}
+.cli360-tl-bd{flex:1;min-width:0}
+.cli360-tl-id{font-size:13px;font-weight:700;color:var(--ink)}
+.cli360-tl-meta{font-size:11px;color:var(--mut);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+.cli360-progress{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cli360-progress .bar{flex:1;height:6px}
+.cli360-progress span.p-txt{font-size:11px;color:var(--mut);white-space:nowrap;font-weight:600}
+@media(max-width:768px){.cli360-kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="screen-app" class="screen active">
+<div class="wrap">
+<aside class="sidebar" id="sb">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="ri-building-2-line"></i></div><div class="sb-logo-t">Decorcerámica<small>ERP OPERACIÓN</small></div></div>
+<div class="sb-scroll" id="sbMenu"></div>
+<div class="sb-user"><div class="sb-av" id="sbAv"></div><div class="sb-ui"><div class="sb-un" id="sbNm"></div><div class="sb-ur" id="sbRl"></div></div><i class="ri-logout-circle-r-line sb-out" onclick="logout()"></i></div>
+</aside>
+<div class="sb-bd" id="sbBd" onclick="closeSb()"></div>
+<main class="main">
+<div class="topbar">
+<div class="tb-l"><button class="m-tog" onclick="togSb()"><i class="ri-menu-line"></i></button><i id="tbIc" style="font-size:18px;color:var(--rojo)"></i><div><h2 id="tbTt"></h2><div class="tb-crumb" id="tbCr"></div></div></div>
+<div class="tb-r"><div class="tb-btn"><i class="ri-notification-3-line"></i><span class="tb-badge" id="tbNot">0</span></div><div class="tb-prof" onclick="logout()"><div class="tb-av" id="tbAv"></div><span class="tb-n" id="tbNm"></span><i class="ri-logout-circle-r-line" style="color:var(--ph);font-size:14px"></i></div></div>
+</div>
+<div id="pg"></div>
+</main>
+</div>
+</div>
+<div class="mov" id="modal"><div class="mox"><div class="moh"><h3 id="mTit"></h3><span class="xb" onclick="closeMod()">&times;</span></div><div class="mob" id="mBod"></div><div class="mof" id="mFot"></div></div></div>
+<div class="toast" id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg"></span></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/operations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+renderShell('cliente');
+
+function getClienteIdFromQuery(){
+  const u=new URLSearchParams(window.location.search);
+  return u.get('id');
+}
+
+function renderListaClientes(){
+  const items=DB.clientes.map(c=>{
+    const pendientes=reservasByCliente(c.id).length;
+    const sb=sobrantesByCliente(c.id).length;
+    const totalC=totalCompradoCliente(c.id);
+    const initials=c.n.split(/\s+/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase();
+    let tags='';
+    if(pendientes)tags+='<span class="cli-card-tag alert"><i class="ri-archive-stack-line"></i> '+pendientes+' pend. retiro</span>';
+    if(sb)tags+='<span class="cli-card-tag">'+sb+' sobr.</span>';
+    return '<div class="cli-card" onclick="window.location.href=\'cliente.html?id='+c.id+'\'">'+
+      '<div class="cli-card-h">'+
+        '<div class="cli-card-av">'+initials+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="cli-card-n">'+c.n+'</div>'+
+          '<div class="cli-card-m"><i class="ri-map-pin-line"></i> '+(c.ciudad||'—')+' · '+(c.contacto||'—')+'</div>'+
+          '<div class="cli-card-tags">'+
+            '<span class="cli-card-tag">'+(c.tipo||'—')+'</span>'+
+            (totalC?'<span class="cli-card-tag" style="background:var(--success-bg);color:var(--success-txt)">'+money(totalC)+'</span>':'')+
+            tags+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  $('pg').innerHTML='<div class="page"><div class="hero"><div class="hero-ic"><i class="ri-user-star-line"></i></div><h1>Vista 360° por Cliente</h1><p>Selecciona un cliente para ver su historial consolidado: cotizaciones, pedidos, facturas, mercancía pendiente y sobrantes.</p></div><div class="body"><div class="cli-list">'+items+'</div></div></div>';
+}
+
+function renderClienteDetalle(clienteId){
+  const c=getClienteById(clienteId);
+  if(!c){renderListaClientes();return}
+  const cots=cotsByCliente(clienteId);
+  const occ=occByCliente(clienteId);
+  const peds=pedsByCliente(clienteId);
+  const rem=remByCliente(clienteId);
+  const fvs=fvByCliente(clienteId);
+  const reservas=reservasByCliente(clienteId);
+  const sobs=sobrantesByCliente(clienteId);
+  const initials=c.n.split(/\s+/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase();
+  const totalC=totalCompradoCliente(clienteId);
+  const valorR=valorReservasCliente(clienteId);
+  const pendRetiro=reservas.length;
+  const saldoAbierto=fvs.filter(f=>f.estado==='emitida').reduce((s,f)=>s+(f.total||0),0);
+
+  let html='<div class="page"><div class="body" style="padding-top:18px">';
+  html+='<div style="margin-bottom:14px"><a href="cliente.html" class="btn btn-o btn-sm"><i class="ri-arrow-left-line"></i> Volver a clientes</a></div>';
+  html+='<div class="cli360-h">'+
+    '<div class="cli360-h-av">'+initials+'</div>'+
+    '<div class="cli360-h-info">'+
+      '<h1>'+c.n+'</h1>'+
+      '<div class="cli360-h-meta">'+
+        '<span><i class="ri-map-pin-line"></i> '+(c.ciudad||'—')+'</span>'+
+        '<span><i class="ri-phone-line"></i> '+(c.tel||'—')+'</span>'+
+        '<span><i class="ri-user-line"></i> '+(c.contacto||'—')+'</span>'+
+        '<span><i class="ri-mail-line"></i> '+(c.email||'—')+'</span>'+
+        '<span class="badge bs"><i class="ri-price-tag-3-line"></i> '+(c.tipo||'—')+'</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="cli360-h-act">'+
+      '<a href="cotizaciones.html" class="btn btn-blue btn-sm"><i class="ri-add-line"></i> Nueva cotización</a>'+
+      (c.tel?'<a href="tel:'+c.tel.replace(/\s+/g,'')+'" class="btn btn-o btn-sm"><i class="ri-phone-line"></i> Llamar</a>':'')+
+    '</div>'+
+  '</div>';
+
+  // KPIs
+  html+='<div class="cli360-kpis">'+
+    '<div class="cli360-kpi k-green"><div class="cli360-kpi-l"><i class="ri-money-dollar-circle-line"></i> Total facturado</div><div class="cli360-kpi-v">'+money(totalC)+'</div><div class="cli360-kpi-s">'+fvs.length+' facturas</div></div>'+
+    '<div class="cli360-kpi k-red"><div class="cli360-kpi-l"><i class="ri-bill-line"></i> Saldo abierto</div><div class="cli360-kpi-v">'+money(saldoAbierto)+'</div><div class="cli360-kpi-s">facturas sin pagar</div></div>'+
+    '<div class="cli360-kpi k-orange"><div class="cli360-kpi-l"><i class="ri-archive-stack-line"></i> Pendiente retiro</div><div class="cli360-kpi-v">'+pendRetiro+'</div><div class="cli360-kpi-s">'+money(valorR)+' en bodega</div></div>'+
+    '<div class="cli360-kpi k-blue"><div class="cli360-kpi-l"><i class="ri-file-text-line"></i> Cotizaciones</div><div class="cli360-kpi-v">'+cots.length+'</div><div class="cli360-kpi-s">'+peds.length+' pedidos</div></div>'+
+  '</div>';
+
+  // Reservas pendientes
+  html+='<div class="cli360-sec">'+
+    '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-archive-stack-line"></i> Mercancía pendiente de retiro <span class="cli360-sec-count">'+reservas.length+'</span></div></div>';
+  if(!reservas.length){
+    html+='<div class="cli360-empty">No hay mercancía esperando ser retirada por este cliente.</div>';
+  }else{
+    html+='<table class="table"><thead><tr><th>Reserva</th><th>Producto</th><th>Pendiente</th><th>Bodega</th><th>Pedido</th><th>Días en bodega</th></tr></thead><tbody>';
+    reservas.forEach(r=>{
+      const pr=getProd(r.sku);
+      const pend=r.cantidad-(r.entregadoAcumulado||0);
+      const d=Math.max(0,Math.floor((Date.now()-new Date(r.fechaReserva.replace(/(\d+)\/(\d+)\/(\d+).*/,'$3-$2-$1')).getTime())/86400000))||0;
+      html+='<tr><td><b>'+r.id+'</b><div style="font-size:10px;color:var(--mut)">'+r.fechaReserva+'</div></td><td>'+(pr?.n||r.sku)+'<div style="font-size:10px;color:var(--mut)">'+r.sku+'</div></td><td><b>'+fmt(pend)+'</b> '+(pr?.u||'unid')+'</td><td><span class="badge bb">'+r.bodega+'</span></td><td><a href="pedidos.html" style="color:var(--link);font-weight:600">'+(r.pedidoRef||'—')+'</a></td><td><span style="color:'+sobranteEdadColor(d)+';font-weight:700">'+d+' días</span></td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // Cotizaciones
+  html+='<div class="cli360-sec">'+
+    '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-file-text-line"></i> Cotizaciones <span class="cli360-sec-count">'+cots.length+'</span></div><a href="cotizaciones.html" class="btn btn-o btn-sm">Ir a cotizaciones <i class="ri-arrow-right-line"></i></a></div>';
+  if(!cots.length){
+    html+='<div class="cli360-empty">Este cliente no tiene cotizaciones registradas.</div>';
+  }else{
+    html+='<table class="table"><thead><tr><th>Número</th><th>Fecha</th><th>Estado</th><th>Items</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+    cots.forEach(ct=>{
+      html+='<tr><td><b>'+ct.id+'</b></td><td>'+ct.fecha+'</td><td><span class="badge '+ctEstBadge(ct.estado)+'">'+ctEstLabel(ct.estado)+'</span></td><td>'+ct.items.length+'</td><td style="text-align:right"><b>'+money(ct.total)+'</b></td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // OC Cliente
+  html+='<div class="cli360-sec">'+
+    '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-file-list-3-line"></i> Órdenes de Compra Cliente <span class="cli360-sec-count">'+occ.length+'</span></div></div>';
+  if(!occ.length){
+    html+='<div class="cli360-empty">No hay órdenes de compra de cliente.</div>';
+  }else{
+    html+='<table class="table"><thead><tr><th>Número</th><th>Fecha</th><th>Origen</th><th>Estado</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+    occ.forEach(o=>{
+      html+='<tr><td><b>'+o.id+'</b></td><td>'+o.fecha+'</td><td>'+(o.cotizacionOrigen||'—')+'</td><td><span class="badge '+occEstBadge(o.estado)+'">'+occEstLabel(o.estado)+'</span></td><td style="text-align:right"><b>'+money(o.total)+'</b></td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // Pedidos timeline
+  html+='<div class="cli360-sec">'+
+    '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-send-plane-line"></i> Pedidos / Despachos <span class="cli360-sec-count">'+peds.length+'</span></div><a href="pedidos.html" class="btn btn-o btn-sm">Ir a pedidos <i class="ri-arrow-right-line"></i></a></div>';
+  if(!peds.length){
+    html+='<div class="cli360-empty">No hay pedidos para este cliente.</div>';
+  }else{
+    html+='<div class="cli360-tl">';
+    peds.forEach(p=>{
+      const pct=pedidoPorcentaje(p);
+      const ent=pedidoEntregado(p);
+      const tot=pedidoTotal(p);
+      html+='<div class="cli360-tl-row st-'+p.estado+'">'+
+        '<div class="cli360-tl-ic"><i class="'+pedEstIcon(p.estado)+'"></i></div>'+
+        '<div class="cli360-tl-bd">'+
+          '<div class="cli360-tl-id">'+p.id+' <span class="badge '+pedEstBadge(p.estado)+'" style="margin-left:6px">'+pedEstLabel(p.estado)+'</span></div>'+
+          '<div class="cli360-tl-meta"><span><i class="ri-calendar-line"></i> '+p.fecha+'</span><span><i class="ri-user-line"></i> '+(p.creadoPor||'—')+'</span><span><i class="ri-box-3-line"></i> '+p.items.length+' items</span></div>'+
+          '<div class="cli360-progress"><div class="bar"><span style="width:'+pct+'%;background:'+(pct===100?'var(--success-txt)':pct>0?'var(--warn-txt)':'var(--mut)')+'"></span></div><span class="p-txt">'+fmt(ent)+' / '+fmt(tot)+' ('+pct+'%)</span></div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Remisiones + Facturas
+  html+='<div class="cli360-sec">'+
+    '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-truck-line"></i> Remisiones y Facturas <span class="cli360-sec-count">'+(rem.length+fvs.length)+'</span></div></div>';
+  if(!rem.length&&!fvs.length){
+    html+='<div class="cli360-empty">No hay remisiones ni facturas.</div>';
+  }else{
+    html+='<table class="table"><thead><tr><th>Tipo</th><th>Número</th><th>Fecha</th><th>Estado</th><th>Origen</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+    rem.forEach(r=>{html+='<tr><td><span class="badge bb"><i class="ri-truck-line"></i> Remisión</span></td><td><b>'+r.numero+'</b></td><td>'+r.fecha+'</td><td><span class="badge '+rmEstBadge(r.estado)+'">'+rmEstLabel(r.estado)+'</span></td><td>'+(r.occRef||r.pedidoRef||'—')+'</td><td style="text-align:right">'+money(r.total||0)+'</td></tr>'});
+    fvs.forEach(f=>{html+='<tr><td><span class="badge bg"><i class="ri-bill-line"></i> Factura</span></td><td><b>'+f.numero+'</b></td><td>'+f.fecha+'</td><td><span class="badge '+fvEstBadge(f.estado)+'">'+fvEstLabel(f.estado)+'</span></td><td>'+(f.occRef||f.remisionOrigen||'—')+'</td><td style="text-align:right"><b>'+money(f.total)+'</b></td></tr>'});
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // Sobrantes asociados
+  if(sobs.length){
+    html+='<div class="cli360-sec">'+
+      '<div class="cli360-sec-h"><div class="cli360-sec-t"><i class="ri-question-line"></i> Sobrantes asociados al cliente <span class="cli360-sec-count">'+sobs.length+'</span></div></div>'+
+      '<table class="table"><thead><tr><th>ID</th><th>Contenido</th><th>Cantidad</th><th>Ubicación</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>';
+    sobs.forEach(s=>{
+      const t=sobranteDeriveTipo(s);
+      html+='<tr><td><b>'+s.id+'</b></td><td>'+s.cont+'</td><td>'+s.cant+'</td><td>'+s.ubic+' · '+s.bodega+'</td><td><span class="badge '+sobranteTipoBadge(t)+'">'+sobranteTipoLabel(t)+'</span></td><td>'+s.estado+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
+  html+='</div></div>';
+  $('pg').innerHTML=html;
+}
+
+const cid=getClienteIdFromQuery();
+if(cid)renderClienteDetalle(cid);else renderListaClientes();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 /* ========================= BASE DE DATOS ========================= */
 const DB_KEY='decorceramica_db';
 const AUTH_KEY='decorceramica_user';
-const DB_VER=9;
+const DB_VER=10;
 
 const DB={
   bodegas:[
@@ -74,14 +74,14 @@ const DB={
     {id:'PR-03',n:'Hidro Import',      cat:'Grifería',              ciudad:'Cali',   contacto:'Andrés Polo', tel:'301 556 7723',calif:3.8,estado:'Observado'}
   ],
   clientes:[
-    {id:'CL-01',n:'Ferretería Central',        ciudad:'Pasto',     tel:'300 111 2233',contacto:'Pedro Martínez'},
-    {id:'CL-02',n:'Pisos Ipiales Ltda',        ciudad:'Ipiales',   tel:'301 222 3344',contacto:'Ana Benavides'},
-    {id:'CL-03',n:'Consorcio Vial Nariño',     ciudad:'Tumaco',    tel:'302 333 4455',contacto:'Carlos Pinto'},
-    {id:'CL-04',n:'Cerámicas del Norte',       ciudad:'Bogotá',    tel:'310 444 5566',contacto:'Lucía Ramírez'},
-    {id:'CL-05',n:'Constructora Ipiales',      ciudad:'Ipiales',   tel:'315 555 6677',contacto:'Jorge Narváez'},
-    {id:'CL-06',n:'Remodelaciones Sur',        ciudad:'Pasto',     tel:'320 666 7788',contacto:'Sofía Torres'},
-    {id:'CL-07',n:'Hogar & Diseño',            ciudad:'Cali',      tel:'322 777 8899',contacto:'Mariana López'},
-    {id:'CL-08',n:'Distribuidora Cerámica SAS',ciudad:'Bogotá',    tel:'311 888 9900',contacto:'Fernando Vega'}
+    {id:'CL-01',n:'Ferretería Central',        ciudad:'Pasto',     tel:'300 111 2233',contacto:'Pedro Martínez',  email:'pedro@ferreteriacentral.co',tipo:'ferreteria',  creadoEn:'01/02/2025'},
+    {id:'CL-02',n:'Pisos Ipiales Ltda',        ciudad:'Ipiales',   tel:'301 222 3344',contacto:'Ana Benavides',   email:'ana@pisosipiales.co',      tipo:'distribuidor',creadoEn:'12/03/2025'},
+    {id:'CL-03',n:'Consorcio Vial Nariño',     ciudad:'Tumaco',    tel:'302 333 4455',contacto:'Carlos Pinto',    email:'cpinto@consvial.co',       tipo:'constructora',creadoEn:'04/06/2025'},
+    {id:'CL-04',n:'Cerámicas del Norte',       ciudad:'Bogotá',    tel:'310 444 5566',contacto:'Lucía Ramírez',   email:'lucia@ceranorte.co',       tipo:'distribuidor',creadoEn:'18/07/2025'},
+    {id:'CL-05',n:'Constructora Ipiales',      ciudad:'Ipiales',   tel:'315 555 6677',contacto:'Jorge Narváez',   email:'jnarvaez@conipiales.co',   tipo:'constructora',creadoEn:'30/08/2025'},
+    {id:'CL-06',n:'Remodelaciones Sur',        ciudad:'Pasto',     tel:'320 666 7788',contacto:'Sofía Torres',    email:'sofia@remosur.co',         tipo:'constructora',creadoEn:'05/10/2025'},
+    {id:'CL-07',n:'Hogar & Diseño',            ciudad:'Cali',      tel:'322 777 8899',contacto:'Mariana López',   email:'mariana@hogardiseno.co',   tipo:'particular',  creadoEn:'14/12/2025'},
+    {id:'CL-08',n:'Distribuidora Cerámica SAS',ciudad:'Bogotá',    tel:'311 888 9900',contacto:'Fernando Vega',   email:'fvega@distceramica.co',    tipo:'distribuidor',creadoEn:'22/01/2026'}
   ],
   compras:function(){
     const provs=['PR-01','PR-02','PR-03'];
@@ -111,20 +111,20 @@ const DB={
     return res;
   }(),
   pedidos:[
-    {id:'PD-3405',cliente:'Ferretería Central', fecha:'19/05/2026',estado:'parcial_asignado',despPor:null,
-     items:[{sku:'HR-NV-1',cant:3,bodega:'BGA',asig:3,falt:0,entregado:0},{sku:'MO-PEG-25',cant:25,bodega:'BGA',asig:0,falt:0,entregado:25}]},
-    {id:'PD-3404',cliente:'Pisos Ipiales Ltda',  fecha:'19/05/2026',estado:'asignado',despPor:null,
+    {id:'PD-3405',clienteId:'CL-01',cliente:'Ferretería Central', fecha:'19/05/2026',creadoPor:'Andrea Burbano',creadoEn:'19/05/2026 09:14',estado:'parcial_despachado',despPor:'Jhon Castillo',occRef:null,cotizacionRef:null,
+     items:[{sku:'HR-NV-1',cant:3,bodega:'BGA',asig:0,falt:0,entregado:3},{sku:'MO-PEG-25',cant:25,bodega:'BGA',asig:0,falt:0,entregado:10}]},
+    {id:'PD-3404',clienteId:'CL-02',cliente:'Pisos Ipiales Ltda',  fecha:'19/05/2026',creadoPor:'Andrea Burbano',creadoEn:'19/05/2026 10:02',estado:'asignado',despPor:null,occRef:null,cotizacionRef:null,
      items:[{sku:'EL-CA-10',cant:5,bodega:'BGA',asig:5,falt:0,entregado:0},{sku:'SN-IN-1',cant:2,bodega:'BGA',asig:2,falt:0,entregado:0}]},
-    {id:'PD-3403',cliente:'Consorcio Vial Nariño',fecha:'18/05/2026',estado:'parcial_asignado',despPor:null,
-     items:[{sku:'AD-PORC-25',cant:50,bodega:'BGA',asig:30,falt:0,entregado:20},{sku:'PC-6060-BE',cant:100,bodega:'BGA',asig:0,falt:0,entregado:100}]},
-    {id:'PD-3402',cliente:'Cerámicas del Norte', fecha:'18/05/2026',estado:'resagado',despPor:null,
+    {id:'PD-3403',clienteId:'CL-03',cliente:'Consorcio Vial Nariño',fecha:'18/05/2026',creadoPor:'Sandra Gómez',creadoEn:'18/05/2026 14:30',estado:'parcial_despachado',despPor:'Jhon Castillo',occRef:null,cotizacionRef:null,
+     items:[{sku:'AD-PORC-25',cant:50,bodega:'BGA',asig:30,falt:0,entregado:20},{sku:'PC-6060-BE',cant:100,bodega:'BGA',asig:0,falt:0,entregado:60}]},
+    {id:'PD-3402',clienteId:'CL-04',cliente:'Cerámicas del Norte', fecha:'18/05/2026',creadoPor:'Andrea Burbano',creadoEn:'18/05/2026 11:45',estado:'resagado',despPor:null,occRef:null,cotizacionRef:null,
      items:[{sku:'AZ-3060-BL',cant:1500,bodega:'BGA',asig:1500,falt:0,entregado:0},{sku:'GR-CM-CROM',cant:15,bodega:null,asig:0,falt:15,entregado:0}]},
-    {id:'PD-3401',cliente:'Constructora Ipiales',fecha:'17/05/2026',estado:'resagado',despPor:null,
+    {id:'PD-3401',clienteId:'CL-05',cliente:'Constructora Ipiales',fecha:'17/05/2026',creadoPor:'Sandra Gómez',creadoEn:'17/05/2026 08:50',estado:'resagado',despPor:null,occRef:null,cotizacionRef:null,
      items:[{sku:'PC-6060-BE',cant:8000,bodega:null,asig:0,falt:8000,entregado:0},{sku:'AD-PORC-25',cant:30,bodega:'BGA',asig:30,falt:0,entregado:0}]},
-    {id:'PD-3398',cliente:'Remodelaciones Sur',  fecha:'16/05/2026',estado:'asignado',despPor:null,
+    {id:'PD-3398',clienteId:'CL-06',cliente:'Remodelaciones Sur',  fecha:'16/05/2026',creadoPor:'Andrea Burbano',creadoEn:'16/05/2026 16:20',estado:'asignado',despPor:null,occRef:null,cotizacionRef:null,
      items:[{sku:'AZ-3060-BL',cant:400,bodega:'BGA',asig:400,falt:0,entregado:0}]},
-    {id:'PD-3390',cliente:'Hogar & Diseño',      fecha:'14/05/2026',estado:'despachado',despPor:'Jhon Castillo',
-     items:[{sku:'GR-LM-CROM',cant:20,bodega:'BGA',asig:20,falt:0,entregado:20}]}
+    {id:'PD-3390',clienteId:'CL-07',cliente:'Hogar & Diseño',      fecha:'14/05/2026',creadoPor:'Andrea Burbano',creadoEn:'14/05/2026 10:10',estado:'despachado',despPor:'Jhon Castillo',occRef:null,cotizacionRef:null,
+     items:[{sku:'GR-LM-CROM',cant:20,bodega:'BGA',asig:0,falt:0,entregado:20}]}
   ],
   transferencias:[
     {id:'TR-001',org:'BGD',dst:'BGA',fecha:'15/05/2026',estado:'recibida',solPor:'María López',autPor:'Carlos Rojas',despPor:'Diego Muñoz',recibPor:'Diego Muñoz',
@@ -136,32 +136,32 @@ const DB={
     {f:'15/05 11:30',sku:'PC-6060-BE', n:'Piso Cerámico 60×60',tipo:'Transferencia',cant:200,u:'m²',resp:'Diego Muñoz',ref:'TR-001',bodega:'BGA→BGA',est:'Completado'}
   ],
   sobrantes:[
-    {id:'SB-01',ubic:'Pasillo C - Est.14',   cont:'Cajas grifería sin marca',  cant:'22 cajas',    cant_sec:'2 cajas x10', costo_est:990000,  det:'Hace 12 días',orig:'Devolución cliente',  estado:'Sin identificar',sku:'GR-LM-CROM',add:22,bodega:'BGA'},
-    {id:'SB-02',ubic:'Zona D - Piso',         cont:'Pallet cerámica beige',     cant:'180 m²',      cant_sec:'125 cajas',   costo_est:5130000, det:'Hace 28 días',orig:'Sobrante de obra',    estado:'Sin identificar',sku:'PC-6060-BE',add:180,bodega:'BGD'},
-    {id:'SB-03',ubic:'Bodega 2 - Rack 7',     cont:'Sacos adhesivo abiertos',   cant:'15 sacos',    cant_sec:'—',           costo_est:570000,  det:'Hace 41 días',orig:'Compra duplicada',   estado:'En investigación',sku:'AD-PORC-25',add:15,bodega:'BGB'},
-    {id:'SB-04',ubic:'Estante A-3',           cont:'Azulejo blanco 30×60',      cant:'320 m²',      cant_sec:'222 cajas',   costo_est:7136000, det:'Hace 6 días', orig:'Exceso compra',     estado:'Sin identificar',sku:'AZ-3060-BL',add:320,bodega:'BGA'},
-    {id:'SB-05',ubic:'Muelle 2',              cont:'Grifos cocina monomando',    cant:'14 unid',     cant_sec:'1 caja x10',  costo_est:728000,  det:'Hace 9 días', orig:'Devolución cliente',  estado:'Sin identificar',sku:'GR-CM-CROM',add:14,bodega:'BGC'},
-    {id:'SB-06',ubic:'Pasillo B - Est.8',     cont:'Revestimiento piedra 25×50',cant:'95 m²',       cant_sec:'76 cajas',    costo_est:3401000, det:'Hace 15 días',orig:'Sobrante de obra',    estado:'En investigación',sku:'RV-2550-GR',add:95,bodega:'BGA'},
-    {id:'SB-07',ubic:'Zona E - Pallet 3',     cont:'Adhesivo porcelana sellado', cant:'40 sacos',    cant_sec:'1 pale',      costo_est:1520000, det:'Hace 5 días', orig:'Compra duplicada',   estado:'Sin identificar',sku:'AD-PORC-25',add:40,bodega:'BGB'},
-    {id:'SB-08',ubic:'Almacén norte',         cont:'Piso cerámico madera 45×45', cant:'240 m²',      cant_sec:'167 cajas',   costo_est:6840000, det:'Hace 3 días', orig:'Exceso producción',   estado:'Sin identificar',sku:'PC-6060-BE',add:240,bodega:'BGA'},
-    {id:'SB-09',ubic:'Rack 12 - Nivel 3',     cont:'Grifos lavamanos cromados',  cant:'8 unid',      cant_sec:'—',           costo_est:361600,  det:'Hace 20 días',orig:'Devolución cliente',  estado:'Reintegrado',   sku:'GR-LM-CROM',add:8,bodega:'BGA'},
-    {id:'SB-10',ubic:'Pasillo D - Piso',      cont:'Cerámica beige 33×33',      cant:'500 m²',      cant_sec:'347 cajas',   costo_est:14250000,det:'Hace 2 días', orig:'Sobrante de obra',    estado:'Sin identificar',sku:'PC-6060-BE',add:500,bodega:'BGD'},
-    {id:'SB-11',ubic:'Estante B-7',           cont:'Azulejo decorativo 20×30',  cant:'120 m²',      cant_sec:'100 cajas',   costo_est:2676000, det:'Hace 18 días',orig:'Exceso compra',     estado:'En investigación',sku:'AZ-3060-BL',add:120,bodega:'BGC'},
-    {id:'SB-12',ubic:'Muelle 1',              cont:'Mortero impermeable 40kg',  cant:'25 sacos',    cant_sec:'—',           costo_est:875000,  det:'Hace 7 días', orig:'Compra duplicada',   estado:'Sin identificar',sku:'MO-IM-40',add:25,bodega:'BGA'},
-    {id:'SB-13',ubic:'Zona F - Pallet 7',     cont:'Piso porcelanato 60×60',    cant:'360 m²',      cant_sec:'250 cajas',   costo_est:10260000,det:'Hace 4 días', orig:'Sobrante de obra',    estado:'Sin identificar',sku:'PC-6060-BE',add:360,bodega:'BGA'},
-    {id:'SB-14',ubic:'Rack 5 - Nivel 2',      cont:'Grifo cocina dorado',        cant:'5 unid',      cant_sec:'—',           costo_est:260000,  det:'Hace 35 días',orig:'Devolución cliente',  estado:'Reintegrado',   sku:'GR-CM-CROM',add:5,bodega:'BGD'},
-    {id:'SB-15',ubic:'Pasillo A - Est.2',     cont:'Revestimiento texturado',    cant:'65 m²',       cant_sec:'52 cajas',    costo_est:2327000, det:'Hace 22 días',orig:'Sobrante de obra',    estado:'Reintegrado',   sku:'RV-2550-GR',add:65,bodega:'BGA'},
-    {id:'SB-16',ubic:'Bodega 3 - Rack 9',     cont:'Adhesivo cerámico gris',     cant:'30 sacos',    cant_sec:'—',           costo_est:1140000, det:'Hace 11 días',orig:'Compra duplicada',   estado:'En investigación',sku:'AD-PORC-25',add:30,bodega:'BGB'},
-    {id:'SB-17',ubic:'Zona C - Piso',         cont:'Pallet mixto cerámica',      cant:'150 m²',      cant_sec:'104 cajas',   costo_est:4275000, det:'Hace 16 días',orig:'Devolución cliente',  estado:'Sin identificar',sku:'PC-6060-BE',add:150,bodega:'BGD'},
-    {id:'SB-18',ubic:'Estante D-5',           cont:'Azulejo cocina 20×30',       cant:'200 m²',      cant_sec:'139 cajas',   costo_est:4460000, det:'Hace 8 días', orig:'Exceso compra',     estado:'En investigación',sku:'AZ-3060-BL',add:200,bodega:'BGA'},
-    {id:'SB-19',ubic:'Muelle 3',              cont:'Grifos varios surtidos',     cant:'18 unid',     cant_sec:'1 caja x10',  costo_est:813600,  det:'Hace 13 días',orig:'Devolución cliente',  estado:'Sin identificar',sku:'GR-LM-CROM',add:18,bodega:'BGC'},
-    {id:'SB-20',ubic:'Pasillo E - Est.6',     cont:'Cerámica esmaltada 45×45',   cant:'280 m²',      cant_sec:'194 cajas',   costo_est:7980000, det:'Hace 10 días',orig:'Sobrante de obra',    estado:'Sin identificar',sku:'PC-6060-BE',add:280,bodega:'BGA'},
-    {id:'SB-21',ubic:'Zona G - Pallet 5',     cont:'Mortero pega corcho sobrante',cant:'40 sacos',   cant_sec:'—',           costo_est:1120000, det:'Hace 14 días',orig:'Exceso compra',     estado:'En investigación',sku:'MO-PEG-25',add:40,bodega:'BGB'},
-    {id:'SB-22',ubic:'Pasillo F - Est.11',    cont:'Perfiles T acero inoxidable', cant:'60 unid',     cant_sec:'2 paquetes',  costo_est:510000,  det:'Hace 19 días',orig:'Sobrante de obra',    estado:'Sin identificar',sku:'HR-PT-100',add:60,bodega:'BGA'},
-    {id:'SB-23',ubic:'Almacén eléctrico',     cont:'Cable #10 rollo sobrante',    cant:'3 unid',      cant_sec:'—',           costo_est:375000,  det:'Hace 23 días',orig:'Devolución cliente',  estado:'En investigación',sku:'EL-CA-10',add:3,bodega:'BGC'},
-    {id:'SB-24',ubic:'Estante C-4',           cont:'Pintura blanca sellada',      cant:'12 unid',     cant_sec:'1 caja',      costo_est:504000,  det:'Hace 17 días',orig:'Compra duplicada',   estado:'Sin identificar',sku:'PT-BL-1',add:12,bodega:'BGA'},
-    {id:'SB-25',ubic:'Zona H - Piso',         cont:'Lavamanos vitreo empaquetado', cant:'6 unid',     cant_sec:'1 caja',      costo_est:534000,  det:'Hace 25 días',orig:'Exceso compra',     estado:'Sin identificar',sku:'SN-LV-40',add:6,bodega:'BGB'},
-    {id:'SB-26',ubic:'Bodega 1 - Rack 2',     cont:'Nivel láser sin rotular',     cant:'4 unid',      cant_sec:'—',           costo_est:660000,  det:'Hace 30 días',orig:'Devolución cliente',  estado:'Reintegrado',   sku:'HR-NV-1',add:4,bodega:'BGA'}
+    {id:'SB-01',ubic:'Pasillo C - Est.14',   cont:'Cajas grifería sin marca',  cant:'22 cajas',    cant_sec:'2 cajas x10', costo_est:990000,  det:'Hace 12 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Sin identificar',sku:'GR-LM-CROM',add:22,bodega:'BGA'},
+    {id:'SB-02',ubic:'Zona D - Piso',         cont:'Pallet cerámica beige',     cant:'180 m²',      cant_sec:'125 cajas',   costo_est:5130000, det:'Hace 28 días',orig:'Sobrante de obra',    tipo:'reserva_cliente',clienteId:'CL-05',estado:'Sin identificar',sku:'PC-6060-BE',add:180,bodega:'BGD'},
+    {id:'SB-03',ubic:'Bodega 2 - Rack 7',     cont:'Sacos adhesivo abiertos',   cant:'15 sacos',    cant_sec:'—',           costo_est:570000,  det:'Hace 41 días',orig:'Compra duplicada',    tipo:'excedente',      estado:'En investigación',sku:'AD-PORC-25',add:15,bodega:'BGB'},
+    {id:'SB-04',ubic:'Estante A-3',           cont:'Azulejo blanco 30×60',      cant:'320 m²',      cant_sec:'222 cajas',   costo_est:7136000, det:'Hace 6 días', orig:'Exceso compra',       tipo:'excedente',      estado:'Sin identificar',sku:'AZ-3060-BL',add:320,bodega:'BGA'},
+    {id:'SB-05',ubic:'Muelle 2',              cont:'Grifos cocina monomando',    cant:'14 unid',     cant_sec:'1 caja x10',  costo_est:728000,  det:'Hace 9 días', orig:'Devolución cliente',  tipo:'devolucion',     estado:'Sin identificar',sku:'GR-CM-CROM',add:14,bodega:'BGC'},
+    {id:'SB-06',ubic:'Pasillo B - Est.8',     cont:'Revestimiento piedra 25×50',cant:'95 m²',       cant_sec:'76 cajas',    costo_est:3401000, det:'Hace 15 días',orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'En investigación',sku:'RV-2550-GR',add:95,bodega:'BGA'},
+    {id:'SB-07',ubic:'Zona E - Pallet 3',     cont:'Adhesivo porcelana sellado', cant:'40 sacos',    cant_sec:'1 pale',      costo_est:1520000, det:'Hace 5 días', orig:'Compra duplicada',    tipo:'excedente',      estado:'Sin identificar',sku:'AD-PORC-25',add:40,bodega:'BGB'},
+    {id:'SB-08',ubic:'Almacén norte',         cont:'Piso cerámico madera 45×45', cant:'240 m²',      cant_sec:'167 cajas',   costo_est:6840000, det:'Hace 3 días', orig:'Exceso producción',   tipo:'excedente',      estado:'Sin identificar',sku:'PC-6060-BE',add:240,bodega:'BGA'},
+    {id:'SB-09',ubic:'Rack 12 - Nivel 3',     cont:'Grifos lavamanos cromados',  cant:'8 unid',      cant_sec:'—',           costo_est:361600,  det:'Hace 20 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Reintegrado',   sku:'GR-LM-CROM',add:8,bodega:'BGA'},
+    {id:'SB-10',ubic:'Pasillo D - Piso',      cont:'Cerámica beige 33×33',      cant:'500 m²',      cant_sec:'347 cajas',   costo_est:14250000,det:'Hace 2 días', orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'Sin identificar',sku:'PC-6060-BE',add:500,bodega:'BGD'},
+    {id:'SB-11',ubic:'Estante B-7',           cont:'Azulejo decorativo 20×30',  cant:'120 m²',      cant_sec:'100 cajas',   costo_est:2676000, det:'Hace 18 días',orig:'Exceso compra',       tipo:'excedente',      estado:'En investigación',sku:'AZ-3060-BL',add:120,bodega:'BGC'},
+    {id:'SB-12',ubic:'Muelle 1',              cont:'Mortero impermeable 40kg',  cant:'25 sacos',    cant_sec:'—',           costo_est:875000,  det:'Hace 7 días', orig:'Compra duplicada',    tipo:'excedente',      estado:'Sin identificar',sku:'MO-IM-40',add:25,bodega:'BGA'},
+    {id:'SB-13',ubic:'Zona F - Pallet 7',     cont:'Piso porcelanato 60×60',    cant:'360 m²',      cant_sec:'250 cajas',   costo_est:10260000,det:'Hace 4 días', orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'Sin identificar',sku:'PC-6060-BE',add:360,bodega:'BGA'},
+    {id:'SB-14',ubic:'Rack 5 - Nivel 2',      cont:'Grifo cocina dorado',        cant:'5 unid',      cant_sec:'—',           costo_est:260000,  det:'Hace 35 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Reintegrado',   sku:'GR-CM-CROM',add:5,bodega:'BGD'},
+    {id:'SB-15',ubic:'Pasillo A - Est.2',     cont:'Revestimiento texturado',    cant:'65 m²',       cant_sec:'52 cajas',    costo_est:2327000, det:'Hace 22 días',orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'Reintegrado',   sku:'RV-2550-GR',add:65,bodega:'BGA'},
+    {id:'SB-16',ubic:'Bodega 3 - Rack 9',     cont:'Adhesivo cerámico gris',     cant:'30 sacos',    cant_sec:'—',           costo_est:1140000, det:'Hace 11 días',orig:'Compra duplicada',    tipo:'excedente',      estado:'En investigación',sku:'AD-PORC-25',add:30,bodega:'BGB'},
+    {id:'SB-17',ubic:'Zona C - Piso',         cont:'Pallet mixto cerámica',      cant:'150 m²',      cant_sec:'104 cajas',   costo_est:4275000, det:'Hace 16 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Sin identificar',sku:'PC-6060-BE',add:150,bodega:'BGD'},
+    {id:'SB-18',ubic:'Estante D-5',           cont:'Azulejo cocina 20×30',       cant:'200 m²',      cant_sec:'139 cajas',   costo_est:4460000, det:'Hace 8 días', orig:'Exceso compra',       tipo:'excedente',      estado:'En investigación',sku:'AZ-3060-BL',add:200,bodega:'BGA'},
+    {id:'SB-19',ubic:'Muelle 3',              cont:'Grifos varios surtidos',     cant:'18 unid',     cant_sec:'1 caja x10',  costo_est:813600,  det:'Hace 13 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Sin identificar',sku:'GR-LM-CROM',add:18,bodega:'BGC'},
+    {id:'SB-20',ubic:'Pasillo E - Est.6',     cont:'Cerámica esmaltada 45×45',   cant:'280 m²',      cant_sec:'194 cajas',   costo_est:7980000, det:'Hace 10 días',orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'Sin identificar',sku:'PC-6060-BE',add:280,bodega:'BGA'},
+    {id:'SB-21',ubic:'Zona G - Pallet 5',     cont:'Mortero pega corcho sobrante',cant:'40 sacos',   cant_sec:'—',           costo_est:1120000, det:'Hace 14 días',orig:'Exceso compra',       tipo:'excedente',      estado:'En investigación',sku:'MO-PEG-25',add:40,bodega:'BGB'},
+    {id:'SB-22',ubic:'Pasillo F - Est.11',    cont:'Perfiles T acero inoxidable', cant:'60 unid',     cant_sec:'2 paquetes',  costo_est:510000,  det:'Hace 19 días',orig:'Sobrante de obra',    tipo:'reserva_cliente',estado:'Sin identificar',sku:'HR-PT-100',add:60,bodega:'BGA'},
+    {id:'SB-23',ubic:'Almacén eléctrico',     cont:'Cable #10 rollo sobrante',    cant:'3 unid',      cant_sec:'—',           costo_est:375000,  det:'Hace 23 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'En investigación',sku:'EL-CA-10',add:3,bodega:'BGC'},
+    {id:'SB-24',ubic:'Estante C-4',           cont:'Pintura blanca sellada',      cant:'12 unid',     cant_sec:'1 caja',      costo_est:504000,  det:'Hace 17 días',orig:'Compra duplicada',    tipo:'excedente',      estado:'Sin identificar',sku:'PT-BL-1',add:12,bodega:'BGA'},
+    {id:'SB-25',ubic:'Zona H - Piso',         cont:'Lavamanos vitreo empaquetado', cant:'6 unid',     cant_sec:'1 caja',      costo_est:534000,  det:'Hace 25 días',orig:'Exceso compra',       tipo:'excedente',      estado:'Sin identificar',sku:'SN-LV-40',add:6,bodega:'BGB'},
+    {id:'SB-26',ubic:'Bodega 1 - Rack 2',     cont:'Nivel láser sin rotular',     cant:'4 unid',      cant_sec:'—',           costo_est:660000,  det:'Hace 30 días',orig:'Devolución cliente',  tipo:'devolucion',     estado:'Reintegrado',   sku:'HR-NV-1',add:4,bodega:'BGA'}
   ],
   vencimientos:[
     {lote:'L-AD-0091',prod:'Adhesivo Porcelana 25kg',    sku:'AD-PORC-25',cant:'40 sacos', bodega:'BGA',vence:'30/05/2026',dias:13},
@@ -191,6 +191,19 @@ const DB={
   cotizaciones:[],
   ordenes_compra_cliente:[],
   remisiones:[],
+  reservas_cliente:[
+    {id:'RC-001',clienteId:'CL-01',clienteNombre:'Ferretería Central', sku:'MO-PEG-25',cantidad:15,bodega:'BGA',pedidoRef:'PD-3405',fechaReserva:'19/05/2026 14:50',entregadoAcumulado:0,estado:'pendiente_retiro',ultimaEntregaEn:null},
+    {id:'RC-002',clienteId:'CL-03',clienteNombre:'Consorcio Vial Nariño',sku:'PC-6060-BE',cantidad:40,bodega:'BGA',pedidoRef:'PD-3403',fechaReserva:'18/05/2026 17:10',entregadoAcumulado:0,estado:'pendiente_retiro',ultimaEntregaEn:null},
+    {id:'RC-003',clienteId:'CL-03',clienteNombre:'Consorcio Vial Nariño',sku:'AD-PORC-25',cantidad:30,bodega:'BGA',pedidoRef:'PD-3403',fechaReserva:'18/05/2026 17:10',entregadoAcumulado:0,estado:'pendiente_retiro',ultimaEntregaEn:null}
+  ],
+  auditlog:[
+    {id:'AL-0001',timestamp:'19/05/2026 09:14',usuarioId:'andrea',usuarioNombre:'Andrea Burbano', modulo:'pedidos',     accion:'crear',         entidad:'pedido',     refId:'PD-3405',descripcion:'Pedido PD-3405 creado para Ferretería Central'},
+    {id:'AL-0002',timestamp:'19/05/2026 14:50',usuarioId:'jhon',  usuarioNombre:'Jhon Castillo', modulo:'pedidos',     accion:'despacho_parcial',entidad:'pedido',     refId:'PD-3405',descripcion:'Despacho parcial PD-3405: 3 niveles + 10 de 25 sacos. Reserva RC-001 creada'},
+    {id:'AL-0003',timestamp:'18/05/2026 14:30',usuarioId:'sandra',usuarioNombre:'Sandra Gómez',  modulo:'pedidos',     accion:'crear',         entidad:'pedido',     refId:'PD-3403',descripcion:'Pedido PD-3403 creado para Consorcio Vial Nariño'},
+    {id:'AL-0004',timestamp:'18/05/2026 17:10',usuarioId:'jhon',  usuarioNombre:'Jhon Castillo', modulo:'pedidos',     accion:'despacho_parcial',entidad:'pedido',     refId:'PD-3403',descripcion:'Despacho parcial PD-3403. Reservas RC-002 y RC-003 creadas'},
+    {id:'AL-0005',timestamp:'14/05/2026 10:10',usuarioId:'andrea',usuarioNombre:'Andrea Burbano', modulo:'pedidos',     accion:'crear',         entidad:'pedido',     refId:'PD-3390',descripcion:'Pedido PD-3390 creado para Hogar & Diseño'},
+    {id:'AL-0006',timestamp:'14/05/2026 15:20',usuarioId:'jhon',  usuarioNombre:'Jhon Castillo', modulo:'pedidos',     accion:'despacho_total',entidad:'pedido',     refId:'PD-3390',descripcion:'Pedido PD-3390 despachado totalmente'}
+  ],
   config:{
     general:{moneda:'COP',iva:19,decimales:2,fecha:'DD/MM/AAAA',empresa:'Decorcerámica SAS',nit:'900.123.456-7',direccion:'Cra 50 #15-20, Ipiales, Nariño',telefono:'+57 318 123 4567'},
     prefijos:[
@@ -267,6 +280,8 @@ let currentUser=null,selBodega='BGA';
       if(meta.ver===DB_VER){
         delete data._meta;
         Object.keys(data).forEach(k=>{DB[k]=data[k]});
+        if(!DB.reservas_cliente)DB.reservas_cliente=[];
+        if(!DB.auditlog)DB.auditlog=[];
         if(!DB.config.grupos_conversion)DB.config.grupos_conversion=[];
         if(!DB.config.unidades)DB.config.unidades=[];
         if(!DB.config.categorias)DB.config.categorias=[];

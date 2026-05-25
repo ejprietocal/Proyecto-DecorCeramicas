@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Cotizaciones</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=6">
+<link rel="stylesheet" href="css/styles.css?v=7">
 <style>
 .ct-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
 .ct-bar-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
@@ -75,7 +75,7 @@ function renderCots(){
   const q=ctBusq.toLowerCase();
   let items=cots;
   if(ctFiltro!=='todas')items=items.filter(c=>c.estado===ctFiltro);
-  if(q)items=items.filter(c=>c.id.toLowerCase().includes(q)||c.cliente.toLowerCase().includes(q));
+  if(q)items=items.filter(c=>c.id.toLowerCase().includes(q)||clienteNombre(c).toLowerCase().includes(q));
 
   const counts={borrador:0,enviada:0,aceptada:0,rechazada:0,vencida:0};
   cots.forEach(c=>{if(counts[c.estado]!==undefined)counts[c.estado]++});
@@ -106,7 +106,12 @@ function renderCots(){
     }else{
       acc='<span class="badge br" style="font-size:10px"><i class="ri-close-line"></i> Rechazada</span>';
     }
-    return '<div class="ct-card st-'+c.estado+'"><div class="ct-card-h"><div><div class="ct-card-id">'+c.id+' <small>'+c.fecha+'</small></div><div class="ct-card-cl"><i class="ri-user-line"></i>'+c.cliente+'</div></div><span class="badge '+ctEstBadge(c.estado)+'">'+ctEstLabel(c.estado)+'</span></div><div class="ct-card-b">'+itemsHtml+'</div><div class="ct-card-f"><b>'+money(c.total)+'</b>'+acc+'</div></div>';
+    const cliNombre=clienteNombre(c);
+    const cliHtml=c.clienteId
+      ? '<a href="cliente.html?id='+c.clienteId+'" style="color:var(--link);text-decoration:none;font-weight:600"><i class="ri-user-line"></i> '+cliNombre+'</a>'
+      : '<span><i class="ri-user-line"></i> '+(c.cliente||'—')+'</span>';
+    const creador=c.creadoPor?' <span style="color:var(--ph);font-size:10.5px"> · '+c.creadoPor+'</span>':'';
+    return '<div class="ct-card st-'+c.estado+'"><div class="ct-card-h"><div><div class="ct-card-id">'+c.id+' <small>'+c.fecha+'</small></div><div class="ct-card-cl">'+cliHtml+creador+'</div></div><span class="badge '+ctEstBadge(c.estado)+'">'+ctEstLabel(c.estado)+'</span></div><div class="ct-card-b">'+itemsHtml+'</div><div class="ct-card-f"><b>'+money(c.total)+'</b>'+acc+'</div></div>';
   }).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ri-file-text-line"></i><h3>Sin cotizaciones</h3><p>Crea la primera cotización o proforma para un cliente.</p></div>';
 
   const body='<div class="page th-cotizaciones"><div class="hero"><div class="hero-ic"><i class="ri-file-text-line"></i></div><h1>Cotizaciones / Proformas</h1><p>Documentos pre-venta sin afectación de inventario. Al aceptarse, elige: <b>Convertir en OC</b> (flujo completo) o <b>Facturar Directo</b> (pago inmediato).</p><div class="hero-act"><button class="btn btn-light" onclick="modalNuevaCot()"><i class="ri-add-line"></i> Nueva Cotización</button></div></div><div class="body">'+bar+'<div class="c-top">'+pills+'</div><div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:13px"></i><input type="text" placeholder="Buscar cotización o cliente..." value="'+ctBusq+'" oninput="ctBusq=this.value;renderCots()">'+(ctBusq?'<button class="btn btn-o btn-sm" onclick="ctBusq=\'\';renderCots()"><i class="ri-close-line"></i> Limpiar</button>':'')+'</div><div class="ct-grid">'+cards+'</div></div></div>';
@@ -116,7 +121,7 @@ function renderCots(){
 function modalNuevaCot(){
   draft={items:[{sku:'',cant:1}]};
   openMod('<i class="ri-file-text-line"></i> Nueva Cotización',
-    '<div class="note"><i class="ri-information-line"></i> Cotización sin afectar inventario. Puedes agregar productos y definir cantidades.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente"></div><div class="ff2"><div><label>Validez (días)</label><input type="number" id="ctValidez" value="15" min="1"></div><div><label>Fecha</label><input id="ctFecha" value="'+now().split(' ')[0]+'"></div></div><div class="ff"><label>Productos</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<div class="note"><i class="ri-information-line"></i> Cotización sin afectar inventario. El catálogo muestra fotos, precios y stock real; la calculadora ajusta cajas por m².</div><div class="ff">'+clienteAutocompleteHtml('Cliente')+'</div><div class="ff2"><div><label>Validez (días)</label><input type="number" id="ctValidez" value="15" min="1"></div><div><label>Fecha</label><input id="ctFecha" value="'+now().split(' ')[0]+'"></div></div><div class="ff"><label>Productos</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearCot()"><i class="ri-check-line"></i> Crear Cotización</button>'
   );
   renderLines();
@@ -124,7 +129,9 @@ function modalNuevaCot(){
 
 function crearCot(){
   const cl=$('dCliente').value.trim();
-  if(!cl){toast('Ingresa el nombre del cliente','warn');return}
+  let clienteId=$('dClienteId')?.value||null;
+  if(!cl){toast('Selecciona o ingresa el cliente','warn');return}
+  if(!clienteId){const m=findClienteByNombre(cl);if(m)clienteId=m.id}
   if(!draft.items[0]?.sku){toast('Agrega al menos un producto','warn');return}
   const id='CT-'+CT_SEQ++;
   const items=draft.items.filter(i=>i.sku).map(i=>{
@@ -135,9 +142,11 @@ function crearCot(){
   const validez=parseInt($('ctValidez').value)||15;
   const fecha=$('ctFecha').value||now().split(' ')[0];
   DB.cotizaciones.unshift({
-    id,cliente:cl,fecha:fecha,estado:'borrador',
-    validezDias:validez,items,total
+    id,clienteId,cliente:cl,fecha:fecha,
+    creadoPor:currentUser.n,creadoEn:now(),
+    estado:'borrador',validezDias:validez,items,total
   });
+  if(typeof logEvent==='function')logEvent('cotizaciones','crear','cotizacion',id,'Cotización '+id+' creada para '+cl);
   closeMod();saveDB();renderCots();toast('Cotización '+id+' creada en borrador.','ok');
 }
 
@@ -172,9 +181,11 @@ function convertirAOCC(cid){
   const items=c.items.map(i=>({sku:i.sku,n:i.n,cant:i.cant,u:i.u,precioUnit:i.precioUnit}));
   const total=items.reduce((s,i)=>s+i.cant*i.precioUnit,0);
   DB.ordenes_compra_cliente.unshift({
-    id,cliente:c.cliente,fecha:now().split(' ')[0],
+    id,clienteId:c.clienteId,cliente:c.cliente,fecha:now().split(' ')[0],
+    creadoPor:currentUser.n,creadoEn:now(),
     cotizacionOrigen:c.id,estado:'pendiente',items,total,notas:''
   });
+  if(typeof logEvent==='function')logEvent('ordenes_compra_cliente','crear','occ',id,'OCC '+id+' generada desde '+cid);
   saveDB();
   simularEnvioEmail('oc_cliente',{destinatario:c.cliente,numero:id,total,items,origen:'cotización '+cid});
 }
@@ -187,7 +198,8 @@ function facturarDirecto(cid){
   const items=c.items.map(i=>({sku:i.sku,n:i.n,cant:i.cant,u:i.u,precioUnit:i.precioUnit}));
   const total=items.reduce((s,i)=>s+i.cant*i.precioUnit,0);
   DB.ordenes_compra_cliente.unshift({
-    id:occId,cliente:c.cliente,fecha:now().split(' ')[0],
+    id:occId,clienteId:c.clienteId,cliente:c.cliente,fecha:now().split(' ')[0],
+    creadoPor:currentUser.n,creadoEn:now(),
     cotizacionOrigen:c.id,estado:'remisionada',items,total,notas:''
   });
   const subtotal=total;
@@ -195,10 +207,12 @@ function facturarDirecto(cid){
   const fvNum='FV-'+FV_SEQ++;
   DB.facturas_venta.unshift({
     numero:fvNum,fecha:now().split(' ')[0],
-    clienteId:null,clienteNombre:c.cliente,
-    remisionOrigen:null,occRef:occId,
+    clienteId:c.clienteId,cliente:c.cliente,clienteNombre:c.cliente,
+    creadoPor:currentUser.n,creadoEn:now(),
+    remisionOrigen:null,occRef:occId,cotizacionRef:c.id,
     subtotal,iva,total:subtotal+iva,estado:'emitida',archivoPdf:'facturas/'+fvNum+'.pdf'
   });
+  if(typeof logEvent==='function'){logEvent('ordenes_compra_cliente','crear','occ',occId,'OCC '+occId+' desde '+cid);logEvent('facturas','emitir','factura',fvNum,'Factura directa '+fvNum+' desde '+cid)}
   saveDB();
   simularEnvioEmail('factura',{destinatario:c.cliente,numero:fvNum,total:subtotal+iva,items,origen:'cotización '+cid,subtotal,iva});
   toast('Factura '+fvNum+' generada directamente desde cotización '+cid+'.','ok');

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Pedidos de Venta</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=6">
+<link rel="stylesheet" href="css/styles.css?v=7">
 <style>
 .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .p-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
@@ -88,16 +88,17 @@ let searchQuery = '';
 function renderPedidosScreen(){
   const numPend = DB.pedidos.filter(p=>p.estado==='pendiente').length;
   const numAsig = DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado').length;
+  const numParcial = DB.pedidos.filter(p=>p.estado==='parcial_despachado').length;
   const numRes = DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;
   const numDesp = DB.pedidos.filter(p=>p.estado==='despachado').length;
 
-  const barIcs=['ri-time-line','ri-check-double-line','ri-alert-line','ri-checkbox-circle-line'];
-  const barCls=['#64748B','#3B82F6','#B45309','#15803D'];
-  const barLbs=['Pendientes','Asignados','Rezagos','Entregados'];
-  const barVals=[numPend,numAsig,numRes,numDesp];
-  const headerStats='<div class="p-bar">'+[0,1,2,3].map(i=>'<div class="p-bar-item"><div class="p-bar-ic" style="background:'+barCls[i]+'"><i class="'+barIcs[i]+'"></i></div><div><div class="p-bar-n">'+barVals[i]+'</div><div class="p-bar-l">'+barLbs[i]+'</div></div></div>').join('')+'</div>';
+  const barIcs=['ri-time-line','ri-check-double-line','ri-archive-stack-line','ri-alert-line','ri-checkbox-circle-line'];
+  const barCls=['#64748B','#3B82F6','#EA580C','#B45309','#15803D'];
+  const barLbs=['Pendientes','Asignados','Despacho parcial','Rezagos','Entregados'];
+  const barVals=[numPend,numAsig,numParcial,numRes,numDesp];
+  const headerStats='<div class="p-bar" style="grid-template-columns:repeat(5,1fr)">'+[0,1,2,3,4].map(i=>'<div class="p-bar-item"><div class="p-bar-ic" style="background:'+barCls[i]+'"><i class="'+barIcs[i]+'"></i></div><div><div class="p-bar-n">'+barVals[i]+'</div><div class="p-bar-l">'+barLbs[i]+'</div></div></div>').join('')+'</div>';
 
-  const searchAndFilter='<div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:14px"></i><input type="text" id="pedSearch" placeholder="Buscar por cliente o factura..." oninput="updateSearch(this.value)" value="'+searchQuery+'"><div class="p-pills" id="filterStatusPills">'+['Todos','Pendiente','Asignado','Rezago','Despachado'].map(s=>renderFilterPill(s,s==='Todos'?DB.pedidos.length:s==='Pendiente'?numPend:s==='Asignado'?numAsig:s==='Rezago'?numRes:numDesp)).join('')+'</div></div>';
+  const searchAndFilter='<div class="p-search"><i class="ri-search-line" style="color:var(--ph);font-size:14px"></i><input type="text" id="pedSearch" placeholder="Buscar por cliente o pedido..." oninput="updateSearch(this.value)" value="'+searchQuery+'"><div class="p-pills" id="filterStatusPills">'+['Todos','Pendiente','Asignado','Parcial','Rezago','Despachado'].map(s=>renderFilterPill(s,s==='Todos'?DB.pedidos.length:s==='Pendiente'?numPend:s==='Asignado'?numAsig:s==='Parcial'?numParcial:s==='Rezago'?numRes:numDesp)).join('')+'</div></div>';
 
   $('pg').innerHTML = `
     <div class="page th-pedidos">
@@ -143,6 +144,8 @@ function renderTickets(){
       filtered = filtered.filter(p=>p.estado==='pendiente');
     } else if (filterStatus === 'Asignado') {
       filtered = filtered.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado');
+    } else if (filterStatus === 'Parcial') {
+      filtered = filtered.filter(p=>p.estado==='parcial_despachado');
     } else if (filterStatus === 'Rezago') {
       filtered = filtered.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado');
     } else if (filterStatus === 'Despachado') {
@@ -151,21 +154,25 @@ function renderTickets(){
   }
 
   if (searchQuery) {
-    filtered = filtered.filter(p => p.id.toLowerCase().includes(searchQuery) || p.cliente.toLowerCase().includes(searchQuery));
+    filtered = filtered.filter(p => p.id.toLowerCase().includes(searchQuery) || clienteNombre(p).toLowerCase().includes(searchQuery));
   }
 
   const html = filtered.map(pd=>{
     const totalCant = pd.items.reduce((s, it) => s + it.cant, 0);
     const totalEntregado = pd.items.reduce((s, it) => s + (it.entregado || 0), 0);
+    const totalPend = totalCant - totalEntregado;
     const pct = totalCant > 0 ? Math.round((totalEntregado / totalCant) * 100) : 0;
-    
+    const cliId = pd.clienteId;
+    const cliLink = cliId?'<a href="cliente.html?id='+cliId+'" style="color:var(--link);text-decoration:none" title="Ver 360°"><i class="ri-user-line"></i>'+clienteNombre(pd)+' <i class="ri-external-link-line" style="font-size:10px"></i></a>':'<span><i class="ri-user-line"></i>'+pd.cliente+'</span>';
+    const barColor = pct===100?'var(--success-txt)':pct>0?'var(--warn-txt)':'var(--info-txt)';
+
     let pieChartStyle = '';
     if (pct === 100) {
       pieChartStyle = 'background: var(--success-txt);';
     } else if (pct === 0) {
       pieChartStyle = 'background: #e2e8f0;';
     } else {
-      pieChartStyle = `background: conic-gradient(var(--link) 0% ${pct}%, #e2e8f0 ${pct}% 100%);`;
+      pieChartStyle = `background: conic-gradient(var(--success-txt) 0% ${pct}%, #e2e8f0 ${pct}% 100%);`;
     }
 
     const itemsH = pd.items.map(it=>{
@@ -216,7 +223,12 @@ function renderTickets(){
       acciones = bActions.join(' ');
     }
 
-    return '<div class="p-card st-'+pd.estado+'"><div class="p-card-h"><div class="p-card-h-l"><div class="p-card-id">'+pd.id+' <small>'+pd.fecha+'</small></div><div class="p-card-cl"><i class="ri-user-line"></i>'+pd.cliente+'</div></div><div class="p-pie" style="'+pieChartStyle+'"><div class="p-pie-val">'+pct+'%</div></div></div><div class="p-card-b">'+itemsH+'</div><div class="p-card-f"><span class="badge '+pedEstBadge(pd.estado)+'">'+pedEstLabel(pd.estado)+'</span>'+acciones+'</div></div>';
+    const pendAlert = (pd.estado==='parcial_despachado'||pd.estado==='parcial_asignado'||pd.estado==='parcial_resagado')&&totalPend>0
+      ? '<div class="pd-pending-alert"><i class="ri-archive-stack-line"></i> Cliente debe retirar '+fmt(totalPend)+' unid. pendientes</div>'
+      : '';
+    const progress = '<div class="pd-progress"><div class="bar"><span style="width:'+pct+'%;background:'+barColor+'"></span></div><span class="pd-progress-l">'+fmt(totalEntregado)+' / '+fmt(totalCant)+' ('+pct+'%)</span></div>';
+    const creadoMeta = pd.creadoPor?'<div style="font-size:10px;color:var(--mut);margin-top:4px;display:flex;align-items:center;gap:4px"><i class="ri-user-add-line"></i> Creado por '+pd.creadoPor+'</div>':'';
+    return '<div class="p-card st-'+pd.estado+'"><div class="p-card-h"><div class="p-card-h-l"><div class="p-card-id">'+pd.id+' <small>'+pd.fecha+'</small></div><div class="p-card-cl">'+cliLink+'</div>'+creadoMeta+progress+pendAlert+'</div><div class="p-pie" style="'+pieChartStyle+'"><div class="p-pie-val">'+pct+'%</div></div></div><div class="p-card-b">'+itemsH+'</div><div class="p-card-f"><span class="badge '+pedEstBadge(pd.estado)+'"><i class="'+pedEstIcon(pd.estado)+'"></i> '+pedEstLabel(pd.estado)+'</span>'+acciones+'</div></div>';
   }).join('');
 
   $('ticketsContainer').innerHTML = html || '<div class="empty" style="grid-column: 1 / -1; padding:30px"><i class="ri-send-plane-line"></i><h3>Sin pedidos</h3><p>No se encontraron pedidos con el filtro actual.</p></div>';
@@ -227,7 +239,7 @@ renderPedidosScreen();
 function modalNuevoPedido(){
   draft={items:[{sku:'',cant:1}]};
   openMod('<i class="ri-send-plane-line"></i> Nuevo Pedido de Venta',
-    '<div class="note"><i class="ri-information-line"></i> El sistema buscará stock disponible y asignará la bodega óptima automáticamente al crear el pedido.</div><div class="ff"><label>Cliente</label><input id="dCliente" placeholder="Nombre del cliente o constructora"></div><div class="ff"><label>Productos del pedido</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
+    '<div class="note"><i class="ri-information-line"></i> El sistema buscará stock disponible y asignará la bodega óptima automáticamente al crear el pedido.</div><div class="ff">'+clienteAutocompleteHtml('Cliente')+'</div><div class="ff"><label>Productos del pedido</label><div id="draftLines"></div><button class="add-line" onclick="addLine()"><i class="ri-add-line"></i> Agregar producto</button></div>',
     '<button class="btn btn-o btn-sm" onclick="closeMod()">Cancelar</button><button class="btn btn-blue btn-sm" onclick="crearPedido()"><i class="ri-check-line"></i> Crear pedido</button>'
   );
   renderLines();
@@ -235,12 +247,16 @@ function modalNuevoPedido(){
 
 function crearPedido(){
   const cl=$('dCliente').value.trim();
-  if(!cl){toast('Ingresa el nombre del cliente','warn');return}
+  const cliIdEl=$('dClienteId');
+  let clienteId=cliIdEl?cliIdEl.value:null;
+  if(!cl){toast('Selecciona o ingresa el nombre del cliente','warn');return}
+  if(!clienteId){const m=findClienteByNombre(cl);if(m)clienteId=m.id;}
   if(!draft.items.length||!draft.items[0].sku){toast('Agrega al menos un producto','warn');return}
   const id='PD-'+PD_SEQ++;
   const items=draft.items.filter(i=>i.sku).map(i=>({sku:i.sku,cant:i.cant,bodega:null,asig:0,falt:0,entregado:0}));
-  DB.pedidos.unshift({id,cliente:cl,fecha:now().split(' ')[0],estado:'pendiente',despPor:null,items});
+  DB.pedidos.unshift({id,clienteId,cliente:cl,fecha:now().split(' ')[0],creadoPor:currentUser.n,creadoEn:now(),estado:'pendiente',despPor:null,occRef:null,cotizacionRef:null,items});
   asignarStock(id);
+  if(typeof logEvent==='function')logEvent('pedidos','crear','pedido',id,'Pedido '+id+' creado para '+cl);
   closeMod();
   saveDB();
   toast(id+' creado en estado: '+pedEstLabel(DB.pedidos[0].estado),'ok');
@@ -409,7 +425,21 @@ function confirmarDespachoPedidoParcial(pdId){
   if (pd.estado === 'despachado') {
     pd.despPor = currentUser.n;
   }
-  
+  // Crear reservas para items con saldo pendiente (entrega parcial)
+  if(pd.clienteId&&(pd.estado==='parcial_despachado'||pd.estado==='parcial_resagado')){
+    pd.items.forEach(it=>{
+      const pendiente=(it.cant||0)-(it.entregado||0);
+      if(pendiente<=0)return;
+      const yaR=(DB.reservas_cliente||[]).some(r=>r.pedidoRef===pd.id&&r.sku===it.sku&&r.estado!=='completado');
+      if(yaR)return;
+      crearReservaCliente(pd.clienteId,clienteNombre(pd),it.sku,pendiente,it.bodega||'BGA',pd.id);
+    });
+  }
+  if(typeof logEvent==='function'){
+    const accion=pd.estado==='despachado'?'despacho_total':'despacho_parcial';
+    logEvent('pedidos',accion,'pedido',pd.id,'Despacho '+(accion==='despacho_total'?'total':'parcial')+' de '+pd.id+' ('+totalDispatched+' unid.)');
+  }
+
   closeMod();
   // Determinar si se debe generar factura (una sola vez)
   const facturaExistente = DB.facturas_venta.find(f=>f.remisionOrigen===pd.remisionOrigen);

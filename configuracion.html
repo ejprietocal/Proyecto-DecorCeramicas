@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Configuración</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=6">
+<link rel="stylesheet" href="css/styles.css?v=7">
 <style>
 .cfg-wrap{display:grid;grid-template-columns:200px 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:500px}
 .cfg-side{background:var(--neutral-bg);border-right:1px solid var(--line);padding:8px 0}
@@ -88,6 +88,7 @@ renderShell('configuracion');
 let cfgSec='usuarios';
 const CFG_SECS=[
   {id:'usuarios',ic:'ri-shield-user-line',n:'Usuarios y Roles'},
+  {id:'auditlog',ic:'ri-shield-check-line',n:'Bitácora (Audit Log)'},
   {id:'grupos',ic:'ri-exchange-line',n:'Grupos de Conversión'},
   {id:'unidades',ic:'ri-ruler-line',n:'Unidades de Medida'},
   {id:'categorias',ic:'ri-grid-line',n:'Categorías'},
@@ -95,11 +96,15 @@ const CFG_SECS=[
   {id:'pos',ic:'ri-store-2-line',n:'Puntos de Venta'},
   {id:'general',ic:'ri-settings-4-line',n:'General'}
 ];
+let _alFilterUser='todos';
+let _alFilterModulo='todos';
+let _alFilterQ='';
 function renderCfg(){
   const side=CFG_SECS.map(s=>'<div class="cfg-item '+(cfgSec===s.id?'sel':'')+'" onclick="cfgSec=\''+s.id+'\';renderCfg()"><i class="'+s.ic+'"></i>'+s.n+'</div>').join('');
   let body='';
   switch(cfgSec){
     case'usuarios':body=renderUsuarios();break;
+    case'auditlog':body=renderAuditLog();break;
     case'grupos':body=renderGrupos();break;
     case'unidades':body=renderUnidades();break;
     case'categorias':body=renderCategorias();break;
@@ -110,11 +115,42 @@ function renderCfg(){
   $('pg').innerHTML='<div class="page th-usr"><div class="body"><div class="cfg-wrap"><div class="cfg-side">'+side+'</div><div class="cfg-body">'+body+'</div></div></div></div>';
 }
 
+/* ==================== AUDIT LOG (M12) ==================== */
+function renderAuditLog(){
+  const log=DB.auditlog||[];
+  const usuarios=['todos',...new Set(log.map(e=>e.usuarioNombre).filter(Boolean))];
+  const modulos=['todos',...new Set(log.map(e=>e.modulo).filter(Boolean))];
+  const q=_alFilterQ.toLowerCase();
+  const filt=log.filter(e=>
+    (_alFilterUser==='todos'||e.usuarioNombre===_alFilterUser)&&
+    (_alFilterModulo==='todos'||e.modulo===_alFilterModulo)&&
+    (!q||e.refId?.toLowerCase().includes(q)||e.descripcion?.toLowerCase().includes(q))
+  );
+  const modIc={pedidos:'ri-send-plane-line',cotizaciones:'ri-file-text-line',facturas:'ri-bill-line',compras:'ri-shopping-cart-2-line',transferencias:'ri-arrow-left-right-line',sobrantes:'ri-question-line',inventario:'ri-archive-2-line',clientes:'ri-user-line',ordenes_compra_cliente:'ri-file-list-3-line'};
+  const rows=filt.length?filt.map(e=>'<tr><td style="font-family:monospace;font-size:11px;color:var(--mut)">'+(e.timestamp||'—')+'</td><td><div style="display:flex;align-items:center;gap:6px"><span style="width:24px;height:24px;border-radius:6px;background:var(--rojo-l);color:var(--rojo);display:inline-flex;align-items:center;justify-content:center;font-size:11px"><i class="'+(modIc[e.modulo]||'ri-information-line')+'"></i></span><b>'+(e.usuarioNombre||'—')+'</b></div></td><td><span class="badge bs">'+e.modulo+'</span></td><td>'+(e.accion||'—')+'</td><td><b>'+(e.refId||'—')+'</b></td><td>'+(e.descripcion||'')+'</td></tr>').join(''):'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--mut)">Sin eventos registrados con los filtros actuales</td></tr>';
+  return `
+    <div class="ch"><div class="ct"><i class="ri-shield-check-line"></i> Bitácora de Auditoría</div><span class="badge bs">${log.length} eventos totales</span></div>
+    <div class="note" style="margin-bottom:14px"><i class="ri-information-line"></i> Registro inmutable de todas las acciones materiales del sistema. Útil para control interno y resolución de incidencias.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+      <input type="text" placeholder="Buscar por ID o descripción..." value="${_alFilterQ}" oninput="_alFilterQ=this.value;renderCfg()" style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:12.5px;outline:none;background:var(--bg);color:var(--txt)">
+      <select onchange="_alFilterUser=this.value;renderCfg()" style="padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:12.5px;background:var(--surface);color:var(--ink)">
+        ${usuarios.map(u=>`<option value="${u}" ${_alFilterUser===u?'selected':''}>${u==='todos'?'Todos los usuarios':u}</option>`).join('')}
+      </select>
+      <select onchange="_alFilterModulo=this.value;renderCfg()" style="padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:12.5px;background:var(--surface);color:var(--ink)">
+        ${modulos.map(m=>`<option value="${m}" ${_alFilterModulo===m?'selected':''}>${m==='todos'?'Todos los módulos':m}</option>`).join('')}
+      </select>
+    </div>
+    <div style="overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:10px"><table class="table"><thead><tr><th>Timestamp</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Ref</th><th>Descripción</th></tr></thead><tbody>${rows}</tbody></table></div>
+  `;
+}
+
 /* ==================== 1. USUARIOS Y ROLES ==================== */
 function togglePerm(uid,mod){
   if(!PERMS[uid])PERMS[uid]=['dashboard'];
   const idx=PERMS[uid].indexOf(mod);
+  const accion=idx>-1?'revocar_permiso':'conceder_permiso';
   if(idx>-1)PERMS[uid].splice(idx,1);else PERMS[uid].push(mod);
+  if(typeof logEvent==='function')logEvent('configuracion',accion,'permiso',uid+'/'+mod,'Permiso '+mod+' '+(accion==='conceder_permiso'?'concedido a':'revocado a')+' '+uid);
   saveDB();
 }
 function renderUsuarios(){

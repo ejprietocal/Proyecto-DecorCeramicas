@@ -11,8 +11,9 @@ const stockBodega=(bg,sku)=>(DB.stock[bg]&&DB.stock[bg][sku])||0;
 const bestBodega=sku=>{let best=null,max=-1;DB.bodegas.forEach(b=>{const v=stockBodega(b.id,sku);if(v>max){max=v;best=b.id}});return best};
 const bodegaColor=id=>{const b=DB.bodegas.find(x=>x.id===id);return b?b.estado:'verde'};
 const ocValor=oc=>oc.items.reduce((s,i)=>s+i.cant*i.precio,0);
-const pedEstLabel=e=>({pendiente:'Pendiente',asignado:'Asignado',resagado:'Rezago por Stock',parcial_asignado:'Parcial (Asignado)',parcial_resagado:'Parcial (Rezago)',despachado:'Despachado Total'})[e]||e;
-const pedEstBadge=e=>({pendiente:'bs',asignado:'bb',resagado:'by',parcial_asignado:'bi',parcial_resagado:'by',despachado:'bg'})[e]||'bs';
+const pedEstLabel=e=>({pendiente:'Pendiente',asignado:'Asignado',resagado:'Rezago por Stock',parcial_asignado:'Parcial (Asignado)',parcial_resagado:'Parcial (Rezago)',parcial_despachado:'Despacho Parcial',despachado:'Despachado Total'})[e]||e;
+const pedEstBadge=e=>({pendiente:'bs',asignado:'bb',resagado:'by',parcial_asignado:'bi',parcial_resagado:'by',parcial_despachado:'bi',despachado:'bg'})[e]||'bs';
+const pedEstIcon=e=>({pendiente:'ri-time-line',asignado:'ri-check-line',resagado:'ri-alert-line',parcial_asignado:'ri-stack-line',parcial_resagado:'ri-error-warning-line',parcial_despachado:'ri-archive-stack-line',despachado:'ri-checkbox-circle-line'})[e]||'ri-circle-line';
 const compEstLabel=e=>({borrador:'Borrador',transito:'En tránsito',recibida:'Recibida sin reclamar',reclamada:'Reclamada'})[e]||e;
 const compEstBadge=e=>({borrador:'bs',transito:'bb',recibida:'by',reclamada:'bg'})[e]||'bs';
 const trEstLabel=e=>({solicitada:'Solicitada',autorizada:'Autorizada',despachada:'Despachada',recibida:'Recibida'})[e]||e;
@@ -44,3 +45,67 @@ const convertirAUnidadBase=(grupoId,unidadId,cantidad)=>{
   const u=g.unidades.find(x=>x.unidad_id===unidadId);
   return u?cantidad/u.factor:cantidad;
 };
+
+/* ---- helpers de cliente y trazabilidad ---- */
+const getClienteById=id=>DB.clientes.find(c=>c.id===id);
+const findClienteByNombre=n=>{if(!n)return null;const t=n.trim().toLowerCase();return DB.clientes.find(c=>c.n.trim().toLowerCase()===t)||null;};
+const clienteNombre=doc=>{if(!doc)return '—';if(doc.clienteId){const c=getClienteById(doc.clienteId);if(c)return c.n;}return doc.cliente||doc.clienteNombre||'—';};
+const sameCliente=(doc,clienteId)=>{if(!doc||!clienteId)return false;if(doc.clienteId===clienteId)return true;const c=getClienteById(clienteId);if(!c)return false;const nm=(doc.cliente||doc.clienteNombre||'').trim().toLowerCase();return nm===c.n.trim().toLowerCase();};
+const cotsByCliente=id=>DB.cotizaciones.filter(d=>sameCliente(d,id));
+const occByCliente=id=>DB.ordenes_compra_cliente.filter(d=>sameCliente(d,id));
+const pedsByCliente=id=>DB.pedidos.filter(d=>sameCliente(d,id));
+const remByCliente=id=>DB.remisiones.filter(d=>sameCliente(d,id));
+const fvByCliente=id=>DB.facturas_venta.filter(d=>sameCliente(d,id));
+const reservasByCliente=id=>(DB.reservas_cliente||[]).filter(r=>r.clienteId===id&&r.estado!=='completado');
+const sobrantesByCliente=id=>DB.sobrantes.filter(s=>s.clienteId===id);
+const totalCompradoCliente=id=>fvByCliente(id).reduce((s,f)=>s+(f.total||0),0);
+const valorReservasCliente=id=>reservasByCliente(id).reduce((s,r)=>{const p=getProd(r.sku);return s+(r.cantidad-(r.entregadoAcumulado||0))*(p?.precio||0);},0);
+
+/* ---- helpers de entrega parcial ---- */
+const pedidoEntregado=p=>(p.items||[]).reduce((s,i)=>s+(i.entregado||0),0);
+const pedidoTotal=p=>(p.items||[]).reduce((s,i)=>s+(i.cant||0),0);
+const pedidoPorcentaje=p=>{const t=pedidoTotal(p);return t?Math.round((pedidoEntregado(p)/t)*100):0;};
+const pedidoTienePendienteRetiro=p=>(p.items||[]).some(i=>(i.entregado||0)>0&&(i.entregado||0)<(i.cant||0))||p.estado==='parcial_despachado';
+
+/* ---- helpers de sobrantes (M7) ---- */
+const sobranteDiasEnEstado=s=>{if(typeof s.diasEnEstado==='number')return s.diasEnEstado;const m=(s.det||'').match(/\d+/);return m?parseInt(m[0]):0;};
+const sobranteTipoLabel=t=>({reserva_cliente:'Pendiente retiro cliente',devolucion:'Devolución cliente',excedente:'Excedente / Error compra',desconocido:'Sin identificar'})[t]||t||'Sin identificar';
+const sobranteTipoBadge=t=>({reserva_cliente:'by',devolucion:'bi',excedente:'bs',desconocido:'br'})[t]||'bs';
+const sobranteEdadColor=d=>d<=7?'var(--success-txt)':d<=15?'var(--warn-txt)':d<=30?'#EA580C':'var(--danger-txt)';
+const sobranteDeriveTipo=s=>{if(s.tipo)return s.tipo;const o=(s.orig||'').toLowerCase();if(o.includes('devoluc'))return 'devolucion';if(o.includes('obra'))return 'reserva_cliente';if(o.includes('compra')||o.includes('exceso')||o.includes('producci'))return 'excedente';return 'desconocido';};
+
+/* ---- audit log ---- */
+const AUDIT_SEQ_KEY='_alSeq';
+const logEvent=(modulo,accion,entidad,refId,descripcion,cambios)=>{
+  if(!DB.auditlog)DB.auditlog=[];
+  const n=(DB.auditlog.length?DB.auditlog.length:0)+1;
+  const id='AL-'+String(n).padStart(4,'0');
+  const u=currentUser||{id:'sistema',n:'Sistema'};
+  DB.auditlog.unshift({id,timestamp:now(),usuarioId:u.id,usuarioNombre:u.n,modulo,accion,entidad,refId,descripcion:descripcion||'',cambios:cambios||null});
+  saveDB();
+};
+
+/* ---- reservas de cliente ---- */
+const RC_SEQ_KEY='_rcSeq';
+const crearReservaCliente=(clienteId,clienteNombre,sku,cantidad,bodega,pedidoRef)=>{
+  if(!DB.reservas_cliente)DB.reservas_cliente=[];
+  const n=DB.reservas_cliente.length+1;
+  const id='RC-'+String(n).padStart(3,'0');
+  const r={id,clienteId,clienteNombre,sku,cantidad,bodega,pedidoRef,fechaReserva:now(),entregadoAcumulado:0,estado:'pendiente_retiro',ultimaEntregaEn:null};
+  DB.reservas_cliente.unshift(r);
+  return r;
+};
+const completarReserva=(rcId,cantidadEntregada)=>{
+  const r=(DB.reservas_cliente||[]).find(x=>x.id===rcId);
+  if(!r)return;
+  r.entregadoAcumulado=(r.entregadoAcumulado||0)+cantidadEntregada;
+  r.ultimaEntregaEn=now();
+  r.estado=r.entregadoAcumulado>=r.cantidad?'completado':'parcial_retirado';
+};
+const reservasPendientesBodega=bodega=>(DB.reservas_cliente||[]).filter(r=>r.bodega===bodega&&r.estado!=='completado');
+
+/* ---- severidad notificaciones (M10) ---- */
+const SEV={CRITICO:'critico',URGENTE:'urgente',INFO:'info'};
+const sevOrder={critico:0,urgente:1,info:2};
+const sevColor=s=>({critico:'var(--danger-txt)',urgente:'var(--warn-txt)',info:'var(--info-txt)'})[s]||'var(--mut)';
+const sevLabel=s=>({critico:'CRÍTICO',urgente:'URGENTE',info:'INFO'})[s]||s;

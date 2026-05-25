@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decorcerámica ERP — Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=6">
+<link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
 <div id="screen-app" class="screen active">
@@ -35,7 +35,103 @@
 <script src="js/ui.js"></script>
 <script>
 renderShell('dashboard');
-$('pg').innerHTML=function(){
+
+function renderDashboard(){
+  const u=currentUser;
+  if(u.id==='andrea')return renderDashAsesor();
+  if(u.id==='miguel')return renderDashCajero();
+  if(u.id==='jhon')return renderDashBodeguero();
+  return renderDashAdmin();
+}
+
+function renderDashAsesor(){
+  const cots=DB.cotizaciones;
+  const borradores=cots.filter(c=>c.estado==='borrador').length;
+  const enviadas=cots.filter(c=>c.estado==='enviada').length;
+  const aceptadas=cots.filter(c=>c.estado==='aceptada').length;
+  const vencidas=cots.filter(c=>c.estado==='vencida').length;
+  const mias=cots.filter(c=>(c.creadoPor||'').toLowerCase().includes('andrea')||(c.creadoPor||'').toLowerCase().includes('asesor'));
+  const topCli=DB.clientes.map(c=>({c,total:totalCompradoCliente(c.id),pend:reservasByCliente(c.id).length})).sort((a,b)=>b.total-a.total).slice(0,5);
+  const topRows=topCli.map(x=>'<tr><td><a href="cliente.html?id='+x.c.id+'" style="color:var(--link);font-weight:700">'+x.c.n+'</a><div style="font-size:10px;color:var(--mut)">'+(x.c.ciudad||'—')+'</div></td><td>'+money(x.total)+'</td><td>'+(x.pend?'<span class="badge by"><i class="ri-archive-stack-line"></i> '+x.pend+'</span>':'<span class="badge bg">—</span>')+'</td></tr>').join('');
+  const recientes=cots.slice(0,6).map(c=>'<tr><td><b>'+c.id+'</b></td><td>'+clienteNombre(c)+'</td><td><span class="badge '+ctEstBadge(c.estado)+'"><i class="'+(c.estado==='aceptada'?'ri-check-line':c.estado==='enviada'?'ri-send-plane-line':c.estado==='rechazada'?'ri-close-line':'ri-file-edit-line')+'"></i> '+ctEstLabel(c.estado)+'</span></td><td style="text-align:right">'+money(c.total)+'</td></tr>').join('')||'<tr><td colspan="4" style="text-align:center;color:var(--mut);padding:18px">Aún no has creado cotizaciones</td></tr>';
+  return `
+    <div class="page th-dash">
+      <div class="hero"><div class="hero-ic"><i class="ri-user-star-line"></i></div><h1>Hola ${currentUser.n.split(' ')[0]} 👋</h1><p>Vista de Asesora de Ventas — gestiona cotizaciones, clientes activos y conversión a pedidos.</p><div class="hero-act"><a href="cotizaciones.html" class="btn btn-p"><i class="ri-add-line"></i> Nueva cotización</a><a href="cliente.html" class="btn btn-o"><i class="ri-user-search-line"></i> Buscar cliente</a></div></div>
+      <div class="body">
+        <div class="grid" style="margin-bottom:18px">
+          <div class="stat c3"><div class="stat-ic" style="background:var(--neutral-txt)"><i class="ri-file-edit-line"></i></div><div class="stat-n">${borradores}</div><div class="stat-l">Borradores</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--info-txt)"><i class="ri-send-plane-line"></i></div><div class="stat-n">${enviadas}</div><div class="stat-l">Enviadas al cliente</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-checkbox-circle-line"></i></div><div class="stat-n">${aceptadas}</div><div class="stat-l">Aceptadas (listas para OC)</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-time-line"></i></div><div class="stat-n">${vencidas}</div><div class="stat-l">Vencidas</div></div>
+        </div>
+        <div class="grid">
+          <div class="card c7"><div class="ch"><div class="ct"><i class="ri-file-text-line"></i> Cotizaciones recientes</div><a href="cotizaciones.html" class="btn btn-o btn-sm">Ver todas</a></div><table class="table"><thead><tr><th>Número</th><th>Cliente</th><th>Estado</th><th style="text-align:right">Total</th></tr></thead><tbody>${recientes}</tbody></table></div>
+          <div class="card c5"><div class="ch"><div class="ct"><i class="ri-vip-crown-line"></i> Clientes top</div></div><table class="table"><thead><tr><th>Cliente</th><th>Comprado</th><th>Pendiente</th></tr></thead><tbody>${topRows||'<tr><td colspan="3" style="text-align:center;color:var(--mut);padding:14px">—</td></tr>'}</tbody></table></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderDashCajero(){
+  const cotsAceptadas=DB.cotizaciones.filter(c=>c.estado==='aceptada');
+  const occPend=DB.ordenes_compra_cliente.filter(o=>o.estado==='pendiente'||o.estado==='aprobada');
+  const hoy=new Date();const hoyStr=hoy.getDate()+'/'+(hoy.getMonth()+1)+'/'+hoy.getFullYear();
+  const fvHoy=DB.facturas_venta.filter(f=>f.fecha&&f.fecha.startsWith(hoy.getDate()+'/'+(hoy.getMonth()+1)));
+  const totalHoy=fvHoy.reduce((s,f)=>s+(f.total||0),0);
+  const fvUlt=DB.facturas_venta.slice(0,8);
+  const fRows=fvUlt.map(f=>'<tr><td><b>'+f.numero+'</b></td><td>'+clienteNombre(f)+'</td><td>'+f.fecha+'</td><td><span class="badge '+fvEstBadge(f.estado)+'">'+fvEstLabel(f.estado)+'</span></td><td style="text-align:right"><b>'+money(f.total)+'</b></td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:18px">Sin facturas aún</td></tr>';
+  const cotRows=cotsAceptadas.slice(0,5).map(c=>'<tr><td><b>'+c.id+'</b></td><td>'+clienteNombre(c)+'</td><td style="text-align:right">'+money(c.total)+'</td><td><a href="cotizaciones.html" class="btn btn-blue btn-sm"><i class="ri-bill-line"></i> Facturar</a></td></tr>').join('')||'<tr><td colspan="4" style="text-align:center;color:var(--mut);padding:14px">No hay cotizaciones por facturar</td></tr>';
+  return `
+    <div class="page th-dash">
+      <div class="hero"><div class="hero-ic"><i class="ri-bill-line"></i></div><h1>Caja ${currentUser.n.split(' ')[0]}</h1><p>Vista de Cajero — facturar cotizaciones aceptadas, emitir notas y revisar ventas del día.</p><div class="hero-act"><a href="cotizaciones.html" class="btn btn-p"><i class="ri-bill-line"></i> Facturar cotización</a><a href="facturas.html" class="btn btn-o"><i class="ri-file-list-3-line"></i> Ver facturas</a></div></div>
+      <div class="body">
+        <div class="grid" style="margin-bottom:18px">
+          <div class="stat c3"><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-file-text-line"></i></div><div class="stat-n">${cotsAceptadas.length}</div><div class="stat-l">Cotizaciones por facturar</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--info-txt)"><i class="ri-file-list-3-line"></i></div><div class="stat-n">${occPend.length}</div><div class="stat-l">OC sin remisión</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-bill-line"></i></div><div class="stat-n">${fvHoy.length}</div><div class="stat-l">Facturas hoy</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--link)"><i class="ri-money-dollar-circle-line"></i></div><div class="stat-n" style="font-size:18px">${money(totalHoy)}</div><div class="stat-l">Total facturado hoy</div></div>
+        </div>
+        <div class="grid">
+          <div class="card c7"><div class="ch"><div class="ct"><i class="ri-bill-line"></i> Últimas facturas</div><a href="facturas.html" class="btn btn-o btn-sm">Ver todas</a></div><table class="table"><thead><tr><th>N°</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th style="text-align:right">Total</th></tr></thead><tbody>${fRows}</tbody></table></div>
+          <div class="card c5"><div class="ch"><div class="ct"><i class="ri-flashlight-line"></i> Por facturar (cotizaciones aceptadas)</div></div><table class="table"><thead><tr><th>N°</th><th>Cliente</th><th style="text-align:right">Total</th><th></th></tr></thead><tbody>${cotRows}</tbody></table></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderDashBodeguero(){
+  const reservas=(DB.reservas_cliente||[]).filter(r=>r.estado!=='completado');
+  const reservasOrd=reservas.map(r=>{const m=(r.fechaReserva||'').match(/(\d+)\/(\d+)\/(\d+)/);let dias=0;if(m){dias=Math.max(0,Math.floor((Date.now()-new Date(+m[3],+m[2]-1,+m[1]).getTime())/86400000))}return{...r,dias}}).sort((a,b)=>b.dias-a.dias);
+  const llegHoy=reservasOrd.slice(0,6);
+  const pedAsig=DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_despachado');
+  const ocTransito=DB.compras.filter(c=>c.estado==='transito').length;
+  const ocRecibidas=DB.compras.filter(c=>c.estado==='recibida').length;
+  const lowStock=[];DB.productos.forEach(p=>{let t=0;DB.bodegas.forEach(b=>t+=DB.stock[b.id][p.sku]||0);if(t<=20)lowStock.push({n:p.n,sku:p.sku,t,u:p.u})});lowStock.sort((a,b)=>a.t-b.t);
+  const llegRows=llegHoy.map(r=>{const pr=getProd(r.sku);const pend=r.cantidad-(r.entregadoAcumulado||0);return '<tr><td><b>'+r.clienteNombre+'</b><div style="font-size:10px;color:var(--mut)">'+r.pedidoRef+'</div></td><td>'+(pr?.n||r.sku)+'</td><td><b>'+fmt(pend)+'</b> '+(pr?.u||'unid')+'</td><td><span class="badge bb">'+r.bodega+'</span></td><td><span style="color:'+sobranteEdadColor(r.dias)+';font-weight:800">'+r.dias+' d</span></td></tr>'}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:18px">No hay clientes esperando retirar mercancía 🎉</td></tr>';
+  const pedRows=pedAsig.slice(0,6).map(p=>{const pct=pedidoPorcentaje(p);return '<tr><td><b>'+p.id+'</b></td><td>'+clienteNombre(p)+'</td><td><span class="badge '+pedEstBadge(p.estado)+'"><i class="'+pedEstIcon(p.estado)+'"></i> '+pedEstLabel(p.estado)+'</span></td><td><div class="pd-progress"><div class="bar"><span style="width:'+pct+'%;background:'+(pct===100?'var(--success-txt)':pct>0?'var(--warn-txt)':'var(--info-txt)')+'"></span></div><span class="pd-progress-l">'+pct+'%</span></div></td></tr>'}).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--mut);padding:14px">Sin pedidos por despachar</td></tr>';
+  const lowRows=lowStock.slice(0,5).map(s=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:'+(s.t===0?'var(--danger-bg)':'var(--warn-bg)')+';color:'+(s.t===0?'var(--danger-txt)':'var(--warn-txt)')+';border-radius:8px;margin-bottom:5px;font-size:11.5px"><span style="font-weight:600">'+s.n+'</span><b>'+(s.t===0?'AGOTADO':fmt(s.t)+' '+s.u)+'</b></div>').join('')||'<div style="text-align:center;color:var(--mut);padding:14px;font-size:12px">Stock saludable ✓</div>';
+  return `
+    <div class="page th-dash">
+      <div class="hero"><div class="hero-ic"><i class="ri-archive-2-line"></i></div><h1>Bodega — ${currentUser.n.split(' ')[0]}</h1><p>Vista de Operario de Despacho — clientes esperando retiro, stock crítico, pedidos a despachar y OC entrando.</p><div class="hero-act"><a href="pedidos.html" class="btn btn-p"><i class="ri-send-plane-line"></i> Ver pedidos a despachar</a><a href="reclamar.html" class="btn btn-o"><i class="ri-inbox-unarchive-line"></i> Reclamar OC</a></div></div>
+      <div class="body">
+        <div class="grid" style="margin-bottom:18px">
+          <div class="stat c3"><div class="stat-ic" style="background:var(--warn-txt)"><i class="ri-archive-stack-line"></i></div><div class="stat-n">${reservas.length}</div><div class="stat-l">Clientes esperando retiro</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--rojo)"><i class="ri-send-plane-line"></i></div><div class="stat-n">${pedAsig.length}</div><div class="stat-l">Pedidos por despachar</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--info-txt)"><i class="ri-truck-line"></i></div><div class="stat-n">${ocTransito}</div><div class="stat-l">OC en tránsito</div></div>
+          <div class="stat c3"><div class="stat-ic" style="background:var(--success-txt)"><i class="ri-inbox-unarchive-line"></i></div><div class="stat-n">${ocRecibidas}</div><div class="stat-l">OC para reclamar</div></div>
+        </div>
+        <div class="grid">
+          <div class="card c8"><div class="ch"><div class="ct"><i class="ri-archive-stack-line" style="color:var(--warn-txt)"></i> Mercancía esperando retiro (Llegadas)</div><a href="sobrantes.html" class="btn btn-o btn-sm">Ver sobrantes</a></div><table class="table"><thead><tr><th>Cliente</th><th>Producto</th><th>Pendiente</th><th>Bodega</th><th>Esperando</th></tr></thead><tbody>${llegRows}</tbody></table></div>
+          <div class="card c4"><div class="ch"><div class="ct"><i class="ri-alert-line"></i> Stock crítico</div></div>${lowRows}</div>
+        </div>
+        <div class="grid" style="margin-top:14px">
+          <div class="card c12"><div class="ch"><div class="ct"><i class="ri-send-plane-line"></i> Pedidos por despachar</div><a href="pedidos.html" class="btn btn-o btn-sm">Ver todos</a></div><table class="table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Estado</th><th style="width:30%">Avance</th></tr></thead><tbody>${pedRows}</tbody></table></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderDashAdmin(){
   const pend=DB.pedidos.filter(p=>p.estado==='pendiente').length;
   const asig=DB.pedidos.filter(p=>p.estado==='asignado'||p.estado==='parcial_asignado').length;
   const res=DB.pedidos.filter(p=>p.estado==='resagado'||p.estado==='parcial_resagado').length;
@@ -351,7 +447,9 @@ $('pg').innerHTML=function(){
       </div>
     </div>
   `;
-}();
+}
+
+$('pg').innerHTML=renderDashboard();
 </script>
 </body>
 </html>
