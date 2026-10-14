@@ -1,4 +1,7 @@
 .git
 .gitattributes
 .gitignore
+.github
+.dockerignore
+Dockerfile
 *.md
